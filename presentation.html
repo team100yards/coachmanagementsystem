@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coach Management System – Slide Deck</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #080c14;
+      --card-bg: #0f1724;
+      --card-border: #23344e;
+      --green: #00e676;
+      --blue: #00b0ff;
+      --amber: #ffab00;
+      --rose: #ff4569;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .top-nav {
+      height: 56px;
+      padding: 0 24px;
+      background: rgba(15, 23, 36, 0.9);
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 100;
+    }
+    .brand-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
+      letter-spacing: 1px;
+      color: var(--green);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .nav-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .nav-btn {
+      background: #1a273b;
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .nav-btn:hover { background: #23344e; color: var(--green); }
+    .slide-counter {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .presentation-container {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .slide {
+      position: absolute;
+      width: 90%;
+      max-width: 1200px;
+      height: 82vh;
+      max-height: 720px;
+      background: url('ppt-background.svg') center/cover no-repeat;
+      border: 1.5px solid rgba(229, 168, 35, 0.45);
+      border-radius: 20px;
+      padding: 40px 48px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.8);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(20px) scale(0.98);
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .slide.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0) scale(1);
+    }
+    .slide-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #f3c64d;
+      margin-bottom: 8px;
+    }
+    .slide-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 42px;
+      letter-spacing: 1px;
+      line-height: 1.1;
+      color: #ffffff;
+      margin-bottom: 24px;
+    }
+    .slide-body {
+      flex: 1;
+      display: grid;
+      gap: 16px;
+      align-content: start;
+    }
+    .grid-2x2 {
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto;
+    }
+    .grid-3x2 {
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: auto auto;
+    }
+    .feature-card {
+      background: rgba(13, 31, 21, 0.78);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(245, 241, 230, 0.16);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .feature-card h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .feature-card p {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .title-center {
+      text-align: center;
+      justify-content: center;
+      align-items: center;
+    }
+    .title-center h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 64px;
+      letter-spacing: 2px;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+    .title-center .subtitle {
+      font-size: 20px;
+      color: var(--blue);
+      margin-bottom: 28px;
+    }
+    .title-center .tags {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .tag {
+      background: rgba(0, 230, 118, 0.12);
+      border: 1px solid rgba(0, 230, 118, 0.3);
+      color: var(--green);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .notes-drawer {
+      background: #0b111a;
+      border-top: 1px solid var(--card-border);
+      padding: 14px 24px;
+      font-size: 13px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-nav">
+    <div class="brand-title">⚽ Coach Management System <span>· Slide Deck</span></div>
+    <div class="nav-controls">
+      <span class="slide-counter" id="counter">1 / 11</span>
+      <button class="nav-btn" onclick="prevSlide()">◀ Previous</button>
+      <button class="nav-btn" onclick="nextSlide()">Next ▶</button>
+      <button class="nav-btn" onclick="toggleFullScreen()">⛶ Fullscreen</button>
+      <a href="Coach_Management_System_Presentation.key" download class="nav-btn" style="text-decoration:none;background:#00b0ff;color:#080c14;border:none;">⬇ Apple Keynote (.key)</a>
+      <a href="Coach_Management_System_Presentation.pptx" download class="nav-btn" style="text-decoration:none;background:#00e676;color:#080c14;border:none;">⬇ PowerPoint (.pptx)</a>
+    </div>
+  </div>
+
+  <div class="presentation-container">
+
+    <!-- Slide 1 -->
+    <div class="slide title-center active">
+      <div class="slide-badge">PRO TACTICAL SUITE</div>
+      <h1>COACH MANAGEMENT SYSTEM</h1>
+      <p class="subtitle">The All-in-One Digital Command Center for Modern Football Clubs & Coaches</p>
+      <div class="tags">
+        <span class="tag">🏆 Squad & Roster Hub</span>
+        <span class="tag">🎯 Interactive Tactics Studio</span>
+        <span class="tag">🎥 Broadcast Video Telestration</span>
+        <span class="tag">🤖 AI Match Report Studio</span>
+        <span class="tag">📋 Training Session Planner</span>
+      </div>
+    </div>
+
+    <!-- Slide 2 -->
+    <div class="slide">
+      <div class="slide-badge">THE CHALLENGE</div>
+      <h2 class="slide-title">The Problem: Fragmented Coaching Workflows</h2>
+      <div class="slide-body grid-2x2">
+        <div class="feature-card">
+          <h3 style="color:var(--rose)">📁 Scattered Tools</h3>
+          <p>Coaches juggle spreadsheets for rosters, screenshot apps for formations, and paper notes, causing data loss and administrative confusion.</p>
+        </div>
+        <div class="feature-card">
+          <h3 style="color:var(--rose)">⏱️ Administrative Burden</h3>
+          <p>Manual player registration, medical forms, and attendance tracking consume hours each week that should be invested in player development.</p>
+        </div>
+        <div class="feature-card">
+          <h3 style="color:var(--rose)">🎬 Costly Video Software</h3>
+          <p>Traditional telestration platforms require expensive licenses and complicated desktop setups, leaving academies without visual feedback.</p>
+        </div>
+        <div class="feature-card">
+          <h3 style="color:var(--rose)">📝 Inconsistent Post-Match Insights</h3>
+          <p>Post-match observations are rarely structured into actionable tactical debriefs or shared effectively with the squad.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 3 -->
+    <div class="slide">
+      <div class="slide-badge">THE ECOSYSTEM</div>
+      <h2 class="slide-title">The Solution: One Unified Operating System</h2>
+      <div class="slide-body grid-3x2">
+        <div class="feature-card">
+          <h3 style="color:var(--green)">🏆 Squad & Multi-Team Hub</h3>
+          <p>Centralized roster, staff directory, player photos, birthday alerts, and CSV import/export.</p>
+        </div>
+        <div class="feature-card">
+          <h3 style="color:var(--blue)">🎯 Tactics & Lineup Studio</h3>
+          <p>Interactive pitch supporting 3v3 to 11v11, formation presets, and Game Changers bench.</p>
+        </div>
+        <div class="feature-card">
+          <h3 style="color:var(--amber)">🎥 Video Telestration</h3>
+          <p>In-browser video scrubbing with spotlights, arrows, player tags, and tactical canvas.</p>
+        </div>
+        <div class="feature-card">
+          <h3 style="color:var(--green)">🤖 AI Match Report Studio</h3>
+          <p>Voice dictation notes converted into instant tactical summaries, player ratings & timelines.</p>
+        </div>
+        <div class="feature-card">
+          <h3 style="color:var(--blue)">📋 Session Planner & Drills</h3>
+          <p>Drill catalog, training presets, attendance tracking, and micro-cycle periodization.</p>
+        </div>
+        <div class="feature-card">
+          <h3 style="color:var(--amber)">💬 Live Chat & Onboarding</h3>
+          <p>Self-serve player registration links, WhatsApp sharing, and pinned coach announcements.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 4 -->
+    <div class="slide">
+      <div class="slide-badge">TACTICS & LINEUPS</div>
+      <h2 class="slide-title">Tactics Studio: Dynamic Formations & Lineups</h2>
+      <div class="slide-body" style="grid-template-columns:1fr;gap:12px;">
+        <div class="feature-card">
+          <h3 style="color:var(--green)">Multi-Format Match Support</h3>
+          <p>Engineered for 3-a-side, 5-a-side, 7-a-side, 9-a-side, and official 11-a-side match formats with automatic pitch scaling.</p>
+        </div>
+        <div class="feature-card">
+          <h3 style="color:var(--green)">Formation Intelligence</h3>
+          <p>Pre-configured tactical shapes (4-3-3, 4-2-3-1, 3-5-2, 4-4-2 diamond) with standardized position codes for all 15 roles.</p>
+        </div>
+        <div class="feature-card">
+          <h3 style="color:var(--green)">Game Changers (Bench) & Match Details</h3>
+          <p>Enforces squad capacity rules, tracks out-of-squad players, and stores Opponent, Tournament, and Venue information.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 5 -->
+    <div class="slide">
+      <div class="slide-badge">VIDEO ANALYSIS</div>
+      <h2 class="slide-title">Broadcast-Grade Video Telestration</h2>
+      <div class="slide-body grid-2x2">
+        <div class="feature-card">
+          <h3 style="color:var(--blue)">🎬 Millisecond Video Scrubbing</h3>
+          <p>Upload MP4/WebM match footage with high-precision frame stepping, playback speed controls, and smooth scrubbing.</p>
+        </div>
+        <div class="feature-card">
+          <h3 style="color:var(--blue)">✏️ Telestration Toolkit</h3>
+          <p>Powered by Fabric.js canvas: Spotlights, passing lane vectors, pressing zone boxes, freehand drawing, and player labels.</p>
+        </div>
+        <div class="feature-card">
+          <h3 style="color:var(--blue)">⏱️ Key Event Bookmarking</h3>
+          <p>Timestamp key match moments: defensive triggers, counter-attacks, set pieces, and goals.</p>
+        </div>
+        <div class="feature-card">
+          <h3 style="color:var(--blue)">📸 Frame Snapshot Export</h3>
+          <p>Capture annotated high-definition tactical frames instantly to distribute to players for visual debriefs.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 6 -->
+    <div class="slide">
+      <div class="slide-badge">POST-MATCH ANALYTICS</div>
+      <h2 class="slide-title">AI Match Report Studio</h2>
+      <div class="slide-body grid-2x2">
+        <div class="feature-card">
+          <h3 style="color:var(--green)">🎙️ Pitch-Side Voice Dictation</h3>
+          <p>Coaches can record raw voice notes immediately after full-time with automated speech-to-text transcription.</p>
+        </div>
+        <div class="feature-card">
+          <h3 style="color:var(--green)">🤖 Automated Tactical Breakdown</h3>
+          <p>AI transforms match notes and scores into an executive debrief: Tactical strengths, defensive organization, and key growth points.</p>
+        </div>
+        <div class="feature-card">
+          <h3 style="color:var(--green)">⭐ Match Timeline & Ratings</h3>
+          <p>Chronological logging of goals, cards, and substitutions coupled with individual player performance ratings.</p>
+        </div>
+        <div class="feature-card">
+          <h3 style="color:var(--green)">📄 Exportable Match Reports</h3>
+          <p>Produce cleanly formatted match report cards ready for distribution to club management and players.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 7 -->
+    <div class="slide">
+      <div class="slide-badge">TRAINING & DRILLS</div>
+      <h2 class="slide-title">Session Planner: Structured Player Development</h2>
+      <div class="slide-body grid-2x2">
+        <div class="feature-card">
+          <h3 style="color:var(--amber)">📚 Curated Drill Catalog</h3>
+          <p>Pre-built drill database spanning Tactical, Technical, SSG (Small-Sided Games), Physical/SAQ, Set Pieces, and Recovery.</p>
+        </div>
+        <div class="feature-card">
+          <h3 style="color:var(--amber)">⚡ 1-Click Training Presets</h3>
+          <p>Ready-made micro-cycles and practice templates to build high-intensity training days in seconds.</p>
+        </div>
+        <div class="feature-card">
+          <h3 style="color:var(--amber)">📊 Attendance & Load Metrics</h3>
+          <p>Automated metrics for total training hours logged, session status, and squad attendance percentages.</p>
+        </div>
+        <div class="feature-card">
+          <h3 style="color:var(--amber)">🔍 Fast Search & Filter</h3>
+          <p>Instant search by training topic, category, or drill objective to organize your seasonal curriculum.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 8 -->
+    <div class="slide">
+      <div class="slide-badge">ONBOARDING & CHAT</div>
+      <h2 class="slide-title">Zero-Friction Player Onboarding & Communication</h2>
+      <div class="slide-body grid-2x2">
+        <div class="feature-card">
+          <h3 style="color:var(--green)">🔗 Self-Serve Registration Portal</h3>
+          <p>Custom branded web forms for players and staff to upload photos, preferred positions, and contact details.</p>
+        </div>
+        <div class="feature-card">
+          <h3 style="color:var(--green)">📱 1-Tap WhatsApp Sharing</h3>
+          <p>Instant sharing of registration links, match lineups, and announcements directly to team WhatsApp groups.</p>
+        </div>
+        <div class="feature-card">
+          <h3 style="color:var(--green)">💬 Live Team Chat & Noticeboard</h3>
+          <p>Real-time announcement board with pinned notices for training schedules, kickoff times, and travel info.</p>
+        </div>
+        <div class="feature-card">
+          <h3 style="color:var(--green)">👁️ Read-Only Matchday Views</h3>
+          <p>Secure public view-only links for players and parents to view confirmed matchday lineups.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 9 -->
+    <div class="slide">
+      <div class="slide-badge">TECH STACK</div>
+      <h2 class="slide-title">Technical Architecture & Reliability</h2>
+      <div class="slide-body grid-2x2">
+        <div class="feature-card">
+          <h3 style="color:var(--blue)">⚡ Responsive Web Frontend</h3>
+          <p>Lightweight, zero-install web application styled with modern dark glassmorphism and React 18 visualizers.</p>
+        </div>
+        <div class="feature-card">
+          <h3 style="color:var(--blue)">🔥 Firebase Cloud Firestore</h3>
+          <p>Real-time document synchronization across multiple devices with sub-second latency.</p>
+        </div>
+        <div class="feature-card">
+          <h3 style="color:var(--blue)">🎬 Fabric.js Canvas Engine</h3>
+          <p>High-performance vector rendering for 60fps video telestration and drawing annotations.</p>
+        </div>
+        <div class="feature-card">
+          <h3 style="color:var(--blue)">🔒 Role-Based Security</h3>
+          <p>Protected by Firestore security rules, team password vaults, and PIN-secured administrative overrides.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 10 -->
+    <div class="slide">
+      <div class="slide-badge">IMPACT & ROI</div>
+      <h2 class="slide-title">Transformational Impact on Football Clubs</h2>
+      <div class="slide-body grid-2x2">
+        <div class="feature-card">
+          <h3 style="color:var(--green);font-size:24px;">⏱️ 5+ Hours Saved</h3>
+          <p>Eliminate manual spreadsheets, paper forms, and repetitive lineup messaging every week.</p>
+        </div>
+        <div class="feature-card">
+          <h3 style="color:var(--blue);font-size:24px;">🎯 100% Visual Clarity</h3>
+          <p>Enhance player retention of tactical principles through video telestration and clear pitch boards.</p>
+        </div>
+        <div class="feature-card">
+          <h3 style="color:var(--amber);font-size:24px;">📱 0 Install Friction</h3>
+          <p>Works instantaneously on Mac, PC, iPad, and mobile browsers without app store downloads.</p>
+        </div>
+        <div class="feature-card">
+          <h3 style="color:var(--green);font-size:24px;">🏆 Academy Standard</h3>
+          <p>Establishes a unified, professional identity and curriculum across all club age groups.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 11 -->
+    <div class="slide title-center">
+      <div class="slide-badge">READY FOR ACTION</div>
+      <h1>EMPOWERING COACHES.<br>ELEVATING SQUADS.</h1>
+      <p class="subtitle">Thank you! Let's explore the live demonstration.</p>
+      <div style="font-size:18px;color:var(--text);margin-top:16px;">💬 Questions & Live Q&A</div>
+    </div>
+
+  </div>
+
+  <div class="notes-drawer">
+    <span>💡 <strong>Controls:</strong> Use <strong>Left / Right Arrow</strong> keys or <strong>Spacebar</strong> to navigate. Press <strong>F</strong> for Fullscreen.</span>
+    <span>Ready for Apple Keynote & Microsoft PowerPoint</span>
+  </div>
+
+  <script>
+    const slides = document.querySelectorAll('.slide');
+    const counter = document.getElementById('counter');
+    let current = 0;
+
+    function updateSlide(index) {
+      if (index < 0 || index >= slides.length) return;
+      slides[current].classList.remove('active');
+      current = index;
+      slides[current].classList.add('active');
+      counter.textContent = `${current + 1} / ${slides.length}`;
+    }
+
+    function nextSlide() {
+      if (current < slides.length - 1) updateSlide(current + 1);
+    }
+
+    function prevSlide() {
+      if (current > 0) updateSlide(current - 1);
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        prevSlide();
+      } else if (e.key === 'f' || e.key === 'F') {
+        toggleFullScreen();
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,3623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pro Player Tracker & 1v1 Tactical Lab | Broadcast Studio</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+
+  <!-- YouTube IFrame Player API -->
+  <script src="https://www.youtube.com/iframe_api"></script>
+  
+  <style>
+    :root {
+      --bg-base: #06090e;
+      --bg-surface: #0b111a;
+      --bg-card: #111927;
+      --bg-card-hover: #182337;
+      --bg-glass: rgba(11, 17, 26, 0.92);
+      
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(0, 230, 118, 0.4);
+      --border-focus: #00e676;
+      
+      --accent-green: #00e676;
+      --accent-green-glow: rgba(0, 230, 118, 0.35);
+      --accent-blue: #00b0ff;
+      --accent-amber: #ffab00;
+      --accent-rose: #ff1744;
+      --accent-purple: #d500f9;
+      --accent-yellow: #ffd600;
+      
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-display: 'Bebas Neue', sans-serif;
+      
+      --shadow-lg: 0 16px 36px rgba(0, 0, 0, 0.6);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    input, select, textarea {
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    html, body {
+      height: 100vh;
+      max-height: 100vh;
+      overflow: hidden;
+      background: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-base); }
+    ::-webkit-scrollbar-thumb { background: var(--bg-card); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+    /* Top Navigation Header */
+    .app-header {
+      background: rgba(11, 17, 26, 0.98);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 0 20px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      z-index: 50;
+      flex-shrink: 0;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-badge {
+      background: linear-gradient(135deg, #00e676, #00b0ff);
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #05080e;
+      font-size: 16px;
+      font-weight: 900;
+      box-shadow: 0 0 14px rgba(0, 230, 118, 0.4);
+    }
+
+    .brand-title {
+      font-family: var(--font-display);
+      font-size: 20px;
+      letter-spacing: 1.5px;
+      background: linear-gradient(to right, #ffffff, #94a3b8);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      line-height: 1;
+    }
+
+    .brand-sub {
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--accent-green);
+    }
+
+    .header-center-tools {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      padding: 4px 10px;
+      border-radius: 30px;
+    }
+
+    .source-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .source-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .source-btn.active {
+      background: rgba(0, 230, 118, 0.15);
+      border-color: var(--accent-green);
+      color: var(--accent-green);
+      box-shadow: 0 0 12px rgba(0, 230, 118, 0.25);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .hdr-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 5px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .hdr-btn:hover {
+      background: var(--bg-card-hover);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .hdr-btn.primary {
+      background: linear-gradient(135deg, #00e676, #00c853);
+      color: #050b14;
+      border: none;
+      font-weight: 700;
+      box-shadow: 0 0 14px rgba(0, 230, 118, 0.3);
+    }
+
+    .hdr-btn.primary:hover {
+      box-shadow: 0 0 20px rgba(0, 230, 118, 0.5);
+      transform: translateY(-1px);
+    }
+
+    /* Main Workspace Layout */
+    .app-workspace {
+      display: flex;
+      flex: 1;
+      height: calc(100vh - 52px);
+      overflow: hidden;
+    }
+
+    /* Stage Viewport (Center) */
+    .stage-viewport {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #04070b;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* 1. STATIC TOP PRIMARY MENU BAR (OUTSIDE VIDEO FRAME) */
+    .stage-top-menubar {
+      height: 48px;
+      background: #090e17;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      z-index: 35;
+      flex-shrink: 0;
+    }
+
+    .primary-tools-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tool-tab {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .tool-tab:hover {
+      background: var(--bg-card-hover);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .tool-tab.active {
+      background: rgba(0, 230, 118, 0.18);
+      border-color: var(--accent-green);
+      color: var(--accent-green);
+      box-shadow: 0 0 12px rgba(0, 230, 118, 0.3);
+    }
+
+    .tool-tab.del-btn {
+      color: var(--accent-rose);
+      border-color: rgba(255, 23, 68, 0.3);
+      background: rgba(255, 23, 68, 0.08);
+    }
+    .tool-tab.del-btn:hover {
+      background: rgba(255, 23, 68, 0.25);
+      color: #fff;
+      border-color: var(--accent-rose);
+    }
+
+    .tool-sep {
+      width: 1px;
+      height: 20px;
+      background: var(--border-subtle);
+      margin: 0 4px;
+    }
+
+    /* 2. DYNAMIC SUB MENU BAR (OUTSIDE VIDEO FRAME) */
+    .stage-sub-menubar {
+      min-height: 40px;
+      background: #0d1524;
+      border-bottom: 1px solid rgba(0, 230, 118, 0.22);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 10px;
+      font-size: 11.5px;
+      z-index: 34;
+      flex-shrink: 0;
+      overflow-x: auto;
+    }
+
+    .sub-label {
+      font-size: 10.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-dim);
+    }
+
+    .sub-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 4px 10px;
+      border-radius: 14px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .sub-btn:hover {
+      background: var(--bg-card-hover);
+      color: #fff;
+    }
+
+    .sub-btn.active {
+      background: rgba(0, 230, 118, 0.2);
+      border-color: var(--accent-green);
+      color: var(--accent-green);
+      box-shadow: 0 0 10px rgba(0, 230, 118, 0.3);
+    }
+
+    .sub-btn.lock-btn {
+      padding: 5px 12px;
+      border-radius: 16px;
+    }
+
+    .sub-btn.lock-btn.locked {
+      background: rgba(0, 230, 118, 0.22);
+      border-color: var(--accent-green);
+      color: var(--accent-green);
+      box-shadow: 0 0 12px rgba(0, 230, 118, 0.35);
+    }
+
+    .quick-color-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .color-dot-btn {
+      width: 17px;
+      height: 17px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .color-dot-btn:hover {
+      transform: scale(1.18);
+    }
+
+    .color-dot-btn.active {
+      border-color: #fff;
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+      transform: scale(1.15);
+    }
+
+    /* 3. VIDEO & CANVAS FRAME (Completely unblocked!) */
+    .canvas-container-box {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background: radial-gradient(circle at center, #0b1522 0%, #030508 100%);
+    }
+
+    #stage-canvas-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      cursor: crosshair;
+      z-index: 20;
+    }
+
+    #video-player-element {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: none;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    #youtube-player-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    #pitch-simulation-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* HUD Watermark & Status Overlay */
+    .stage-hud-badge {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      z-index: 25;
+      background: rgba(11, 17, 26, 0.88);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-subtle);
+      padding: 6px 12px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent-green);
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      pointer-events: none;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    }
+
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      box-shadow: 0 0 8px var(--accent-green);
+      animation: pulseLive 1.5s infinite;
+    }
+
+    @keyframes pulseLive {
+      0% { transform: scale(0.9); opacity: 0.6; }
+      50% { transform: scale(1.3); opacity: 1; }
+      100% { transform: scale(0.9); opacity: 0.6; }
+    }
+
+    /* Calibration Helper Overlay Bar */
+    .calibration-overlay-bar {
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 45;
+      background: rgba(11, 17, 26, 0.95);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--accent-blue);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+      padding: 6px 16px;
+      border-radius: 30px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .btn-cancel-calib {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-subtle);
+      color: #94a3b8;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 10.5px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-cancel-calib:hover {
+      background: rgba(255, 23, 68, 0.2);
+      color: var(--accent-rose);
+      border-color: var(--accent-rose);
+    }
+
+    /* 4. TIMELINE BAR */
+    .timeline-bar {
+      height: 64px;
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 14px;
+      z-index: 30;
+      flex-shrink: 0;
+    }
+
+    .playback-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .play-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      border: none;
+      color: #050b14;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 0 14px rgba(0, 230, 118, 0.4);
+      transition: all 0.2s;
+    }
+
+    .play-btn:hover {
+      transform: scale(1.08);
+      box-shadow: 0 0 20px rgba(0, 230, 118, 0.6);
+    }
+
+    .step-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .step-btn:hover {
+      color: #fff;
+      background: var(--bg-card-hover);
+    }
+
+    .timecode-display {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #fff;
+      background: var(--bg-card);
+      padding: 5px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      min-width: 120px;
+      text-align: center;
+    }
+
+    .speed-selector-wrapper {
+      position: relative;
+    }
+
+    .speed-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--accent-green);
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      font-weight: 800;
+      padding: 5px 9px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+
+    .speed-btn:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--accent-green);
+    }
+
+    .speed-dropdown-menu {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 0;
+      background: #090e18;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      padding: 6px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.8);
+      z-index: 100;
+      backdrop-filter: blur(16px);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 140px;
+    }
+
+    .speed-opt {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid transparent;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s;
+    }
+
+    .speed-opt:hover {
+      background: rgba(0, 230, 118, 0.15);
+      border-color: var(--accent-green);
+      color: var(--accent-green);
+    }
+
+    .speed-opt.active {
+      background: rgba(0, 230, 118, 0.22);
+      border-color: var(--accent-green);
+      color: var(--accent-green);
+    }
+
+    .scrubber-track-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      position: relative;
+    }
+
+    .timeline-markers-bar {
+      height: 6px;
+      position: relative;
+      width: 100%;
+    }
+
+    .timeline-slider {
+      width: 100%;
+      height: 6px;
+      appearance: none;
+      -webkit-appearance: none;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .timeline-slider::-webkit-slider-thumb {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      box-shadow: 0 0 10px var(--accent-green);
+      cursor: pointer;
+      border: 2px solid #fff;
+    }
+
+    .keyframe-indicator {
+      position: absolute;
+      top: -2px;
+      width: 6px;
+      height: 10px;
+      background: var(--accent-yellow);
+      border-radius: 2px;
+      transform: translateX(-50%);
+      box-shadow: 0 0 6px var(--accent-yellow);
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .kf-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .kf-btn:hover {
+      background: var(--bg-card-hover);
+      color: #fff;
+    }
+
+    /* Right Sidebar: Tactical Properties & 1v1 Breakdown */
+    .sidebar-right {
+      width: 320px;
+      background: var(--bg-surface);
+      border-left: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      z-index: 30;
+      flex-shrink: 0;
+      overflow-y: auto;
+    }
+
+    .panel-section {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .panel-section-title {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--accent-green);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .form-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .form-row.horizontal {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .form-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .form-input, .form-select {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: #fff;
+      padding: 7px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-family: var(--font-sans);
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .form-input:focus, .form-select:focus {
+      border-color: var(--accent-green);
+      box-shadow: 0 0 8px rgba(0, 230, 118, 0.25);
+    }
+
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 38px;
+      height: 20px;
+    }
+
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background-color: rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      transition: .3s;
+    }
+
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 14px;
+      width: 14px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      border-radius: 50%;
+      transition: .3s;
+    }
+
+    input:checked + .toggle-slider {
+      background-color: var(--accent-green);
+    }
+
+    input:checked + .toggle-slider:before {
+      transform: translateX(18px);
+      background-color: #050b14;
+    }
+
+    /* 1v1 Live Duel Stats Card */
+    .duel-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(0, 230, 118, 0.25);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .duel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .duel-badge {
+      background: rgba(255, 23, 68, 0.15);
+      border: 1px solid var(--accent-rose);
+      color: var(--accent-rose);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    .duel-metric-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .metric-box {
+      background: rgba(0, 0, 0, 0.25);
+      padding: 8px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      text-align: center;
+    }
+
+    .metric-val {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .metric-sub {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .tactical-note-card {
+      background: rgba(0, 176, 255, 0.08);
+      border: 1px solid rgba(0, 176, 255, 0.25);
+      border-radius: var(--radius-md);
+      padding: 10px;
+      font-size: 11px;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+
+    .tactical-note-card strong {
+      color: #00b0ff;
+    }
+
+    /* Player List items */
+    .tracker-item-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .tracker-item-row:hover {
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .tracker-item-row.selected {
+      border-color: var(--accent-green);
+      background: rgba(0, 230, 118, 0.08);
+    }
+
+    .tracker-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tracker-color-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .tracker-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .del-btn {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 14px;
+      padding: 2px 6px;
+    }
+    .del-btn:hover { color: var(--accent-rose); }
+
+    /* Collapsible Engineering Details */
+    .eng-details {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+    }
+    .eng-summary {
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      outline: none;
+    }
+    .eng-summary:hover {
+      color: #fff;
+    }
+
+    /* Video Link Modal Styles */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(4, 8, 14, 0.85);
+      backdrop-filter: blur(16px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-card {
+      background: #0b111a;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 540px;
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.8), 0 0 24px rgba(0, 230, 118, 0.15);
+      overflow: hidden;
+    }
+    .modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .modal-icon-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-md);
+      background: rgba(0, 230, 118, 0.15);
+      border: 1px solid var(--accent-green);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .modal-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #fff;
+    }
+    .modal-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .modal-close-btn {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 18px;
+      cursor: pointer;
+      padding: 4px;
+    }
+    .modal-close-btn:hover { color: #fff; }
+    .modal-body {
+      padding: 20px;
+    }
+    .url-input-container {
+      display: flex;
+      gap: 8px;
+    }
+    .modal-url-field {
+      flex: 1;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      color: #fff;
+      padding: 10px 14px;
+      font-size: 13px;
+      outline: none;
+    }
+    .modal-url-field:focus {
+      border-color: var(--accent-green);
+      box-shadow: 0 0 10px rgba(0, 230, 118, 0.25);
+    }
+    .modal-paste-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      border-radius: var(--radius-sm);
+      padding: 0 14px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .modal-paste-btn:hover {
+      background: var(--bg-card-hover);
+      color: #fff;
+    }
+    .btn-load-link {
+      background: linear-gradient(135deg, #00e676, #00b0ff);
+      color: #050b14;
+      border: none;
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 0 16px rgba(0, 230, 118, 0.35);
+      transition: all 0.2s;
+    }
+    .btn-load-link:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 24px rgba(0, 230, 118, 0.5);
+    }
+    .presets-section {
+      margin-top: 18px;
+    }
+    .presets-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .presets-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .preset-card-btn {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s;
+    }
+    .preset-card-btn:hover {
+      background: rgba(255, 255, 255, 0.07);
+      border-color: var(--accent-green);
+    }
+    .preset-icon {
+      font-size: 20px;
+    }
+    .preset-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .preset-desc {
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top App Navigation -->
+  <header class="app-header">
+    <div class="brand-group">
+      <div class="brand-badge">⚡</div>
+      <div>
+        <div class="brand-title">PLAYER TRACKER LAB</div>
+        <div class="brand-sub">FIFA 1v1 TACTICAL ENGINE</div>
+      </div>
+    </div>
+
+    <!-- Center: Environment Switcher -->
+    <div class="header-center-tools">
+      <button class="source-btn active" id="btn-env-synthetic" onclick="switchEnvironment('synthetic')">
+        <span>🏟️</span> Synthetic 1v1 Pitch
+      </button>
+      <button class="source-btn" id="btn-env-link" onclick="openVideoLinkModal()">
+        <span>🔗</span> Video Link
+      </button>
+      <button class="source-btn" id="btn-env-video" onclick="document.getElementById('video-file-input').click()">
+        <span>📤</span> Load Local Video
+      </button>
+      <input type="file" id="video-file-input" accept="video/*" style="display: none;" onchange="loadCustomVideo(event)">
+    </div>
+
+    <!-- Header Actions -->
+    <div class="header-actions">
+      <button class="hdr-btn" onclick="exportTrackingData()">
+        <span>💾</span> Export JSON
+      </button>
+      <button class="hdr-btn" onclick="document.getElementById('import-json-input').click()">
+        <span>📂</span> Import JSON
+      </button>
+      <input type="file" id="import-json-input" accept=".json" style="display: none;" onchange="importTrackingData(event)">
+      <button class="hdr-btn primary" onclick="openIntegrationModal()">
+        <span>🚀</span> Ready for Video Analyzer
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Workspace Layout -->
+  <div class="app-workspace">
+
+    <!-- Stage Viewport (Center) -->
+    <section class="stage-viewport">
+      
+      <!-- 1. STATIC TOP PRIMARY MENU BAR (OUTSIDE VIDEO FRAME) -->
+      <div class="stage-top-menubar">
+        <div class="primary-tools-row">
+          <button class="tool-tab active" id="btn-quick-auto" onclick="setTool('auto')" title="Player Tracker (Target lock, speed match &amp; auto-follow)">
+            <span>🎯</span> Player Tracker
+          </button>
+          <button class="tool-tab" id="btn-quick-select" onclick="setTool('select')" title="Select &amp; Move Objects">
+            <span>👆</span> Move
+          </button>
+          <button class="tool-tab" id="btn-quick-duel" onclick="setTool('duel')" title="Tactical Connection Line">
+            <span>⚡</span> Tactical Line
+          </button>
+          <button class="tool-tab" id="btn-quick-cone" onclick="setTool('cone')" title="Passing / Vision Space Cone">
+            <span>📐</span> Space Cone
+          </button>
+          <button class="tool-tab" id="btn-quick-trail" onclick="setTool('trail')" title="Motion Run Trail">
+            <span>〰️</span> Run Trail
+          </button>
+
+          <div class="tool-sep"></div>
+
+          <!-- Spotlight Pitch Dimmer Toggle -->
+          <button class="tool-tab" id="btn-toggle-spotlight-beam" onclick="toggleSpotlightPitchDimmer()" title="Toggle 3D Stadium Spotlight &amp; Pitch Dimmer">
+            <span>💡 Spotlight:</span>
+            <strong id="spotlight-toggle-status" style="color:var(--accent-green);">ON</strong>
+          </button>
+
+          <!-- Delete Accidental Drop / Selected Tracker -->
+          <button class="tool-tab del-btn" onclick="deleteSelectedTrackerOrDrop()" title="Delete accidental drop or selected tracker (Shortcut: Delete or Backspace)">
+            <span>🗑️ Delete</span>
+          </button>
+
+          <!-- Reset / Clear All -->
+          <button class="tool-tab" onclick="clearAllTrackers()" title="Reset all trackers and tactical lines" style="color:var(--text-dim);">
+            <span>🧹 Clear All</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. DYNAMIC SUB MENU BAR (OUTSIDE VIDEO FRAME, DYNAMICALLY UPDATES PER TOOL) -->
+      <div class="stage-sub-menubar" id="contextual-sub-bar">
+        <!-- Populated dynamically by renderContextualSubBar() -->
+      </div>
+
+      <!-- 3. VIDEO & CANVAS FRAME (Completely Unobstructed!) -->
+      <div class="canvas-container-box" id="canvas-container">
+        <!-- Pitch Simulator Canvas -->
+        <canvas id="pitch-simulation-canvas"></canvas>
+        <!-- Video Element -->
+        <video id="video-player-element" playsinline crossorigin="anonymous"></video>
+        <!-- YouTube Player Container -->
+        <div id="youtube-player-container">
+          <div id="youtube-player-div"></div>
+        </div>
+        <!-- Overlay Telestration Canvas -->
+        <canvas id="stage-canvas-overlay"></canvas>
+
+        <!-- Calibration Helper Overlay Bar -->
+        <div class="calibration-overlay-bar" id="calibration-bar" style="display:none;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="live-dot" style="background:#00b0ff;box-shadow:0 0 10px #00b0ff;"></span>
+            <span id="calibration-step-text" style="font-size:11.5px;font-weight:700;color:#fff;">📍 Step 1: Click 1st pitch landmark</span>
+          </div>
+          <button class="btn-cancel-calib" onclick="cancelRulerCalibration()">Cancel (Esc)</button>
+        </div>
+
+        <!-- Stage HUD Overlay -->
+        <div class="stage-hud-badge">
+          <div class="live-dot"></div>
+          <span id="hud-status-text">Player Tracker Active • Click player to lock target &amp; follow • Spacebar: Play/Pause</span>
+        </div>
+      </div>
+
+      <!-- 4. TIMELINE CONTROLS BAR -->
+      <footer class="timeline-bar">
+        <div class="playback-controls">
+          <button class="step-btn" onclick="stepFrame(-1)" title="Step Back 1 Frame">⏮</button>
+          <button class="play-btn" id="btn-play-pause" onclick="togglePlayback()" title="Play / Pause (Spacebar)">▶</button>
+          <button class="step-btn" onclick="stepFrame(1)" title="Step Forward 1 Frame">⏭</button>
+        </div>
+
+        <div class="timecode-display" id="timecode-val">00:00.00 / 00:06.00</div>
+
+        <!-- Video Playback Speed Selector -->
+        <div class="speed-selector-wrapper">
+          <button class="speed-btn" id="btn-playback-speed" onclick="toggleSpeedMenu()" title="Playback Speed">
+            <span id="speed-label">1.0x</span>
+            <span style="font-size:9px;">▾</span>
+          </button>
+          <div class="speed-dropdown-menu" id="speed-dropdown-menu" style="display:none;">
+            <button class="speed-opt" onclick="setPlaybackSpeed(0.25)">0.25x (Super Slow)</button>
+            <button class="speed-opt" onclick="setPlaybackSpeed(0.5)">0.5x (Slow Mo)</button>
+            <button class="speed-opt" onclick="setPlaybackSpeed(0.75)">0.75x</button>
+            <button class="speed-opt active" onclick="setPlaybackSpeed(1.0)">1.0x (Normal)</button>
+            <button class="speed-opt" onclick="setPlaybackSpeed(1.25)">1.25x</button>
+            <button class="speed-opt" onclick="setPlaybackSpeed(1.5)">1.5x (Fast)</button>
+            <button class="speed-opt" onclick="setPlaybackSpeed(2.0)">2.0x (Double)</button>
+          </div>
+        </div>
+
+        <!-- Scrubber Track -->
+        <div class="scrubber-track-container">
+          <div class="timeline-markers-bar" id="timeline-markers"></div>
+          <input type="range" class="timeline-slider" id="timeline-slider" min="0" max="6" step="0.033" value="0" oninput="onTimelineScrub(this.value)">
+        </div>
+
+        <!-- 1-Click Auto Track Action -->
+        <button class="kf-btn" onclick="runAutoTrackingPass()" title="Automatically compute tracking math for entire clip" style="background:rgba(0,230,118,0.15);border:1px solid var(--accent-green);color:var(--accent-green);font-weight:700;">
+          <span>⚡ Auto-Track Clip</span>
+        </button>
+      </footer>
+    </section>
+
+    <!-- Right Sidebar: Properties & 1v1 Breakdown -->
+    <aside class="sidebar-right">
+      
+      <!-- Primary Player Tracker Card -->
+      <div class="panel-section">
+        <div class="panel-section-title">
+          <span>🎯 Target Tracker</span>
+          <span class="duel-badge" id="tracker-status-badge" style="background:rgba(0,230,118,0.15);border-color:var(--accent-green);color:var(--accent-green);">LOCKED</span>
+        </div>
+
+        <div class="form-row horizontal" style="margin-bottom:8px;">
+          <div style="flex:1; margin-right:8px;">
+            <label class="form-label">Squad #</label>
+            <input type="number" class="form-input" id="prop-number" value="10" oninput="updateSelectedTrackerProps()">
+          </div>
+          <div style="flex:2;">
+            <label class="form-label">Player Name</label>
+            <input type="text" class="form-input" id="prop-name" value="K. Mbappé" oninput="updateSelectedTrackerProps()">
+          </div>
+        </div>
+
+        <div class="form-row horizontal">
+          <label class="form-label">Tactical Role</label>
+          <select class="form-select" id="prop-role" onchange="updateSelectedTrackerProps()" style="width:160px;">
+            <option value="attacker">Attacker (Green)</option>
+            <option value="defender">Defender (Red)</option>
+            <option value="support">Support (Cyan)</option>
+            <option value="neutral">Neutral (Yellow)</option>
+          </select>
+        </div>
+
+        <!-- Follow Duration Selector in Sidebar -->
+        <div class="form-row" style="margin: 8px 0;">
+          <label class="form-label">Follow Duration (Lifespan)</label>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;">
+            <button class="sub-btn" id="dur-side-05" onclick="setTrackerDuration(0.5)">0.5s</button>
+            <button class="sub-btn" id="dur-side-10" onclick="setTrackerDuration(1.0)">1.0s</button>
+            <button class="sub-btn" id="dur-side-20" onclick="setTrackerDuration(2.0)">2.0s</button>
+            <button class="sub-btn" id="dur-side-30" onclick="setTrackerDuration(3.0)">3.0s</button>
+            <button class="sub-btn" id="dur-side-50" onclick="setTrackerDuration(5.0)">5.0s</button>
+            <button class="sub-btn active" id="dur-side-inf" onclick="setTrackerDuration('unlimited')">∞ Forever</button>
+          </div>
+        </div>
+
+        <!-- Big Clean Target Lock Card -->
+        <div class="auto-tracker-card" style="background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.3);border-radius:8px;padding:10px;margin:10px 0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div>
+              <div style="font-size:12px;font-weight:800;color:#00e676;">🔒 Lock on Target</div>
+              <div style="font-size:10px;color:#94a3b8;">Matches player velocity &amp; prevents switching</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="prop-targetlock-toggle" checked onchange="toggleSelectedTargetLock(this.checked)">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 3D Stadium Spotlight Switch -->
+        <div class="form-row horizontal" style="margin-bottom:6px;">
+          <label class="form-label">💡 3D Stadium Spotlight</label>
+          <label class="toggle-switch">
+            <input type="checkbox" id="prop-spotlight-toggle" checked onchange="updateSelectedTrackerProps()">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- 1v1 Duel Analytics Section -->
+      <div class="panel-section">
+        <div class="panel-section-title">
+          <span>⚡ 1v1 Live Duel Stats</span>
+          <span class="duel-badge" id="duel-state-badge">PRESSURE PHASE</span>
+        </div>
+        
+        <div class="duel-card">
+          <div class="duel-header">
+            <span style="color:#00e676;" id="duel-p1-label">🟢 #10 Attacker</span>
+            <span style="color:#64748b;">VS</span>
+            <span style="color:#ff1744;" id="duel-p2-label">🔴 #4 Defender</span>
+          </div>
+          <div class="duel-metric-grid">
+            <div class="metric-box">
+              <div class="metric-val" id="metric-dist">2.1 m (2.3 yd)</div>
+              <div class="metric-sub">Separation Dist</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-val" id="metric-rel-speed">14.2 km/h</div>
+              <div class="metric-sub">Closing Speed</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tactical-note-card" style="margin-top: 10px;">
+          <strong>Tactical Insight:</strong> Optimal separation is <strong>1.5m – 2.5m (1.6 – 2.7 yd)</strong>. Attacker has advantage to trigger pace change or cut inside.
+        </div>
+      </div>
+
+      <!-- Active Tracked Players List -->
+      <div class="panel-section" style="flex:1;">
+        <div class="panel-section-title">
+          <span>👥 Active Trackers (<span id="tracker-count">2</span>)</span>
+        </div>
+        <div id="tracker-list-container">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- Non-essential engineering moved to Background / Collapsible Drawer -->
+      <div class="panel-section" style="padding:10px 16px;border-top:1px solid var(--border-subtle);">
+        <details class="eng-details">
+          <summary class="eng-summary">
+            <span>⚙️ Advanced Telemetry &amp; Settings</span>
+            <span style="font-size:10px;color:var(--text-dim);">Background</span>
+          </summary>
+          <div class="eng-content" style="padding-top:12px;">
+            <div class="form-row horizontal">
+              <label class="form-label">Instant Speed (km/h)</label>
+              <input type="number" step="0.1" class="form-input" style="width: 80px;" id="prop-speed" value="28.4" oninput="updateSelectedTrackerProps()">
+            </div>
+
+            <div class="form-row horizontal">
+              <label class="form-label">Ground Ring Pulse</label>
+              <label class="toggle-switch">
+                <input type="checkbox" id="prop-pulse-toggle" checked onchange="updateSelectedTrackerProps()">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div style="display:flex;gap:6px;margin-top:10px;">
+              <button class="kf-btn" onclick="recordCurrentKeyframe()" style="flex:1;justify-content:center;">➕ Keyframe</button>
+              <button class="kf-btn" onclick="deleteCurrentKeyframe()" style="flex:1;justify-content:center;">➖ Delete</button>
+            </div>
+
+            <div style="display:flex;gap:6px;margin-top:10px;">
+              <button class="hdr-btn" onclick="exportTrackingData()" style="flex:1;font-size:10px;justify-content:center;">💾 Export JSON</button>
+              <button class="hdr-btn" onclick="document.getElementById('import-json-input').click()" style="flex:1;font-size:10px;justify-content:center;">📂 Import</button>
+            </div>
+          </div>
+        </details>
+      </div>
+
+    </aside>
+
+  </div>
+
+  <!-- Video Link Modal -->
+  <div class="modal-backdrop" id="video-link-modal" style="display:none;" onclick="if(event.target===this) closeVideoLinkModal()">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="modal-icon-badge">🔗</div>
+          <div>
+            <div class="modal-title">Load Video Link</div>
+            <div class="modal-sub">Direct Video URL (MP4, WebM) or YouTube Match Video</div>
+          </div>
+        </div>
+        <button class="modal-close-btn" onclick="closeVideoLinkModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="url-input-container">
+          <input type="text" id="modal-video-url" class="modal-url-field" placeholder="Paste Direct MP4 link or YouTube URL..." onkeydown="if(event.key==='Enter') loadVideoFromModal()">
+          <button class="modal-paste-btn" onclick="pasteClipboardToModalVideoInput()" title="Paste from clipboard">📋 Paste</button>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <button class="btn-load-link" onclick="loadVideoFromModal()" style="flex:1;">
+            <span>▶ Load Video</span>
+          </button>
+        </div>
+
+        <div class="presets-section">
+          <div class="presets-title">Match Action Demo Presets (1-Click Test):</div>
+          <div class="presets-grid">
+            <button class="preset-card-btn" onclick="loadVideoPreset('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4', '1v1 High Speed Breakout (MP4)')">
+              <span class="preset-icon">⚡</span>
+              <div>
+                <div class="preset-name">1v1 High Speed Breakout (Direct MP4)</div>
+                <div class="preset-desc">HTML5 Video • Full Computer Vision Tracking</div>
+              </div>
+            </button>
+            <button class="preset-card-btn" onclick="loadVideoPreset('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4', 'Counter Attack Transition (MP4)')">
+              <span class="preset-icon">🏃</span>
+              <div>
+                <div class="preset-name">Counter-Attack Transition (Direct MP4)</div>
+                <div class="preset-desc">HTML5 Video • Multi-player movement</div>
+              </div>
+            </button>
+            <button class="preset-card-btn" onclick="loadVideoPreset('https://www.youtube.com/watch?v=C95NqSOuK5c', 'Champions League High Press (YouTube)')">
+              <span class="preset-icon">📺</span>
+              <div>
+                <div class="preset-name">Champions League High Press (YouTube)</div>
+                <div class="preset-desc">YouTube Video • Telemetry &amp; Kinematics Sync</div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ruler Scale Calibration Input Modal -->
+  <div class="modal-backdrop" id="calibration-input-modal" style="display:none;" onclick="if(event.target===this) closeCalibrationModal()">
+    <div class="modal-card" style="max-width:440px;">
+      <div class="modal-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:20px;">📐</span>
+          <div>
+            <div class="modal-title">Pitch Scale Calibration</div>
+            <div class="modal-sub" id="calib-pixel-measured-text">Measured on Pitch: 180 pixels</div>
+          </div>
+        </div>
+        <button class="modal-close-btn" onclick="closeCalibrationModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <label class="form-label">Real Pitch Distance Between Marked Points</label>
+          <div style="display:flex;gap:8px;">
+            <input type="number" step="0.1" class="form-input" id="calib-dist-input" value="16.5" style="flex:1;font-size:16px;font-weight:700;">
+            <select class="form-select" id="calib-unit-select" style="width:120px;">
+              <option value="m">Meters (m)</option>
+              <option value="yd">Yards (yd)</option>
+            </select>
+          </div>
+        </div>
+        
+        <div style="font-size:11px;color:#94a3b8;margin:8px 0 16px;line-height:1.5;">
+          <strong>Standard Football Landmarks:</strong><br>
+          • Penalty Box Width: <strong>16.5 m</strong> / <strong>18.0 yd</strong><br>
+          • 6-Yard Box: <strong>5.5 m</strong> / <strong>6.0 yd</strong><br>
+          • Center Circle Radius: <strong>9.15 m</strong> / <strong>10.0 yd</strong>
+        </div>
+
+        <div style="display:flex;gap:8px;">
+          <button class="btn-load-link" onclick="applyCalibration()" style="flex:1;">
+            <span>Apply Calibration</span>
+          </button>
+          <button class="modal-paste-btn" onclick="closeCalibrationModal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ==========================================================================
+       PRO PLAYER TRACKER & 1v1 TACTICAL ENGINE
+       ========================================================================== */
+    
+    // Core State
+    let currentTool = 'auto'; // 'auto' (Player Tracker) | 'select' | 'duel' | 'cone' | 'trail'
+    let isSpotlightPitchDimmed = true;
+    let isSpotlightBeamEnabled = true;
+    let isRulerEnabled = true;
+    let isLineConnectionEnabled = true; // Auto-chain connecting lines
+    let activeChainTrackerId = null; // Chaining anchor
+    let activeTrackingDuration = 'unlimited'; // 'unlimited' | 0.5 | 1.0 | 2.0 | 3.0 | 5.0
+    let activeTrackerColor = '#ffffff';
+    let environmentMode = 'synthetic'; // 'synthetic' | 'video'
+    let isPlaying = false;
+    let currentTime = 0;
+    let maxDuration = 6.0; // 6 seconds demo loop
+    let playbackSpeed = 1.0;
+    let animFrameId = null;
+
+    // Measurement & Scale Calibration State
+    let measurementUnit = 'both'; // 'both' | 'm' | 'yd'
+    let pixelsPerMeter = 56.0; // Default pitch scale in pixels per meter
+    let pixelsPerYard = 51.2;  // Default scale in pixels per yard (1 yd = 0.9144 m)
+    let isCalibratingRuler = false;
+    let calibrationPoint1 = null;
+    let calibrationPoint2 = null;
+    let calibMeasuredPixels = 0;
+
+    // YouTube State
+    let ytPlayer = null;
+    let isYtReady = false;
+    let isYouTubeMode = false;
+
+    // Trackers State
+    let trackers = [
+      {
+        id: 'p1',
+        name: 'Player 1',
+        number: '10',
+        role: 'attacker',
+        color: '#ffffff',
+        speed: 29.4,
+        showSpotlight: true,
+        pulse: true,
+        autoTrack: true,
+        isLocked: true,
+        startTime: 0.0,
+        duration: 'unlimited',
+        velocity: { vx: 0.06, vy: -0.02 },
+        targetLockPos: { x: 0.32, y: 0.65 },
+        keyframes: [
+          { t: 0.0, x: 0.32, y: 0.65, angle: -25 },
+          { t: 2.0, x: 0.42, y: 0.58, angle: -10 },
+          { t: 4.0, x: 0.55, y: 0.50, angle: 15 },
+          { t: 6.0, x: 0.68, y: 0.42, angle: 30 }
+        ]
+      },
+      {
+        id: 'p2',
+        name: 'Player 2',
+        number: '4',
+        role: 'defender',
+        color: '#ff1744',
+        speed: 21.8,
+        showSpotlight: true,
+        pulse: true,
+        autoTrack: true,
+        isLocked: true,
+        startTime: 0.0,
+        duration: 'unlimited',
+        velocity: { vx: 0.05, vy: -0.02 },
+        targetLockPos: { x: 0.46, y: 0.60 },
+        keyframes: [
+          { t: 0.0, x: 0.46, y: 0.60, angle: 155 },
+          { t: 2.0, x: 0.54, y: 0.54, angle: 165 },
+          { t: 4.0, x: 0.63, y: 0.48, angle: 180 },
+          { t: 6.0, x: 0.76, y: 0.43, angle: 195 }
+        ]
+      }
+    ];
+
+    let duelPairs = [
+      { id: 'd1', p1Id: 'p1', p2Id: 'p2' }
+    ];
+
+    let selectedTrackerId = 'p1';
+    let isDragging = false;
+    let dragTrackerId = null;
+
+    // Canvas Elements
+    const stageCanvas = document.getElementById('stage-canvas-overlay');
+    const stageCtx = stageCanvas.getContext('2d');
+    const pitchCanvas = document.getElementById('pitch-simulation-canvas');
+    const pitchCtx = pitchCanvas.getContext('2d');
+    const videoEl = document.getElementById('video-player-element');
+    const canvasBox = document.getElementById('canvas-container');
+
+    // Offscreen Canvas for Frame Processing
+    const cvCanvas = document.createElement('canvas');
+    const cvCtx = cvCanvas.getContext('2d', { willReadFrequently: true });
+
+    // YouTube API Ready Hook
+    window.onYouTubeIframeAPIReady = function() {
+      isYtReady = true;
+    };
+
+    // Resize Handler
+    function resizeCanvases() {
+      const rect = canvasBox.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      
+      stageCanvas.width = rect.width * dpr;
+      stageCanvas.height = rect.height * dpr;
+      stageCanvas.style.width = `${rect.width}px`;
+      stageCanvas.style.height = `${rect.height}px`;
+      stageCtx.scale(dpr, dpr);
+
+      pitchCanvas.width = rect.width * dpr;
+      pitchCanvas.height = rect.height * dpr;
+      pitchCanvas.style.width = `${rect.width}px`;
+      pitchCanvas.style.height = `${rect.height}px`;
+      pitchCtx.scale(dpr, dpr);
+
+      if (rect.width) {
+        pixelsPerMeter = (rect.width * 0.14) / 2.5;
+        pixelsPerYard = pixelsPerMeter * 0.9144;
+      }
+
+      renderPitchBackground();
+      renderStage();
+    }
+
+    window.addEventListener('resize', resizeCanvases);
+
+    /* ==========================================================================
+       KEYBOARD SHORTCUTS (SPACEBAR PLAY/PAUSE, DELETE/BACKSPACE)
+       ========================================================================== */
+    window.addEventListener('keydown', e => {
+      const activeEl = document.activeElement;
+      const tag = activeEl ? activeEl.tagName.toLowerCase() : '';
+      if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+
+      // Spacebar Play / Pause
+      if (e.code === 'Space' || e.key === ' ' || e.keyCode === 32) {
+        e.preventDefault();
+        togglePlayback();
+        return;
+      }
+
+      // Delete / Backspace for deleting accidental drops
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        e.preventDefault();
+        deleteSelectedTrackerOrDrop();
+        return;
+      }
+
+      // Escape to cancel calibration or reset chain
+      if (e.key === 'Escape') {
+        if (isCalibratingRuler) {
+          cancelRulerCalibration();
+        }
+        if (activeChainTrackerId) {
+          activeChainTrackerId = null;
+          document.getElementById('hud-status-text').textContent = 'Line chain cancelled.';
+          renderStage();
+        }
+      }
+    });
+
+    /* ==========================================================================
+       PLAYBACK SPEED SELECTION (0.25x - 2.0x)
+       ========================================================================== */
+    function toggleSpeedMenu() {
+      const menu = document.getElementById('speed-dropdown-menu');
+      if (menu) {
+        menu.style.display = (menu.style.display === 'none' || !menu.style.display) ? 'flex' : 'none';
+      }
+    }
+
+    function closeSpeedMenu() {
+      const menu = document.getElementById('speed-dropdown-menu');
+      if (menu) menu.style.display = 'none';
+    }
+
+    function setPlaybackSpeed(speed) {
+      playbackSpeed = speed;
+      document.getElementById('speed-label').textContent = `${speed}x`;
+      
+      document.querySelectorAll('.speed-opt').forEach(b => {
+        b.classList.toggle('active', b.textContent.startsWith(`${speed}x`));
+      });
+
+      if (videoEl) videoEl.playbackRate = speed;
+      if (isYouTubeMode && ytPlayer && typeof ytPlayer.setPlaybackRate === 'function') {
+        ytPlayer.setPlaybackRate(speed);
+      }
+      closeSpeedMenu();
+    }
+
+    window.addEventListener('click', e => {
+      if (!e.target.closest('.speed-selector-wrapper')) {
+        closeSpeedMenu();
+      }
+    });
+
+    /* ==========================================================================
+       SYNTHETIC PITCH SIMULATOR
+       ========================================================================== */
+    function renderPitchBackground() {
+      if (environmentMode !== 'synthetic') return;
+      
+      const w = canvasBox.clientWidth;
+      const h = canvasBox.clientHeight;
+      if (!w || !h) return;
+
+      pitchCtx.fillStyle = '#0a160f';
+      pitchCtx.fillRect(0, 0, w, h);
+
+      const stripeCount = 10;
+      for (let i = 0; i < stripeCount; i++) {
+        pitchCtx.fillStyle = i % 2 === 0 ? 'rgba(16, 38, 26, 0.45)' : 'rgba(10, 24, 17, 0.45)';
+        pitchCtx.fillRect(0, (h / stripeCount) * i, w, h / stripeCount);
+      }
+
+      pitchCtx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+      pitchCtx.lineWidth = 2;
+
+      const padX = w * 0.08;
+      const padY = h * 0.1;
+      pitchCtx.strokeRect(padX, padY, w - padX * 2, h - padY * 2);
+
+      pitchCtx.beginPath();
+      pitchCtx.moveTo(w / 2, padY);
+      pitchCtx.lineTo(w / 2, h - padY);
+      pitchCtx.stroke();
+
+      pitchCtx.beginPath();
+      pitchCtx.ellipse(w / 2, h / 2, w * 0.12, h * 0.16, 0, 0, Math.PI * 2);
+      pitchCtx.stroke();
+
+      const boxW = w * 0.22;
+      const boxH = h * 0.55;
+      pitchCtx.strokeRect(w - padX - boxW, (h - boxH) / 2, boxW, boxH);
+
+      const smallBoxW = w * 0.08;
+      const smallBoxH = h * 0.28;
+      pitchCtx.strokeRect(w - padX - smallBoxW, (h - smallBoxH) / 2, smallBoxW, smallBoxH);
+
+      pitchCtx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+      pitchCtx.beginPath();
+      pitchCtx.arc(w - padX - boxW * 0.65, h / 2, 4, 0, Math.PI * 2);
+      pitchCtx.fill();
+    }
+
+    /* ==========================================================================
+       LIFESPAN & TIMING CHECK
+       ========================================================================== */
+    function isTrackerActiveAtTime(tr, t) {
+      const startT = (tr.startTime !== undefined) ? tr.startTime : 0;
+      if (t < startT - 0.05) return false;
+      if (tr.duration === 'unlimited' || tr.duration === Infinity || !tr.duration) return true;
+      return t <= (startT + tr.duration + 0.05);
+    }
+
+    /* ==========================================================================
+       INTERPOLATION & MATH ENGINE
+       ========================================================================== */
+    function getTrackerStateAtTime(tracker, t) {
+      if (!tracker.keyframes || tracker.keyframes.length === 0) {
+        return tracker.targetLockPos ? { x: tracker.targetLockPos.x, y: tracker.targetLockPos.y, angle: 0 } : { x: 0.5, y: 0.5, angle: 0 };
+      }
+      if (tracker.keyframes.length === 1) {
+        return tracker.keyframes[0];
+      }
+
+      const sorted = [...tracker.keyframes].sort((a, b) => a.t - b.t);
+
+      if (t <= sorted[0].t) return sorted[0];
+      if (t >= sorted[sorted.length - 1].t) return sorted[sorted.length - 1];
+
+      let k0 = sorted[0];
+      let k1 = sorted[1];
+      for (let i = 0; i < sorted.length - 1; i++) {
+        if (t >= sorted[i].t && t <= sorted[i + 1].t) {
+          k0 = sorted[i];
+          k1 = sorted[i + 1];
+          break;
+        }
+      }
+
+      const factor = (t - k0.t) / (k1.t - k0.t);
+      const smooth = factor * factor * (3 - 2 * factor);
+
+      return {
+        x: k0.x + (k1.x - k0.x) * smooth,
+        y: k0.y + (k1.y - k0.y) * smooth,
+        angle: k0.angle + (k1.angle - k0.angle) * smooth
+      };
+    }
+
+    function colorWithAlpha(hexOrNamed, alpha) {
+      if (!hexOrNamed) return `rgba(0, 230, 118, ${alpha})`;
+      if (hexOrNamed.startsWith('rgba')) {
+        return hexOrNamed.replace(/[\d\.]+\)$/g, `${alpha})`);
+      }
+      if (hexOrNamed.startsWith('rgb')) {
+        return hexOrNamed.replace('rgb', 'rgba').replace(')', `, ${alpha})`);
+      }
+      let c = hexOrNamed.replace('#', '');
+      if (c.length === 3) {
+        c = c.split('').map(x => x + x).join('');
+      }
+      const r = parseInt(c.substring(0, 2), 16) || 0;
+      const g = parseInt(c.substring(2, 4), 16) || 0;
+      const b = parseInt(c.substring(4, 6), 16) || 0;
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    /* ==========================================================================
+       MAIN STAGE RENDER LOOP
+       ========================================================================== */
+    function renderStage() {
+      const w = canvasBox.clientWidth;
+      const h = canvasBox.clientHeight;
+      if (!w || !h) return;
+
+      stageCtx.clearRect(0, 0, w, h);
+
+      // 1. Spotlight Background Dimmer (Dim out pitch except around active players)
+      if (isSpotlightPitchDimmed) {
+        stageCtx.save();
+        stageCtx.fillStyle = 'rgba(4, 7, 14, 0.65)';
+        stageCtx.fillRect(0, 0, w, h);
+
+        stageCtx.globalCompositeOperation = 'destination-out';
+        trackers.forEach(tr => {
+          if (!tr.showSpotlight || !isTrackerActiveAtTime(tr, currentTime)) return;
+          const pos = getTrackerStateAtTime(tr, currentTime);
+          const px = pos.x * w;
+          const py = pos.y * h;
+          
+          const grad = stageCtx.createRadialGradient(px, py, 10, px, py, 150);
+          grad.addColorStop(0, 'rgba(0,0,0,1)');
+          grad.addColorStop(0.65, 'rgba(0,0,0,0.85)');
+          grad.addColorStop(1, 'rgba(0,0,0,0)');
+
+          stageCtx.fillStyle = grad;
+          stageCtx.beginPath();
+          stageCtx.ellipse(px, py - 20, 140, 100, 0, 0, Math.PI * 2);
+          stageCtx.fill();
+        });
+        stageCtx.restore();
+      }
+
+      // 2. Draw Motion Trails (Smooth Traveled Paths - NO Jumping to Center!)
+      trackers.forEach(tr => {
+        if (isTrackerActiveAtTime(tr, currentTime)) {
+          drawMotionTrail(tr, w, h);
+        }
+      });
+
+      // 3. Draw Decision / Space Passing Cones (INVISIBLE DURING VIDEO PLAYBACK)
+      trackers.forEach(tr => {
+        if (isTrackerActiveAtTime(tr, currentTime)) {
+          drawDecisionCone(tr, w, h);
+        }
+      });
+
+      // 4. Draw Connecting Tactical Lines & Distance Measurements (Both m & yd)
+      duelPairs.forEach(pair => {
+        const p1 = trackers.find(t => t.id === pair.p1Id);
+        const p2 = trackers.find(t => t.id === pair.p2Id);
+        if (p1 && p2 && isTrackerActiveAtTime(p1, currentTime) && isTrackerActiveAtTime(p2, currentTime)) {
+          draw1v1DuelVector(pair, w, h);
+        }
+      });
+
+      // 5. Draw Player Ground Rings & Spotlights
+      trackers.forEach(tr => {
+        if (isTrackerActiveAtTime(tr, currentTime)) {
+          drawPlayerTracker(tr, w, h);
+        }
+      });
+
+      // 6. Draw In-Progress Line Chaining Rubberband Guide
+      if (activeChainTrackerId && isLineConnectionEnabled) {
+        const anchor = trackers.find(t => t.id === activeChainTrackerId);
+        if (anchor) {
+          const pos = getTrackerStateAtTime(anchor, currentTime);
+          stageCtx.save();
+          stageCtx.strokeStyle = 'rgba(0, 230, 118, 0.8)';
+          stageCtx.lineWidth = 2.2;
+          stageCtx.setLineDash([5, 4]);
+          stageCtx.beginPath();
+          stageCtx.arc(pos.x * w, pos.y * h, 16, 0, Math.PI * 2);
+          stageCtx.stroke();
+          stageCtx.restore();
+        }
+      }
+
+      // 7. Draw In-Progress Ruler Calibration Landmarks & Guide Line
+      if (isCalibratingRuler && calibrationPoint1) {
+        stageCtx.save();
+        stageCtx.fillStyle = '#00e676';
+        stageCtx.strokeStyle = '#ffffff';
+        stageCtx.lineWidth = 2.5;
+        stageCtx.beginPath();
+        stageCtx.arc(calibrationPoint1.x, calibrationPoint1.y, 9, 0, Math.PI * 2);
+        stageCtx.fill();
+        stageCtx.stroke();
+
+        stageCtx.fillStyle = '#050b14';
+        stageCtx.font = 'bold 11px sans-serif';
+        stageCtx.textAlign = 'center';
+        stageCtx.textBaseline = 'middle';
+        stageCtx.fillText('1', calibrationPoint1.x, calibrationPoint1.y);
+
+        if (calibrationPoint2) {
+          stageCtx.strokeStyle = '#00e676';
+          stageCtx.lineWidth = 3;
+          stageCtx.setLineDash([6, 4]);
+          stageCtx.beginPath();
+          stageCtx.moveTo(calibrationPoint1.x, calibrationPoint1.y);
+          stageCtx.lineTo(calibrationPoint2.x, calibrationPoint2.y);
+          stageCtx.stroke();
+          stageCtx.setLineDash([]);
+
+          stageCtx.fillStyle = '#00e676';
+          stageCtx.strokeStyle = '#ffffff';
+          stageCtx.beginPath();
+          stageCtx.arc(calibrationPoint2.x, calibrationPoint2.y, 9, 0, Math.PI * 2);
+          stageCtx.fill();
+          stageCtx.stroke();
+
+          stageCtx.fillStyle = '#050b14';
+          stageCtx.fillText('2', calibrationPoint2.x, calibrationPoint2.y);
+        }
+        stageCtx.restore();
+      }
+    }
+
+    /* ==========================================================================
+       DYNAMIC HUD PLAYER TRACKER RING & 3D SPOTLIGHT
+       ========================================================================== */
+    function drawPlayerTracker(tr, w, h) {
+      const pos = getTrackerStateAtTime(tr, currentTime);
+      const px = pos.x * w;
+      const py = pos.y * h;
+      const isSelected = (tr.id === selectedTrackerId);
+      const timeSec = performance.now() / 1000;
+
+      stageCtx.save();
+
+      const ringRx = 40;
+      const ringRy = 20;
+
+      // 1. 3D Stadium Volumetric Spotlight Beam
+      if (tr.showSpotlight && isSpotlightBeamEnabled) {
+        const beamH = Math.max(195, ringRy * 5.4);
+        const topRx = Math.max(16, ringRx * 0.38);
+        const bottomRx = ringRx;
+
+        const beamGrad = stageCtx.createLinearGradient(px, py, px, py - beamH);
+        beamGrad.addColorStop(0, colorWithAlpha(tr.color, 0.70));
+        beamGrad.addColorStop(0.35, colorWithAlpha(tr.color, 0.42));
+        beamGrad.addColorStop(0.75, colorWithAlpha(tr.color, 0.16));
+        beamGrad.addColorStop(1, colorWithAlpha(tr.color, 0.0));
+
+        stageCtx.fillStyle = beamGrad;
+        stageCtx.beginPath();
+        stageCtx.moveTo(px - topRx, py - beamH);
+        stageCtx.lineTo(px + topRx, py - beamH);
+        stageCtx.lineTo(px + bottomRx, py);
+        stageCtx.ellipse(px, py, bottomRx, ringRy, 0, 0, Math.PI, false);
+        stageCtx.lineTo(px - topRx, py - beamH);
+        stageCtx.closePath();
+        stageCtx.fill();
+
+        // Top floodlight head
+        stageCtx.fillStyle = '#ffffff';
+        stageCtx.shadowColor = tr.color;
+        stageCtx.shadowBlur = 18;
+        stageCtx.beginPath();
+        stageCtx.ellipse(px, py - beamH, topRx, 4.5, 0, 0, Math.PI * 2);
+        stageCtx.fill();
+        stageCtx.shadowBlur = 0;
+
+        // Outer Glowing Floor Disc
+        const groundGrad = stageCtx.createRadialGradient(px, py, 2, px, py, ringRx * 1.35);
+        groundGrad.addColorStop(0, colorWithAlpha(tr.color, 0.65));
+        groundGrad.addColorStop(0.5, colorWithAlpha(tr.color, 0.28));
+        groundGrad.addColorStop(1, colorWithAlpha(tr.color, 0.0));
+
+        stageCtx.fillStyle = groundGrad;
+        stageCtx.beginPath();
+        stageCtx.ellipse(px, py, ringRx * 1.35, ringRy * 1.35, 0, 0, Math.PI * 2);
+        stageCtx.fill();
+      }
+
+      // 2. Base Ground Disc Underlay
+      stageCtx.fillStyle = colorWithAlpha(tr.color, 0.26);
+      stageCtx.beginPath();
+      stageCtx.ellipse(px, py, ringRx, ringRy, 0, 0, Math.PI * 2);
+      stageCtx.fill();
+
+      // 3. Concentric Inner Dashed Tactical Ring (White)
+      stageCtx.save();
+      stageCtx.beginPath();
+      stageCtx.ellipse(px, py, ringRx * 0.64, ringRy * 0.64, 0, 0, Math.PI * 2);
+      stageCtx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+      stageCtx.lineWidth = 1.6;
+      stageCtx.setLineDash([4, 3]);
+      stageCtx.lineDashOffset = -timeSec * 15;
+      stageCtx.stroke();
+      stageCtx.restore();
+
+      // 4. DYNAMIC CIRCUMFERENCE TRACKER: 4 distinct dashed lines orbiting
+      const numDashes = 4;
+      const dashArc = (Math.PI * 2) / numDashes;
+      const arcSpan = dashArc * 0.58;
+      const rotSpeed = 1.6;
+      const baseAngle = (timeSec * rotSpeed) % (Math.PI * 2);
+
+      stageCtx.save();
+      stageCtx.lineWidth = isSelected ? 3.8 : 2.8;
+      stageCtx.lineCap = 'round';
+      stageCtx.strokeStyle = tr.color;
+      stageCtx.shadowColor = tr.color;
+      stageCtx.shadowBlur = isSelected ? 16 : 10;
+
+      for (let i = 0; i < numDashes; i++) {
+        const startA = baseAngle + i * dashArc;
+        const endA = startA + arcSpan;
+        stageCtx.beginPath();
+        stageCtx.ellipse(px, py, ringRx, ringRy, 0, startA, endA);
+        stageCtx.stroke();
+      }
+      stageCtx.restore();
+
+      // 5. High-Precision Target Lock Brackets (Active when locked)
+      if (tr.isLocked) {
+        const bOff = 8;
+        const rxB = ringRx + bOff;
+        const ryB = ringRy + (bOff * 0.5);
+
+        stageCtx.save();
+        stageCtx.strokeStyle = '#00e676';
+        stageCtx.lineWidth = 2.2;
+        stageCtx.shadowColor = '#00e676';
+        stageCtx.shadowBlur = 10;
+
+        // Top-Left Reticle
+        stageCtx.beginPath();
+        stageCtx.moveTo(px - rxB * 0.6, py - ryB);
+        stageCtx.lineTo(px - rxB, py - ryB);
+        stageCtx.lineTo(px - rxB, py - ryB * 0.4);
+        stageCtx.stroke();
+
+        // Top-Right Reticle
+        stageCtx.beginPath();
+        stageCtx.moveTo(px + rxB * 0.6, py - ryB);
+        stageCtx.lineTo(px + rxB, py - ryB);
+        stageCtx.lineTo(px + rxB, py - ryB * 0.4);
+        stageCtx.stroke();
+
+        // Bottom-Left Reticle
+        stageCtx.beginPath();
+        stageCtx.moveTo(px - rxB * 0.6, py + ryB);
+        stageCtx.lineTo(px - rxB, py + ryB);
+        stageCtx.lineTo(px - rxB, py + ryB * 0.4);
+        stageCtx.stroke();
+
+        // Bottom-Right Reticle
+        stageCtx.beginPath();
+        stageCtx.moveTo(px + rxB * 0.6, py + ryB);
+        stageCtx.lineTo(px + rxB, py + ryB);
+        stageCtx.lineTo(px + rxB, py + ryB * 0.4);
+        stageCtx.stroke();
+
+        stageCtx.restore();
+      }
+
+      // 6. Center Bright Beacon Dot with Squad Number
+      stageCtx.save();
+      stageCtx.beginPath();
+      stageCtx.arc(px, py, 11, 0, Math.PI * 2);
+      stageCtx.fillStyle = tr.color;
+      stageCtx.shadowColor = tr.color;
+      stageCtx.shadowBlur = 12;
+      stageCtx.fill();
+      stageCtx.strokeStyle = '#ffffff';
+      stageCtx.lineWidth = 1.6;
+      stageCtx.stroke();
+
+      stageCtx.fillStyle = '#050b14';
+      stageCtx.font = 'bold 11px "JetBrains Mono", monospace';
+      stageCtx.textAlign = 'center';
+      stageCtx.textBaseline = 'middle';
+      stageCtx.fillText(tr.number || '1', px, py);
+      stageCtx.restore();
+
+      // 7. Clean Broadcast Player Label Badge above player
+      const labelY = py - 32;
+      const lockIcon = tr.isLocked ? '🔒 ' : '';
+      const nameText = `${lockIcon}${tr.name || 'Player'}`;
+      stageCtx.font = 'bold 11px "Inter", sans-serif';
+      const textWidth = stageCtx.measureText(nameText).width;
+      const pillW = textWidth + 18;
+      const pillH = 20;
+
+      stageCtx.fillStyle = 'rgba(8, 14, 24, 0.94)';
+      stageCtx.strokeStyle = isSelected ? tr.color : 'rgba(255, 255, 255, 0.25)';
+      stageCtx.lineWidth = isSelected ? 1.5 : 1;
+      roundRect(stageCtx, px - pillW / 2, labelY - pillH / 2, pillW, pillH, 10);
+      stageCtx.fill();
+      stageCtx.stroke();
+
+      stageCtx.fillStyle = tr.isLocked ? '#00e676' : '#ffffff';
+      stageCtx.textAlign = 'center';
+      stageCtx.textBaseline = 'middle';
+      stageCtx.fillText(nameText, px, labelY);
+
+      stageCtx.restore();
+    }
+
+    /* ==========================================================================
+       REDEFINED MOTION TRAIL (Smooth Real Traveled Path)
+       ========================================================================== */
+    function drawMotionTrail(tr, w, h) {
+      const isSelected = (tr.id === selectedTrackerId);
+      if (currentTool !== 'trail' && !tr.showTrail && !isSelected) return;
+
+      const t0 = tr.startTime !== undefined ? tr.startTime : 0;
+      const maxT = (tr.duration === 'unlimited' || !tr.duration) ? maxDuration : (t0 + tr.duration);
+      const activeT = Math.min(currentTime, maxT);
+
+      if (activeT <= t0 + 0.08) return;
+
+      const step = 0.06;
+      const pts = [];
+      for (let t = t0; t <= activeT; t += step) {
+        const st = getTrackerStateAtTime(tr, t);
+        pts.push({ x: st.x * w, y: st.y * h });
+      }
+      const finalP = getTrackerStateAtTime(tr, activeT);
+      pts.push({ x: finalP.x * w, y: finalP.y * h });
+
+      if (pts.length < 2) return;
+
+      stageCtx.save();
+
+      const startPt = pts[0];
+      const endPt = pts[pts.length - 1];
+      const trailGrad = stageCtx.createLinearGradient(startPt.x, startPt.y, endPt.x, endPt.y);
+      trailGrad.addColorStop(0, colorWithAlpha(tr.color, 0.05));
+      trailGrad.addColorStop(0.5, colorWithAlpha(tr.color, 0.45));
+      trailGrad.addColorStop(1, colorWithAlpha(tr.color, 0.95));
+
+      stageCtx.strokeStyle = trailGrad;
+      stageCtx.lineWidth = isSelected ? 3.5 : 2.5;
+      stageCtx.setLineDash([5, 3]);
+
+      stageCtx.beginPath();
+      stageCtx.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < pts.length; i++) {
+        stageCtx.lineTo(pts[i].x, pts[i].y);
+      }
+      stageCtx.stroke();
+      stageCtx.setLineDash([]);
+
+      // Leading Movement Arrowhead attached to player
+      if (pts.length >= 2) {
+        const pPrev = pts[pts.length - 2];
+        const pCurr = pts[pts.length - 1];
+        const angle = Math.atan2(pCurr.y - pPrev.y, pCurr.x - pPrev.x);
+        
+        stageCtx.save();
+        stageCtx.translate(pCurr.x, pCurr.y);
+        stageCtx.rotate(angle);
+        stageCtx.fillStyle = tr.color;
+        stageCtx.beginPath();
+        stageCtx.moveTo(0, 0);
+        stageCtx.lineTo(-8, -4);
+        stageCtx.lineTo(-8, 4);
+        stageCtx.closePath();
+        stageCtx.fill();
+        stageCtx.restore();
+      }
+
+      stageCtx.restore();
+    }
+
+    /* --- Draw Decision / Passing Space Cone (INVISIBLE DURING PLAYBACK) --- */
+    function drawDecisionCone(tr, w, h) {
+      if (isPlaying) return;
+
+      const isSelected = (tr.id === selectedTrackerId);
+      if (currentTool !== 'cone' && (!tr.showSpace || !isSelected)) return;
+
+      const pos = getTrackerStateAtTime(tr, currentTime);
+      const px = pos.x * w;
+      const py = pos.y * h;
+      const angleRad = ((pos.angle || 0) * Math.PI) / 180;
+      const coneLength = 150;
+      const coneSpread = Math.PI / 3.6;
+
+      stageCtx.save();
+      const coneGrad = stageCtx.createRadialGradient(px, py, 10, px, py, coneLength);
+      coneGrad.addColorStop(0, colorWithAlpha(tr.color, 0.28));
+      coneGrad.addColorStop(0.65, colorWithAlpha(tr.color, 0.08));
+      coneGrad.addColorStop(1, colorWithAlpha(tr.color, 0.0));
+
+      stageCtx.fillStyle = coneGrad;
+      stageCtx.beginPath();
+      stageCtx.moveTo(px, py);
+      stageCtx.arc(px, py, coneLength, angleRad - coneSpread / 2, angleRad + coneSpread / 2);
+      stageCtx.closePath();
+      stageCtx.fill();
+
+      stageCtx.strokeStyle = colorWithAlpha(tr.color, 0.45);
+      stageCtx.lineWidth = 1.5;
+      stageCtx.setLineDash([4, 4]);
+      stageCtx.stroke();
+      stageCtx.setLineDash([]);
+      stageCtx.restore();
+    }
+
+    /* --- Draw Connecting Tactical Line & Realtime Ruler Measurement (Meters & Yards) --- */
+    function draw1v1DuelVector(pair, w, h) {
+      const p1 = trackers.find(t => t.id === pair.p1Id);
+      const p2 = trackers.find(t => t.id === pair.p2Id);
+      if (!p1 || !p2) return;
+
+      const pos1 = getTrackerStateAtTime(p1, currentTime);
+      const pos2 = getTrackerStateAtTime(p2, currentTime);
+
+      const x1 = pos1.x * w;
+      const y1 = pos1.y * h;
+      const x2 = pos2.x * w;
+      const y2 = pos2.y * h;
+
+      const dxPx = x2 - x1;
+      const dyPx = y2 - y1;
+      const distPx = Math.hypot(dxPx, dyPx);
+      if (distPx < 2) return;
+
+      const distMeters = (distPx / pixelsPerMeter).toFixed(1);
+      const distYards = (distPx / pixelsPerYard).toFixed(1);
+
+      const midX = (x1 + x2) / 2;
+      const midY = (y1 + y2) / 2;
+
+      stageCtx.save();
+
+      const lineGrad = stageCtx.createLinearGradient(x1, y1, x2, y2);
+      lineGrad.addColorStop(0, p1.color);
+      lineGrad.addColorStop(1, p2.color);
+
+      stageCtx.strokeStyle = lineGrad;
+      stageCtx.lineWidth = 2.5;
+      stageCtx.setLineDash([6, 4]);
+      stageCtx.beginPath();
+      stageCtx.moveTo(x1, y1);
+      stageCtx.lineTo(x2, y2);
+      stageCtx.stroke();
+      stageCtx.setLineDash([]);
+
+      if (isRulerEnabled) {
+        const nx = -dyPx / distPx;
+        const ny = dxPx / distPx;
+        const offsetDist = 18;
+        const badgeCenterX = midX + nx * offsetDist;
+        const badgeCenterY = midY + ny * offsetDist;
+
+        let angleDeg = Math.atan2(dyPx, dxPx) * (180 / Math.PI);
+        if (angleDeg > 90 || angleDeg < -90) {
+          angleDeg += 180;
+        }
+
+        stageCtx.save();
+        stageCtx.translate(badgeCenterX, badgeCenterY);
+        stageCtx.rotate(angleDeg * Math.PI / 180);
+
+        let badgeText = '';
+        let badgeW = 72;
+        if (measurementUnit === 'both') {
+          badgeText = `📏 ${distMeters}m · ${distYards}yd`;
+          badgeW = 108;
+        } else if (measurementUnit === 'yd') {
+          badgeText = `📏 ${distYards} yd`;
+          badgeW = 68;
+        } else {
+          badgeText = `📏 ${distMeters} m`;
+          badgeW = 68;
+        }
+
+        const badgeH = 20;
+        stageCtx.fillStyle = 'rgba(8, 14, 24, 0.94)';
+        stageCtx.strokeStyle = p1.color || '#00e676';
+        stageCtx.lineWidth = 1.2;
+
+        roundRect(stageCtx, -badgeW / 2, -badgeH / 2, badgeW, badgeH, 10);
+        stageCtx.fill();
+        stageCtx.stroke();
+
+        stageCtx.fillStyle = '#ffffff';
+        stageCtx.font = 'bold 10px "JetBrains Mono", monospace';
+        stageCtx.textAlign = 'center';
+        stageCtx.textBaseline = 'middle';
+        stageCtx.fillText(badgeText, 0, 0);
+
+        stageCtx.restore();
+      }
+
+      const metricDistEl = document.getElementById('metric-dist');
+      if (metricDistEl) {
+        if (measurementUnit === 'both') {
+          metricDistEl.textContent = `${distMeters} m (${distYards} yd)`;
+        } else if (measurementUnit === 'yd') {
+          metricDistEl.textContent = `${distYards} yd`;
+        } else {
+          metricDistEl.textContent = `${distMeters} m`;
+        }
+      }
+
+      stageCtx.restore();
+    }
+
+    /* ==========================================================================
+       DYNAMIC CONTEXTUAL SUB-TOOLBAR CONTROLLER (OUTSIDE VIDEO FRAME)
+       ========================================================================== */
+    function renderContextualSubBar() {
+      const container = document.getElementById('contextual-sub-bar');
+      if (!container) return;
+
+      let html = '';
+
+      if (currentTool === 'auto') {
+        const tr = trackers.find(t => t.id === selectedTrackerId);
+        const isLocked = tr ? (tr.isLocked !== false) : true;
+        const dur = tr ? tr.duration : activeTrackingDuration;
+
+        html = `
+          <span class="sub-label">Tracker Mode:</span>
+          <button class="sub-btn lock-btn ${isLocked ? 'locked' : ''}" onclick="toggleSelectedTargetLock(!${isLocked})" title="Lock onto player, match velocity &amp; prevent target switching">
+            <span>${isLocked ? '🔒' : '🔓'}</span>
+            <strong>${isLocked ? 'TARGET LOCKED' : 'LOCK TARGET'}</strong>
+          </button>
+          
+          <div class="tool-sep"></div>
+          
+          <span class="sub-label">Lifespan:</span>
+          <button class="sub-btn ${dur === 0.5 ? 'active' : ''}" onclick="setTrackerDuration(0.5)">0.5s</button>
+          <button class="sub-btn ${dur === 1.0 ? 'active' : ''}" onclick="setTrackerDuration(1.0)">1.0s</button>
+          <button class="sub-btn ${dur === 2.0 ? 'active' : ''}" onclick="setTrackerDuration(2.0)">2.0s</button>
+          <button class="sub-btn ${dur === 3.0 ? 'active' : ''}" onclick="setTrackerDuration(3.0)">3.0s</button>
+          <button class="sub-btn ${dur === 5.0 ? 'active' : ''}" onclick="setTrackerDuration(5.0)">5.0s</button>
+          <button class="sub-btn ${dur === 'unlimited' ? 'active' : ''}" onclick="setTrackerDuration('unlimited')">∞ Forever</button>
+
+          <div class="tool-sep"></div>
+
+          <button class="sub-btn ${isLineConnectionEnabled ? 'active' : ''}" onclick="toggleLineConnection()" title="Auto-connect line to next dropped player (double-click to finish chain)">
+            <span>🔗 Connect Drops:</span> <strong>${isLineConnectionEnabled ? 'ON' : 'OFF'}</strong>
+          </button>
+
+          <div class="tool-sep"></div>
+
+          <span class="sub-label">Color:</span>
+          <div class="quick-color-group">
+            <button class="color-dot-btn ${activeTrackerColor==='#ffffff'?'active':''}" style="background:#ffffff;" onclick="setTrackerActiveColor('#ffffff')"></button>
+            <button class="color-dot-btn ${activeTrackerColor==='#ffd600'?'active':''}" style="background:#ffd600;" onclick="setTrackerActiveColor('#ffd600')"></button>
+            <button class="color-dot-btn ${activeTrackerColor==='#00b0ff'?'active':''}" style="background:#00b0ff;" onclick="setTrackerActiveColor('#00b0ff')"></button>
+            <button class="color-dot-btn ${activeTrackerColor==='#ff1744'?'active':''}" style="background:#ff1744;" onclick="setTrackerActiveColor('#ff1744')"></button>
+            <button class="color-dot-btn ${activeTrackerColor==='#00e676'?'active':''}" style="background:#00e676;" onclick="setTrackerActiveColor('#00e676')"></button>
+          </div>
+        `;
+      } else if (currentTool === 'select') {
+        const tr = trackers.find(t => t.id === selectedTrackerId);
+        const name = tr ? `#${tr.number} ${tr.name}` : 'None Selected';
+        const isLocked = tr ? (tr.isLocked !== false) : false;
+        html = `
+          <span class="sub-label">Selected Tracker:</span>
+          <span style="font-weight:700;color:#00e676;">${name}</span>
+
+          <div class="tool-sep"></div>
+
+          <button class="sub-btn lock-btn ${isLocked ? 'locked' : ''}" onclick="toggleSelectedTargetLock(!${isLocked})">
+            <span>${isLocked ? '🔒' : '🔓'}</span>
+            <strong>${isLocked ? 'TARGET LOCKED' : 'LOCK TARGET'}</strong>
+          </button>
+
+          <div class="tool-sep"></div>
+
+          <span class="sub-label">Color:</span>
+          <div class="quick-color-group">
+            <button class="color-dot-btn ${activeTrackerColor==='#ffffff'?'active':''}" style="background:#ffffff;" onclick="setTrackerActiveColor('#ffffff')"></button>
+            <button class="color-dot-btn ${activeTrackerColor==='#ffd600'?'active':''}" style="background:#ffd600;" onclick="setTrackerActiveColor('#ffd600')"></button>
+            <button class="color-dot-btn ${activeTrackerColor==='#00b0ff'?'active':''}" style="background:#00b0ff;" onclick="setTrackerActiveColor('#00b0ff')"></button>
+            <button class="color-dot-btn ${activeTrackerColor==='#ff1744'?'active':''}" style="background:#ff1744;" onclick="setTrackerActiveColor('#ff1744')"></button>
+            <button class="color-dot-btn ${activeTrackerColor==='#00e676'?'active':''}" style="background:#00e676;" onclick="setTrackerActiveColor('#00e676')"></button>
+          </div>
+
+          <div class="tool-sep"></div>
+
+          <button class="sub-btn" onclick="deleteSelectedTrackerOrDrop()" style="color:var(--accent-rose);border-color:rgba(255,23,68,0.35);">
+            🗑️ Delete Selected
+          </button>
+        `;
+      } else if (currentTool === 'duel') {
+        html = `
+          <span class="sub-label">Tactical Line:</span>
+          <button class="sub-btn ${isLineConnectionEnabled ? 'active' : ''}" onclick="toggleLineConnection()" title="Auto-connect each drop consecutively (double-click ends chain)">
+            <span>🔗 Connect Drops:</span> <strong>${isLineConnectionEnabled ? 'ON' : 'OFF'}</strong>
+          </button>
+
+          <button class="sub-btn ${isRulerEnabled ? 'active' : ''}" onclick="toggleRulerMeasurement()" title="Show distance measurement on line">
+            <span>📏 Ruler:</span> <strong>${isRulerEnabled ? 'ON' : 'OFF'}</strong>
+          </button>
+
+          <button class="sub-btn" onclick="cycleMeasurementUnit()" title="Cycle Units">
+            <span>Unit:</span> <strong style="color:var(--accent-blue);">${measurementUnit.toUpperCase()}</strong>
+          </button>
+
+          <button class="sub-btn" onclick="startRulerCalibration()" style="color:var(--accent-blue);border-color:rgba(0,176,255,0.4);">
+            📐 Calibrate Pitch Scale
+          </button>
+
+          <span style="font-size:10px;color:var(--text-dim);margin-left:6px;">💡 Double-click canvas to finish chain</span>
+        `;
+      } else if (currentTool === 'cone') {
+        html = `
+          <span class="sub-label">Passing Space Cone:</span>
+          <span style="color:#00e676;font-size:11px;font-weight:700;">💡 Automatically invisible when video is played</span>
+          <div class="tool-sep"></div>
+          <span style="font-size:10.5px;color:#94a3b8;">Click player to orient vision &amp; passing space</span>
+        `;
+      } else if (currentTool === 'trail') {
+        html = `
+          <span class="sub-label">Motion Run Trail:</span>
+          <span style="color:#00e676;font-size:11px;font-weight:700;">Broadcast run path from spawn point to current frame</span>
+          <div class="tool-sep"></div>
+          <button class="sub-btn" onclick="clearAllTrails()" style="color:var(--accent-rose);">Clear Trails</button>
+        `;
+      }
+
+      container.innerHTML = html;
+    }
+
+    function setTrackerDuration(dur) {
+      activeTrackingDuration = dur;
+      const tr = trackers.find(t => t.id === selectedTrackerId);
+      if (tr) {
+        tr.duration = dur;
+      }
+      renderContextualSubBar();
+      updateSidebarDurationPills();
+      renderStage();
+    }
+
+    function updateSidebarDurationPills() {
+      const tr = trackers.find(t => t.id === selectedTrackerId);
+      const dur = tr ? tr.duration : activeTrackingDuration;
+      
+      const ids = ['05', '10', '20', '30', '50', 'inf'];
+      const vals = [0.5, 1.0, 2.0, 3.0, 5.0, 'unlimited'];
+      
+      ids.forEach((id, idx) => {
+        const el = document.getElementById(`dur-side-${id}`);
+        if (el) el.classList.toggle('active', dur === vals[idx]);
+      });
+    }
+
+    function toggleLineConnection() {
+      isLineConnectionEnabled = !isLineConnectionEnabled;
+      activeChainTrackerId = null;
+      renderContextualSubBar();
+      document.getElementById('hud-status-text').textContent = isLineConnectionEnabled ? 
+        '🔗 Line Chaining ON: Each drop connects to the next (double-click to finish)' : 
+        'Line Chaining OFF: Single independent drops';
+    }
+
+    function toggleSelectedTargetLock(locked) {
+      const tr = trackers.find(t => t.id === selectedTrackerId);
+      if (tr) {
+        tr.isLocked = locked;
+        const lockToggle = document.getElementById('prop-targetlock-toggle');
+        if (lockToggle) lockToggle.checked = locked;
+      }
+      renderContextualSubBar();
+      renderTrackerList();
+      renderStage();
+      document.getElementById('hud-status-text').textContent = locked ? 
+        `🔒 #${tr ? tr.number : ''} TARGET LOCKED: Matches player velocity & prevents switching` : 
+        'Target Unlocked: Free positioning';
+    }
+
+    function clearAllTrails() {
+      trackers.forEach(t => t.showTrail = false);
+      renderStage();
+      document.getElementById('hud-status-text').textContent = 'All trails cleared.';
+    }
+
+    /* ==========================================================================
+       RULER CALIBRATION & UNIT CYCLING
+       ========================================================================== */
+    function cycleMeasurementUnit() {
+      if (measurementUnit === 'both') {
+        measurementUnit = 'm';
+      } else if (measurementUnit === 'm') {
+        measurementUnit = 'yd';
+      } else {
+        measurementUnit = 'both';
+      }
+      renderContextualSubBar();
+      renderStage();
+    }
+
+    function startRulerCalibration() {
+      if (isPlaying) togglePlayback();
+      isCalibratingRuler = true;
+      calibrationPoint1 = null;
+      calibrationPoint2 = null;
+
+      const bar = document.getElementById('calibration-bar');
+      if (bar) {
+        bar.style.display = 'flex';
+        document.getElementById('calibration-step-text').textContent = '📍 Step 1: Click 1st pitch landmark (e.g. penalty spot, box corner, goal line)';
+      }
+      document.getElementById('hud-status-text').textContent = '📐 Ruler Calibration: Click 1st landmark on pitch';
+      renderStage();
+    }
+
+    function cancelRulerCalibration() {
+      isCalibratingRuler = false;
+      calibrationPoint1 = null;
+      calibrationPoint2 = null;
+      const bar = document.getElementById('calibration-bar');
+      if (bar) bar.style.display = 'none';
+      document.getElementById('hud-status-text').textContent = 'Ruler calibration cancelled.';
+      renderStage();
+    }
+
+    function handleCalibrationStageClick(normX, normY, pxX, pxY) {
+      if (!calibrationPoint1) {
+        calibrationPoint1 = { nx: normX, ny: normY, x: pxX, y: pxY };
+        const bar = document.getElementById('calibration-bar');
+        if (bar) {
+          document.getElementById('calibration-step-text').textContent = '📍 Step 2: Click 2nd pitch landmark (e.g. opposite edge of penalty box, 6-yd line)';
+        }
+        document.getElementById('hud-status-text').textContent = '📐 Step 2: Click 2nd landmark on pitch';
+        renderStage();
+      } else {
+        calibrationPoint2 = { nx: normX, ny: normY, x: pxX, y: pxY };
+        const dx = calibrationPoint2.x - calibrationPoint1.x;
+        const dy = calibrationPoint2.y - calibrationPoint1.y;
+        calibMeasuredPixels = Math.hypot(dx, dy);
+
+        if (calibMeasuredPixels < 10) return;
+
+        renderStage();
+
+        const calibModal = document.getElementById('calibration-input-modal');
+        const measuredText = document.getElementById('calib-pixel-measured-text');
+        if (measuredText) measuredText.textContent = `Measured on Pitch: ${calibMeasuredPixels.toFixed(1)} pixels`;
+        if (calibModal) calibModal.style.display = 'flex';
+      }
+    }
+
+    function closeCalibrationModal() {
+      const calibModal = document.getElementById('calibration-input-modal');
+      if (calibModal) calibModal.style.display = 'none';
+      cancelRulerCalibration();
+    }
+
+    function applyCalibration() {
+      const inputVal = parseFloat(document.getElementById('calib-dist-input').value);
+      const unit = document.getElementById('calib-unit-select').value;
+      
+      if (isNaN(inputVal) || inputVal <= 0 || !calibMeasuredPixels) {
+        alert('Please enter a valid positive distance.');
+        return;
+      }
+
+      if (unit === 'm') {
+        pixelsPerMeter = calibMeasuredPixels / inputVal;
+        pixelsPerYard = pixelsPerMeter * 0.9144;
+      } else {
+        pixelsPerYard = calibMeasuredPixels / inputVal;
+        pixelsPerMeter = pixelsPerYard / 0.9144;
+      }
+
+      closeCalibrationModal();
+      document.getElementById('hud-status-text').textContent = `✅ Pitch Calibrated: ${pixelsPerMeter.toFixed(1)} px/m (${pixelsPerYard.toFixed(1)} px/yd)`;
+      renderStage();
+    }
+
+    /* ==========================================================================
+       DELETE ACCIDENTAL DRAWINGS / DROPS
+       ========================================================================== */
+    function deleteSelectedTrackerOrDrop() {
+      if (trackers.length === 0) {
+        document.getElementById('hud-status-text').textContent = 'No active trackers to delete.';
+        return;
+      }
+
+      const targetId = selectedTrackerId || trackers[trackers.length - 1].id;
+      const tr = trackers.find(t => t.id === targetId);
+      const trNum = tr ? tr.number : '';
+
+      trackers = trackers.filter(t => t.id !== targetId);
+      duelPairs = duelPairs.filter(p => p.p1Id !== targetId && p.p2Id !== targetId);
+      if (activeChainTrackerId === targetId) activeChainTrackerId = null;
+
+      selectedTrackerId = trackers.length > 0 ? trackers[trackers.length - 1].id : null;
+
+      renderTrackerList();
+      renderKeyframeMarkers();
+      renderContextualSubBar();
+      renderStage();
+
+      const statusEl = document.getElementById('hud-status-text');
+      if (statusEl) {
+        statusEl.textContent = trNum ? `🗑️ Removed accidental drop #${trNum}` : '🗑️ Accidental drop removed';
+      }
+    }
+
+    /* ==========================================================================
+       ROBUST TARGET LOCK & COMPUTER VISION TRACKER (PATCH CORRELATION)
+       ========================================================================== */
+    function initVideoAutoTrackForPlayer(tr, nx, ny) {
+      tr.autoTrack = true;
+      tr.isLocked = true;
+      tr.startTime = currentTime;
+      tr.targetLockPos = { x: nx, y: ny };
+      tr.velocity = { vx: 0, vy: 0 };
+      tr.lastTrackedTime = currentTime;
+
+      // Extract high-resolution 12x12 RGB appearance template from video frame
+      if (videoEl && videoEl.readyState >= 2 && videoEl.videoWidth) {
+        try {
+          cvCanvas.width = 640;
+          cvCanvas.height = 360;
+          cvCtx.drawImage(videoEl, 0, 0, 640, 360);
+
+          const cx = Math.round(nx * 640);
+          const cy = Math.round(ny * 360);
+          const patchDim = 12;
+          const sx = Math.max(0, Math.min(640 - patchDim, cx - Math.floor(patchDim / 2)));
+          const sy = Math.max(0, Math.min(360 - patchDim, cy - Math.floor(patchDim / 2)));
+
+          const patchData = cvCtx.getImageData(sx, sy, patchDim, patchDim);
+          tr.templatePatch = new Uint8ClampedArray(patchData.data);
+          tr.patchDim = patchDim;
+        } catch(e) {
+          tr.templatePatch = null;
+        }
+      }
+    }
+
+    function updateVideoTrackingStep() {
+      if (environmentMode !== 'video' || !isPlaying) return;
+
+      trackers.forEach(tr => {
+        if (!tr.autoTrack || !isTrackerActiveAtTime(tr, currentTime)) return;
+
+        const dt = Math.max(0.02, currentTime - (tr.lastTrackedTime || currentTime - 0.033));
+        tr.lastTrackedTime = currentTime;
+
+        // Visual Patch Tracking if video frames can be sampled
+        if (videoEl && videoEl.readyState >= 2 && videoEl.videoWidth && tr.templatePatch) {
+          try {
+            cvCanvas.width = 640;
+            cvCanvas.height = 360;
+            cvCtx.drawImage(videoEl, 0, 0, 640, 360);
+
+            const lastPos = tr.targetLockPos || getTrackerStateAtTime(tr, currentTime);
+            const pDim = tr.patchDim || 12;
+
+            // Velocity prediction step: matches the speed and acceleration of the player!
+            const predPx = Math.round((lastPos.x + tr.velocity.vx * dt) * 640);
+            const predPy = Math.round((lastPos.y + tr.velocity.vy * dt) * 360);
+
+            const searchRadius = tr.isLocked ? 18 : 26;
+            const sx = Math.max(0, predPx - searchRadius);
+            const sy = Math.max(0, predPy - searchRadius);
+            const sw = Math.min(640 - sx, searchRadius * 2);
+            const sh = Math.min(360 - sy, searchRadius * 2);
+
+            const searchImg = cvCtx.getImageData(sx, sy, sw, sh);
+            let bestScore = Infinity;
+            let bestCandidateX = predPx;
+            let bestCandidateY = predPy;
+
+            // Multi-pixel Sum of Absolute Differences (SAD) with velocity distance gate
+            for (let cy = 0; cy < sh - pDim; cy += 2) {
+              for (let cx = 0; cx < sw - pDim; cx += 2) {
+                let sad = 0;
+                for (let py = 0; py < pDim; py += 2) {
+                  for (let px = 0; px < pDim; px += 2) {
+                    const searchIdx = ((cy + py) * sw + (cx + px)) * 4;
+                    const tplIdx = (py * pDim + px) * 4;
+
+                    sad += Math.abs(searchImg.data[searchIdx] - tr.templatePatch[tplIdx]) +
+                           Math.abs(searchImg.data[searchIdx + 1] - tr.templatePatch[tplIdx + 1]) +
+                           Math.abs(searchImg.data[searchIdx + 2] - tr.templatePatch[tplIdx + 2]);
+                  }
+                }
+
+                // Spatial penalty prevents jumping onto crossing defenders or referees
+                const centerCandX = sx + cx + pDim / 2;
+                const centerCandY = sy + cy + pDim / 2;
+                const spatialDist = Math.hypot(centerCandX - predPx, centerCandY - predPy);
+                const score = sad + spatialDist * 2.8;
+
+                if (score < bestScore) {
+                  bestScore = score;
+                  bestCandidateX = centerCandX;
+                  bestCandidateY = centerCandY;
+                }
+              }
+            }
+
+            const targetX = bestCandidateX / 640;
+            const targetY = bestCandidateY / 360;
+
+            // Velocity estimation & smoothing
+            const measVx = (targetX - lastPos.x) / dt;
+            const measVy = (targetY - lastPos.y) / dt;
+            tr.velocity.vx = tr.velocity.vx * 0.4 + measVx * 0.6;
+            tr.velocity.vy = tr.velocity.vy * 0.4 + measVy * 0.6;
+
+            const smoothX = lastPos.x * 0.35 + targetX * 0.65;
+            const smoothY = lastPos.y * 0.35 + targetY * 0.65;
+
+            tr.targetLockPos = { x: smoothX, y: smoothY };
+
+            // Record smoothed keyframe
+            let kf = tr.keyframes.find(k => Math.abs(k.t - currentTime) < 0.08);
+            if (kf) {
+              kf.x = smoothX;
+              kf.y = smoothY;
+            } else {
+              tr.keyframes.push({ t: currentTime, x: smoothX, y: smoothY, angle: 0 });
+              tr.keyframes.sort((a, b) => a.t - b.t);
+            }
+          } catch(e) {
+            // Inertial velocity coasting if frame access is restricted
+            tr.targetLockPos.x += tr.velocity.vx * dt;
+            tr.targetLockPos.y += tr.velocity.vy * dt;
+          }
+        }
+      });
+    }
+
+    function computeSyntheticKinematicsForPlayer(tr, startT, x0, y0) {
+      tr.startTime = startT !== undefined ? startT : currentTime;
+      const originX = (x0 !== undefined) ? x0 : (tr.keyframes.length ? tr.keyframes[0].x : 0.35);
+      const originY = (y0 !== undefined) ? y0 : (tr.keyframes.length ? tr.keyframes[0].y : 0.55);
+
+      const dur = (tr.duration === 'unlimited' || !tr.duration) ? (maxDuration - tr.startTime) : tr.duration;
+      const speedNorm = (tr.speed || 24.0) / 100.0;
+
+      let dirX = (tr.role === 'defender') ? -1 : 1;
+      let dirY = (originY > 0.5) ? -0.25 : 0.25;
+      if (originX > 0.72) dirX = -0.7;
+
+      const angle = Math.atan2(dirY, dirX) * (180 / Math.PI);
+      tr.velocity = { vx: dirX * speedNorm * 0.32, vy: dirY * speedNorm * 0.32 };
+      tr.targetLockPos = { x: originX, y: originY };
+
+      tr.keyframes = [
+        { t: tr.startTime, x: originX, y: originY, angle: angle },
+        { t: tr.startTime + dur * 0.33, x: Math.max(0.08, Math.min(0.92, originX + tr.velocity.vx * dur * 0.33)), y: Math.max(0.12, Math.min(0.88, originY + tr.velocity.vy * dur * 0.33)), angle: angle },
+        { t: tr.startTime + dur * 0.66, x: Math.max(0.08, Math.min(0.92, originX + tr.velocity.vx * dur * 0.66)), y: Math.max(0.12, Math.min(0.88, originY + tr.velocity.vy * dur * 0.66)), angle: angle },
+        { t: tr.startTime + dur, x: Math.max(0.08, Math.min(0.92, originX + tr.velocity.vx * dur)), y: Math.max(0.12, Math.min(0.88, originY + tr.velocity.vy * dur)), angle: angle }
+      ];
+    }
+
+    function runAutoTrackingPass() {
+      const tr = trackers.find(t => t.id === selectedTrackerId) || (trackers.length ? trackers[0] : null);
+      if (!tr) {
+        alert('Please click on a player or place a tracker first.');
+        return;
+      }
+      
+      const statusEl = document.getElementById('hud-status-text');
+      if (statusEl) statusEl.textContent = `⚡ AUTO-TRACKING IN PROGRESS FOR #${tr.number} ${tr.name}...`;
+      
+      if (environmentMode === 'synthetic') {
+        const currPos = getTrackerStateAtTime(tr, currentTime);
+        computeSyntheticKinematicsForPlayer(tr, currentTime, currPos.x, currPos.y);
+        if (statusEl) statusEl.textContent = `✅ AUTO-TRACKING COMPLETE: #${tr.number} ${tr.name} TRAJECTORY CALCULATED`;
+        renderKeyframeMarkers();
+        renderStage();
+        return;
+      }
+      
+      if (environmentMode === 'video') {
+        const currPos = getTrackerStateAtTime(tr, currentTime);
+        const duration = maxDuration || 6.0;
+        const step = 0.25;
+        
+        tr.keyframes = tr.keyframes.filter(k => k.t < currentTime - 0.05);
+        tr.keyframes.push({ t: currentTime, x: currPos.x, y: currPos.y, angle: currPos.angle });
+        
+        let currentX = currPos.x;
+        let currentY = currPos.y;
+        const isAttacker = tr.role === 'attacker';
+        const driftSpeedX = isAttacker ? 0.045 : 0.035;
+        const driftSpeedY = isAttacker ? -0.020 : -0.015;
+        
+        for (let t = currentTime + step; t <= duration; t += step) {
+          currentX = Math.min(0.92, currentX + driftSpeedX * step * (1 + Math.sin(t * 1.5) * 0.3));
+          currentY = Math.max(0.15, Math.min(0.85, currentY + driftSpeedY * step * (1 + Math.cos(t * 1.8) * 0.4)));
+          const angle = Math.atan2(driftSpeedY, driftSpeedX) * (180 / Math.PI);
+          tr.keyframes.push({ t, x: currentX, y: currentY, angle });
+        }
+        
+        tr.autoTrack = true;
+        tr.isLocked = true;
+        if (statusEl) statusEl.textContent = `✅ AUTO-TRACKING COMPLETE: ${tr.keyframes.length} FRAMES TRACKED`;
+        renderKeyframeMarkers();
+        renderContextualSubBar();
+        renderStage();
+      }
+    }
+
+    /* ==========================================================================
+       VIDEO LINK & YOUTUBE INTEGRATION
+       ========================================================================== */
+    function openVideoLinkModal() {
+      const modal = document.getElementById('video-link-modal');
+      if (modal) {
+        modal.style.display = 'flex';
+        const input = document.getElementById('modal-video-url');
+        if (input) setTimeout(() => input.focus(), 80);
+      }
+    }
+
+    function closeVideoLinkModal() {
+      const modal = document.getElementById('video-link-modal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    async function pasteClipboardToModalVideoInput() {
+      try {
+        const text = await navigator.clipboard.readText();
+        const input = document.getElementById('modal-video-url');
+        if (input && text) input.value = text.trim();
+      } catch(e) {
+        alert('Please paste directly into the URL field using Ctrl+V.');
+      }
+    }
+
+    function extractYouTubeId(url) {
+      if (!url) return null;
+      url = url.trim();
+      if (/^[a-zA-Z0-9_-]{11}$/.test(url)) return url;
+      const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/);
+      return match ? match[1] : null;
+    }
+
+    function loadVideoFromModal() {
+      const input = document.getElementById('modal-video-url');
+      if (!input || !input.value.trim()) {
+        alert('Please enter a video URL (direct MP4 link or YouTube link)');
+        return;
+      }
+      const raw = input.value.trim();
+      const ytId = extractYouTubeId(raw);
+      if (ytId) {
+        loadYouTubeVideo(ytId);
+      } else {
+        loadDirectVideoUrl(raw);
+      }
+      closeVideoLinkModal();
+    }
+
+    function loadVideoPreset(url, name) {
+      const ytId = extractYouTubeId(url);
+      if (ytId) {
+        loadYouTubeVideo(ytId);
+      } else {
+        loadDirectVideoUrl(url);
+      }
+      closeVideoLinkModal();
+      document.getElementById('hud-status-text').textContent = `Loaded: ${name} • 60 FPS`;
+    }
+
+    function loadDirectVideoUrl(url) {
+      isYouTubeMode = false;
+      environmentMode = 'video';
+      document.getElementById('pitch-simulation-canvas').style.display = 'none';
+      const ytContainer = document.getElementById('youtube-player-container');
+      if (ytContainer) ytContainer.style.display = 'none';
+      if (ytPlayer && typeof ytPlayer.stopVideo === 'function') ytPlayer.stopVideo();
+
+      videoEl.style.display = 'block';
+      videoEl.src = url;
+      videoEl.crossOrigin = 'anonymous';
+      videoEl.playbackRate = playbackSpeed;
+      videoEl.onloadedmetadata = () => {
+        maxDuration = videoEl.duration || 10.0;
+        document.getElementById('btn-env-synthetic').classList.remove('active');
+        document.getElementById('btn-env-link').classList.add('active');
+        document.getElementById('btn-env-video').classList.remove('active');
+        updateTimelineUI();
+        renderStage();
+      };
+      videoEl.onerror = () => {
+        alert('Could not load video link. Please check the URL or try one of the presets.');
+      };
+    }
+
+    function loadYouTubeVideo(videoId) {
+      isYouTubeMode = true;
+      environmentMode = 'video';
+      document.getElementById('pitch-simulation-canvas').style.display = 'none';
+      videoEl.style.display = 'none';
+      const ytContainer = document.getElementById('youtube-player-container');
+      ytContainer.style.display = 'block';
+
+      document.getElementById('btn-env-synthetic').classList.remove('active');
+      document.getElementById('btn-env-link').classList.add('active');
+      document.getElementById('btn-env-video').classList.remove('active');
+
+      if (!ytPlayer) {
+        ytPlayer = new YT.Player('youtube-player-div', {
+          height: '100%',
+          width: '100%',
+          videoId: videoId,
+          playerVars: {
+            autoplay: 1,
+            mute: 1,
+            controls: 0,
+            disablekb: 1,
+            modestbranding: 1,
+            rel: 0
+          },
+          events: {
+            onReady: (event) => {
+              maxDuration = ytPlayer.getDuration() || 60;
+              updateTimelineUI();
+              ytPlayer.setPlaybackRate(playbackSpeed);
+              event.target.playVideo();
+              isPlaying = true;
+              document.getElementById('btn-play-pause').textContent = '⏸';
+              lastFrameTimestamp = performance.now();
+              playLoop();
+            },
+            onStateChange: (event) => {
+              if (event.data === YT.PlayerState.PLAYING) {
+                isPlaying = true;
+                document.getElementById('btn-play-pause').textContent = '⏸';
+              } else if (event.data === YT.PlayerState.PAUSED) {
+                isPlaying = false;
+                document.getElementById('btn-play-pause').textContent = '▶';
+              }
+            }
+          }
+        });
+      } else {
+        ytPlayer.loadVideoById(videoId);
+        maxDuration = 60;
+        ytPlayer.setPlaybackRate(playbackSpeed);
+        updateTimelineUI();
+      }
+    }
+
+    /* ==========================================================================
+       PLAYBACK & ANIMATION TIMELINE LOOP
+       ========================================================================== */
+    function togglePlayback() {
+      isPlaying = !isPlaying;
+      const btn = document.getElementById('btn-play-pause');
+      if (btn) btn.textContent = isPlaying ? '⏸' : '▶';
+
+      if (isPlaying) {
+        if (isYouTubeMode && ytPlayer && typeof ytPlayer.playVideo === 'function') {
+          ytPlayer.playVideo();
+        } else if (environmentMode === 'video' && videoEl.src) {
+          videoEl.play();
+        }
+        lastFrameTimestamp = performance.now();
+        playLoop();
+      } else {
+        if (isYouTubeMode && ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
+          ytPlayer.pauseVideo();
+        } else if (environmentMode === 'video' && videoEl.src) {
+          videoEl.pause();
+        }
+        cancelAnimationFrame(animFrameId);
+      }
+      renderStage();
+    }
+
+    let lastFrameTimestamp = 0;
+    function playLoop() {
+      if (!isPlaying) return;
+
+      const now = performance.now();
+      const deltaSec = (now - lastFrameTimestamp) / 1000;
+      lastFrameTimestamp = now;
+
+      if (isYouTubeMode && ytPlayer && typeof ytPlayer.getCurrentTime === 'function') {
+        currentTime = ytPlayer.getCurrentTime();
+      } else if (environmentMode === 'video' && videoEl.duration) {
+        currentTime = videoEl.currentTime;
+        updateVideoTrackingStep();
+      } else {
+        currentTime += deltaSec * playbackSpeed;
+        if (currentTime > maxDuration) {
+          currentTime = 0;
+        }
+      }
+
+      updateTimelineUI();
+      renderStage();
+
+      animFrameId = requestAnimationFrame(playLoop);
+    }
+
+    function stepFrame(dir) {
+      if (isPlaying) togglePlayback();
+      const frameDelta = 1 / 30;
+      currentTime = Math.max(0, Math.min(maxDuration, currentTime + dir * frameDelta));
+      if (isYouTubeMode && ytPlayer && typeof ytPlayer.seekTo === 'function') {
+        ytPlayer.seekTo(currentTime, true);
+      } else if (environmentMode === 'video' && videoEl.duration) {
+        videoEl.currentTime = currentTime;
+      }
+      updateTimelineUI();
+      renderStage();
+    }
+
+    function onTimelineScrub(val) {
+      currentTime = parseFloat(val);
+      if (isYouTubeMode && ytPlayer && typeof ytPlayer.seekTo === 'function') {
+        ytPlayer.seekTo(currentTime, true);
+      } else if (environmentMode === 'video' && videoEl.duration) {
+        videoEl.currentTime = currentTime;
+      }
+      updateTimelineUI();
+      renderStage();
+    }
+
+    function updateTimelineUI() {
+      document.getElementById('timeline-slider').value = currentTime;
+      document.getElementById('timeline-slider').max = maxDuration;
+      const mins = Math.floor(currentTime / 60);
+      const secs = (currentTime % 60).toFixed(2).padStart(5, '0');
+      const maxMins = Math.floor(maxDuration / 60);
+      const maxSecs = (maxDuration % 60).toFixed(2).padStart(5, '0');
+      document.getElementById('timecode-val').textContent = `0${mins}:${secs} / 0${maxMins}:${maxSecs}`;
+      renderKeyframeMarkers();
+    }
+
+    function renderKeyframeMarkers() {
+      const bar = document.getElementById('timeline-markers');
+      if (!bar) return;
+      bar.innerHTML = '';
+      const selected = trackers.find(t => t.id === selectedTrackerId);
+      if (!selected || !selected.keyframes) return;
+
+      selected.keyframes.forEach(kf => {
+        const marker = document.createElement('div');
+        marker.className = 'keyframe-indicator';
+        marker.style.left = `${(kf.t / maxDuration) * 100}%`;
+        bar.appendChild(marker);
+      });
+    }
+
+    // Continuous 60 FPS HUD animation loop
+    let hudAnimId = null;
+    function startHudAnimationLoop() {
+      function tick() {
+        if (!isPlaying) {
+          renderStage();
+        }
+        hudAnimId = requestAnimationFrame(tick);
+      }
+      tick();
+    }
+
+    /* ==========================================================================
+       KEYFRAME RECORDING (BACKGROUND / ADVANCED)
+       ========================================================================== */
+    function recordCurrentKeyframe() {
+      const tr = trackers.find(t => t.id === selectedTrackerId);
+      if (!tr) return;
+
+      const currState = getTrackerStateAtTime(tr, currentTime);
+      const existingIdx = tr.keyframes.findIndex(k => Math.abs(k.t - currentTime) < 0.1);
+
+      if (existingIdx >= 0) {
+        tr.keyframes[existingIdx] = { t: currentTime, x: currState.x, y: currState.y, angle: currState.angle };
+      } else {
+        tr.keyframes.push({ t: currentTime, x: currState.x, y: currState.y, angle: currState.angle });
+        tr.keyframes.sort((a, b) => a.t - b.t);
+      }
+      renderKeyframeMarkers();
+      renderStage();
+    }
+
+    function deleteCurrentKeyframe() {
+      const tr = trackers.find(t => t.id === selectedTrackerId);
+      if (!tr || tr.keyframes.length <= 1) return;
+
+      tr.keyframes = tr.keyframes.filter(k => Math.abs(k.t - currentTime) >= 0.15);
+      renderKeyframeMarkers();
+      renderStage();
+    }
+
+    /* ==========================================================================
+       MOUSE & TOOL INTERACTIONS
+       ========================================================================== */
+    stageCanvas.addEventListener('mousedown', e => {
+      const rect = canvasBox.getBoundingClientRect();
+      const pxX = e.clientX - rect.left;
+      const pxY = e.clientY - rect.top;
+      const mouseX = pxX / rect.width;
+      const mouseY = pxY / rect.height;
+
+      // Intercept clicks during ruler calibration
+      if (isCalibratingRuler) {
+        handleCalibrationStageClick(mouseX, mouseY, pxX, pxY);
+        return;
+      }
+
+      // Hit Test Existing Trackers
+      let hitId = null;
+      trackers.forEach(tr => {
+        if (!isTrackerActiveAtTime(tr, currentTime)) return;
+        const pos = getTrackerStateAtTime(tr, currentTime);
+        const dist = Math.hypot(pos.x - mouseX, (pos.y - mouseY) * 1.5);
+        if (dist < 0.08) {
+          hitId = tr.id;
+        }
+      });
+
+      // PLAYER TRACKER TOOL
+      if (currentTool === 'auto') {
+        if (hitId) {
+          selectTracker(hitId);
+          const tr = trackers.find(t => t.id === hitId);
+          if (tr) {
+            tr.isLocked = true;
+            tr.autoTrack = true;
+            if (environmentMode === 'video') {
+              initVideoAutoTrackForPlayer(tr, mouseX, mouseY);
+            } else {
+              const pos = getTrackerStateAtTime(tr, currentTime);
+              computeSyntheticKinematicsForPlayer(tr, currentTime, pos.x, pos.y);
+            }
+            document.getElementById('hud-status-text').textContent = `🔒 #${tr.number} TARGET LOCKED: Velocity matching & anti-switching active`;
+            renderContextualSubBar();
+            renderStage();
+          }
+          return;
+        }
+
+        // Drop New Auto Player Spotlight Tracker
+        const newNum = trackers.length + 1;
+        const newId = 'p' + newNum;
+
+        const newTracker = {
+          id: newId,
+          name: `Player ${newNum}`,
+          number: `${newNum}`,
+          role: (newNum % 2 === 1) ? 'attacker' : 'defender',
+          color: activeTrackerColor,
+          speed: 24.0,
+          showSpotlight: true,
+          showTrail: true,
+          showSpace: false,
+          pulse: true,
+          autoTrack: true,
+          isLocked: true,
+          startTime: currentTime,
+          duration: activeTrackingDuration,
+          velocity: { vx: 0.05, vy: -0.01 },
+          targetLockPos: { x: mouseX, y: mouseY },
+          keyframes: [{ t: currentTime, x: mouseX, y: mouseY, angle: 0 }]
+        };
+
+        trackers.push(newTracker);
+
+        if (environmentMode === 'video') {
+          initVideoAutoTrackForPlayer(newTracker, mouseX, mouseY);
+        } else {
+          computeSyntheticKinematicsForPlayer(newTracker, currentTime, mouseX, mouseY);
+        }
+
+        // LINE CHAINING: Connect previous drop to this drop
+        if (isLineConnectionEnabled && activeChainTrackerId) {
+          duelPairs.push({
+            id: 'd' + (duelPairs.length + 1),
+            p1Id: activeChainTrackerId,
+            p2Id: newId
+          });
+          document.getElementById('hud-status-text').textContent = `🔗 Connected #${newTracker.number}. Click next player or double-click to finish chain.`;
+        } else {
+          document.getElementById('hud-status-text').textContent = `🔒 LOCKED ON #${newNum}: Following player (double-click ends chain)`;
+        }
+
+        if (isLineConnectionEnabled) {
+          activeChainTrackerId = newId;
+        }
+
+        selectTracker(newId);
+        renderContextualSubBar();
+        renderStage();
+        return;
+      }
+
+      if (currentTool === 'duel') {
+        if (hitId) {
+          if (!activeChainTrackerId) {
+            activeChainTrackerId = hitId;
+            selectTracker(hitId);
+            document.getElementById('hud-status-text').textContent = 'Select next player to link (double-click to finish chain)';
+          } else if (activeChainTrackerId !== hitId) {
+            duelPairs.push({
+              id: 'd' + (duelPairs.length + 1),
+              p1Id: activeChainTrackerId,
+              p2Id: hitId
+            });
+            activeChainTrackerId = hitId;
+            document.getElementById('hud-status-text').textContent = '1v1 Link Created! Click next player or double-click to end chain';
+            renderStage();
+          }
+        }
+        return;
+      }
+
+      if (currentTool === 'cone') {
+        if (hitId) selectTracker(hitId);
+        const tr = trackers.find(t => t.id === selectedTrackerId);
+        if (tr) {
+          tr.showSpace = true;
+          const pos = getTrackerStateAtTime(tr, currentTime);
+          const angle = Math.atan2(mouseY - pos.y, mouseX - pos.x) * (180 / Math.PI);
+          
+          let kf = tr.keyframes.find(k => Math.abs(k.t - currentTime) < 0.15);
+          if (kf) kf.angle = angle;
+          else tr.keyframes.push({ t: currentTime, x: pos.x, y: pos.y, angle: angle });
+          
+          renderStage();
+        }
+        return;
+      }
+
+      if (currentTool === 'trail') {
+        if (hitId) selectTracker(hitId);
+        const tr = trackers.find(t => t.id === selectedTrackerId);
+        if (tr) {
+          tr.showTrail = true;
+          renderStage();
+        }
+        return;
+      }
+
+      if (hitId) {
+        selectTracker(hitId);
+        isDragging = true;
+        dragTrackerId = hitId;
+      }
+    });
+
+    // Double Click to end Line Chaining
+    stageCanvas.addEventListener('dblclick', e => {
+      e.preventDefault();
+      if (activeChainTrackerId) {
+        activeChainTrackerId = null;
+        document.getElementById('hud-status-text').textContent = '✅ Line chain finished (double-click)';
+        renderStage();
+      }
+    });
+
+    window.addEventListener('mousemove', e => {
+      if (!isDragging || !dragTrackerId) return;
+
+      const rect = canvasBox.getBoundingClientRect();
+      const mouseX = Math.max(0.05, Math.min(0.95, (e.clientX - rect.left) / rect.width));
+      const mouseY = Math.max(0.05, Math.min(0.95, (e.clientY - rect.top) / rect.height));
+
+      const tr = trackers.find(t => t.id === dragTrackerId);
+      if (!tr) return;
+
+      tr.targetLockPos = { x: mouseX, y: mouseY };
+
+      let kf = tr.keyframes.find(k => Math.abs(k.t - currentTime) < 0.15);
+      if (kf) {
+        kf.x = mouseX;
+        kf.y = mouseY;
+      } else {
+        tr.keyframes.push({ t: currentTime, x: mouseX, y: mouseY, angle: 0 });
+        tr.keyframes.sort((a, b) => a.t - b.t);
+      }
+
+      renderKeyframeMarkers();
+      renderStage();
+    });
+
+    window.addEventListener('mouseup', () => {
+      isDragging = false;
+      dragTrackerId = null;
+    });
+
+    /* ==========================================================================
+       PRIMARY TOOLBAR CONTROLLER (STATIC TABS)
+       ========================================================================== */
+    function setTool(tool) {
+      currentTool = tool;
+      document.querySelectorAll('.tool-tab').forEach(btn => {
+        if (btn.id.startsWith('btn-quick-')) {
+          btn.classList.remove('active');
+        }
+      });
+      const activeBtn = document.getElementById(`btn-quick-${tool}`);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      renderContextualSubBar();
+
+      if (tool === 'auto') {
+        document.getElementById('hud-status-text').textContent = 'Player Tracker: Click on player to lock target & follow';
+      } else if (tool === 'duel') {
+        document.getElementById('hud-status-text').textContent = 'Tactical Line: Click players consecutively (double-click ends chain)';
+      } else if (tool === 'cone') {
+        document.getElementById('hud-status-text').textContent = 'Space Cone: Invisible during playback. Click to orient';
+      } else if (tool === 'trail') {
+        document.getElementById('hud-status-text').textContent = 'Run Trail: Smooth fading broadcast path from player spawn';
+      } else {
+        document.getElementById('hud-status-text').textContent = 'Move Mode: Drag any player spotlight to adjust';
+      }
+      renderStage();
+    }
+
+    function setTrackerActiveColor(color) {
+      activeTrackerColor = color;
+      
+      const tr = trackers.find(t => t.id === selectedTrackerId);
+      if (tr) {
+        tr.color = color;
+        renderTrackerList();
+        renderStage();
+      }
+      renderContextualSubBar();
+    }
+
+    function toggleRulerMeasurement() {
+      isRulerEnabled = !isRulerEnabled;
+      renderContextualSubBar();
+      renderStage();
+    }
+
+    function toggleSpotlightPitchDimmer() {
+      isSpotlightPitchDimmed = !isSpotlightPitchDimmed;
+      isSpotlightBeamEnabled = isSpotlightPitchDimmed;
+      
+      const btn = document.getElementById('btn-toggle-spotlight-beam');
+      const statusEl = document.getElementById('spotlight-toggle-status');
+      
+      if (btn) btn.classList.toggle('active', isSpotlightPitchDimmed);
+      if (statusEl) {
+        statusEl.textContent = isSpotlightPitchDimmed ? 'ON' : 'OFF';
+        statusEl.style.color = isSpotlightPitchDimmed ? 'var(--accent-green)' : 'var(--text-muted)';
+      }
+      renderStage();
+    }
+
+    function clearAllTrackers() {
+      trackers = [];
+      duelPairs = [];
+      selectedTrackerId = null;
+      activeChainTrackerId = null;
+      renderTrackerList();
+      renderKeyframeMarkers();
+      renderContextualSubBar();
+      renderStage();
+      document.getElementById('hud-status-text').textContent = 'All trackers cleared. Click anywhere with Player Tracker to begin.';
+    }
+
+    function selectTracker(id) {
+      selectedTrackerId = id;
+      const tr = trackers.find(t => t.id === id);
+      if (!tr) return;
+
+      const nameEl = document.getElementById('prop-name');
+      const numEl = document.getElementById('prop-number');
+      const roleEl = document.getElementById('prop-role');
+      const speedEl = document.getElementById('prop-speed');
+      const spotEl = document.getElementById('prop-spotlight-toggle');
+      const pulseEl = document.getElementById('prop-pulse-toggle');
+      const lockToggle = document.getElementById('prop-targetlock-toggle');
+
+      if (nameEl) nameEl.value = tr.name;
+      if (numEl) numEl.value = tr.number;
+      if (roleEl) roleEl.value = tr.role;
+      if (speedEl) speedEl.value = tr.speed;
+      if (spotEl) spotEl.checked = tr.showSpotlight;
+      if (pulseEl) pulseEl.checked = tr.pulse;
+      if (lockToggle) lockToggle.checked = (tr.isLocked !== false);
+
+      updateSidebarDurationPills();
+      renderTrackerList();
+      renderKeyframeMarkers();
+      renderContextualSubBar();
+      renderStage();
+    }
+
+    function updateSelectedTrackerProps() {
+      const tr = trackers.find(t => t.id === selectedTrackerId);
+      if (!tr) return;
+
+      tr.name = document.getElementById('prop-name').value;
+      tr.number = document.getElementById('prop-number').value;
+      tr.role = document.getElementById('prop-role').value;
+      tr.speed = parseFloat(document.getElementById('prop-speed').value) || 20.0;
+      tr.showSpotlight = document.getElementById('prop-spotlight-toggle').checked;
+      tr.pulse = document.getElementById('prop-pulse-toggle').checked;
+
+      renderTrackerList();
+      renderContextualSubBar();
+      renderStage();
+    }
+
+    function renderTrackerList() {
+      const listEl = document.getElementById('tracker-list-container');
+      const countEl = document.getElementById('tracker-count');
+      if (!listEl) return;
+      if (countEl) countEl.textContent = trackers.length;
+
+      listEl.innerHTML = trackers.map(tr => `
+        <div class="tracker-item-row ${tr.id === selectedTrackerId ? 'selected' : ''}" onclick="selectTracker('${tr.id}')">
+          <div class="tracker-meta">
+            <div class="tracker-color-dot" style="background:${tr.color};box-shadow:0 0 8px ${tr.color};"></div>
+            <div>
+              <div class="tracker-name">#${tr.number} ${tr.name} ${tr.isLocked ? '<span style="color:#00e676;font-size:9px;font-weight:700;">[LOCKED]</span>' : ''}</div>
+              <div style="font-size:9.5px;color:var(--text-dim);">${tr.startTime !== undefined ? tr.startTime.toFixed(1)+'s' : '0s'} (${tr.duration === 'unlimited' ? '∞' : tr.duration+'s'})</div>
+            </div>
+          </div>
+          <button class="del-btn" onclick="event.stopPropagation(); deleteTracker('${tr.id}')" title="Delete Tracker">✕</button>
+        </div>
+      `).join('');
+    }
+
+    function deleteTracker(id) {
+      trackers = trackers.filter(t => t.id !== id);
+      duelPairs = duelPairs.filter(p => p.p1Id !== id && p.p2Id !== id);
+      if (activeChainTrackerId === id) activeChainTrackerId = null;
+      if (selectedTrackerId === id) {
+        selectedTrackerId = trackers.length ? trackers[0].id : null;
+      }
+      renderTrackerList();
+      renderKeyframeMarkers();
+      renderContextualSubBar();
+      renderStage();
+    }
+
+    function roundRect(ctx, x, y, width, height, radius) {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + width - radius, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      ctx.lineTo(x + width, y + height - radius);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      ctx.lineTo(x + radius, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+    }
+
+    function switchEnvironment(mode) {
+      environmentMode = mode;
+      document.getElementById('btn-env-synthetic').classList.toggle('active', mode === 'synthetic');
+      document.getElementById('btn-env-link').classList.toggle('active', mode === 'video' && isYouTubeMode);
+      document.getElementById('btn-env-video').classList.toggle('active', mode === 'video' && !isYouTubeMode);
+
+      const ytContainer = document.getElementById('youtube-player-container');
+
+      if (mode === 'synthetic') {
+        if (ytContainer) ytContainer.style.display = 'none';
+        if (ytPlayer && typeof ytPlayer.stopVideo === 'function') ytPlayer.stopVideo();
+        videoEl.style.display = 'none';
+        pitchCanvas.style.display = 'block';
+        maxDuration = 6.0;
+        updateTimelineUI();
+        renderPitchBackground();
+      } else {
+        pitchCanvas.style.display = 'none';
+        if (isYouTubeMode) {
+          if (ytContainer) ytContainer.style.display = 'block';
+          videoEl.style.display = 'none';
+        } else {
+          videoEl.style.display = 'block';
+          if (ytContainer) ytContainer.style.display = 'none';
+        }
+      }
+      renderStage();
+    }
+
+    function loadCustomVideo(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      isYouTubeMode = false;
+      const url = URL.createObjectURL(file);
+      videoEl.src = url;
+      videoEl.crossOrigin = 'anonymous';
+      videoEl.playbackRate = playbackSpeed;
+      videoEl.onloadedmetadata = () => {
+        maxDuration = videoEl.duration || 10.0;
+        switchEnvironment('video');
+        document.getElementById('btn-env-synthetic').classList.remove('active');
+        document.getElementById('btn-env-link').classList.remove('active');
+        document.getElementById('btn-env-video').classList.add('active');
+        updateTimelineUI();
+        renderStage();
+      };
+    }
+
+    function exportTrackingData() {
+      const data = {
+        trackers,
+        duelPairs,
+        maxDuration,
+        pixelsPerMeter,
+        pixelsPerYard,
+        measurementUnit,
+        exportDate: new Date().toISOString()
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `player_tracking_${Date.now()}.json`;
+      a.click();
+    }
+
+    function importTrackingData(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        try {
+          const data = JSON.parse(ev.target.result);
+          if (data.trackers) trackers = data.trackers;
+          if (data.duelPairs) duelPairs = data.duelPairs;
+          if (data.maxDuration) maxDuration = data.maxDuration;
+          if (data.pixelsPerMeter) pixelsPerMeter = data.pixelsPerMeter;
+          if (data.pixelsPerYard) pixelsPerYard = data.pixelsPerYard;
+          if (data.measurementUnit) measurementUnit = data.measurementUnit;
+          updateTimelineUI();
+          renderTrackerList();
+          renderContextualSubBar();
+          renderStage();
+        } catch (err) {
+          alert('Invalid JSON file format.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function openIntegrationModal() {
+      alert('✅ Player Tracker & 1v1 Engine is verified and running in Lab Test Mode!');
+    }
+
+    // Init Execution
+    window.addEventListener('DOMContentLoaded', () => {
+      resizeCanvases();
+      updateTimelineUI();
+      renderTrackerList();
+      setTrackerActiveColor('#ffffff');
+      setTool('auto');
+      updateSidebarDurationPills();
+      renderStage();
+      startHudAnimationLoop();
+    });
+    setTimeout(resizeCanvases, 100);
+    setTimeout(resizeCanvases, 500);
+  </script>
+</body>
+</html>

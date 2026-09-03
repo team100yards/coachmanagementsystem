@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Coach Management System · Player Registration</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g:#00c853;
+  --dk:#07090d;
+  --card:#0d1117;
+  --bd:#1e2d1e;
+  --tx:#e2f0e2;
+  --mt:#4a6a4a;
+  --red:#e53935;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  background:var(--dk);
+  color:var(--tx);
+  font-family:'DM Sans',sans-serif;
+  min-height:100vh;
+  background-image:radial-gradient(ellipse 70% 40% at 50% 0%,rgba(0,200,83,.07) 0%,transparent 70%);
+  padding:24px 16px 60px;
+}
+.wrap{max-width:520px;margin:0 auto;}
+
+/* HEADER */
+.rh{text-align:center;margin-bottom:28px;padding-top:10px;}
+.rb{
+  width:72px;height:72px;border-radius:50%;
+  background:linear-gradient(135deg,var(--g),#003d15);
+  border:2px solid rgba(0,200,83,.4);
+  display:flex;align-items:center;justify-content:center;
+  font-size:32px;margin:0 auto 14px;overflow:hidden;
+}
+.rb img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.rh h1{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:36px;letter-spacing:4px;
+  color:var(--g);line-height:1;
+}
+.rh p{color:var(--mt);font-size:13px;margin-top:6px;letter-spacing:1px;}
+
+/* SECTION LABEL */
+.slbl{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:13px;letter-spacing:3px;
+  color:var(--mt);
+  border-bottom:1px solid var(--bd);
+  padding-bottom:8px;margin-bottom:16px;margin-top:24px;
+}
+
+/* FIELDS */
+.field{margin-bottom:14px;}
+.field label{
+  display:block;font-size:11px;font-weight:700;
+  letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--mt);margin-bottom:7px;
+}
+.field label span{color:var(--red);}
+.field input,.field textarea{
+  width:100%;
+  background:rgba(255,255,255,.05);
+  border:1px solid var(--bd);
+  border-radius:12px;
+  padding:13px 15px;
+  color:var(--tx);
+  font-family:'DM Sans',sans-serif;
+  font-size:15px;
+  outline:none;
+  transition:border-color .2s,box-shadow .2s;
+}
+.field input:focus,.field textarea:focus{
+  border-color:var(--g);
+  box-shadow:0 0 0 3px rgba(0,200,83,.1);
+}
+.field input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5);}
+.field textarea{resize:vertical;min-height:78px;}
+.field input[readonly]{opacity:.6;}
+
+/* PHOTO UPLOAD */
+.photo-up{
+  border:2px dashed var(--bd);
+  border-radius:12px;
+  padding:20px;
+  text-align:center;
+  cursor:pointer;
+  transition:all .2s;
+  background:rgba(255,255,255,.02);
+}
+.photo-up:hover{
+  border-color:var(--g);
+  background:rgba(0,200,83,.05);
+}
+#pf-photo-preview{
+  width:90px; height:90px;
+  border-radius:50%;
+  object-fit:cover;
+  border:2px solid var(--g);
+  display:none;
+  margin:0 auto 10px;
+  box-shadow:0 4px 15px rgba(0,200,83,.2);
+}
+
+/* CUSTOM POSITION DROPDOWN */
+.pos-wrap{position:relative;}
+.pos-btn{
+  width:100%;
+  background:rgba(255,255,255,.05);
+  border:1px solid var(--bd);
+  border-radius:12px;
+  padding:13px 15px;
+  color:var(--tx);
+  font-family:'DM Sans',sans-serif;
+  font-size:15px;
+  cursor:pointer;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  transition:border-color .2s,box-shadow .2s;
+  user-select:none;
+}
+.pos-btn:hover,.pos-btn.open{
+  border-color:var(--g);
+  box-shadow:0 0 0 3px rgba(0,200,83,.1);
+}
+.pos-arrow{font-size:11px;color:var(--mt);transition:transform .2s;}
+.pos-btn.open .pos-arrow{transform:rotate(180deg);}
+.pos-list{
+  display:none;
+  position:absolute;
+  top:calc(100% + 4px);
+  left:0;right:0;
+  background:#0f2010;
+  border:1.5px solid var(--g);
+  border-radius:12px;
+  z-index:9999;
+  box-shadow:0 8px 32px rgba(0,0,0,.6);
+  overflow-y:auto;
+  max-height:280px;
+}
+.pos-list.open{display:block;}
+.pos-item{
+  padding:12px 16px;
+  font-size:14px;
+  color:var(--tx);
+  cursor:pointer;
+  border-bottom:1px solid rgba(255,255,255,.04);
+  transition:background .1s;
+}
+.pos-item:last-child{border-bottom:none;}
+.pos-item:hover{background:rgba(0,200,83,.15);color:var(--g);}
+.pos-item.active{background:rgba(0,200,83,.1);color:var(--g);font-weight:600;}
+.pos-placeholder{color:var(--mt);}
+
+/* PHONE */
+.phone-wrap{display:flex;gap:0;}
+.phone-pre{
+  background:rgba(0,200,83,.1);
+  border:1px solid var(--bd);
+  border-right:none;
+  border-radius:12px 0 0 12px;
+  padding:13px 14px;
+  color:var(--g);
+  font-size:15px;
+  font-weight:600;
+  white-space:nowrap;
+}
+.phone-wrap input{
+  border-radius:0 12px 12px 0;
+  flex:1;
+}
+
+/* GRID */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:400px){.grid-2{grid-template-columns:1fr;}}
+
+/* PREFERRED FOOT */
+.field select{
+  width:100%;
+  background:#0f2010;
+  border:1px solid var(--bd);
+  border-radius:12px;
+  padding:13px 15px;
+  color:var(--tx);
+  font-family:'DM Sans',sans-serif;
+  font-size:15px;
+  outline:none;
+  cursor:pointer;
+  transition:border-color .2s,box-shadow .2s;
+  -webkit-appearance:auto;
+  appearance:auto;
+}
+.field select:focus{border-color:var(--g);box-shadow:0 0 0 3px rgba(0,200,83,.1);}
+.field select option{background:#0f2010;color:#e2f0e2;}
+
+/* SUBMIT */
+.sub-btn{
+  width:100%;
+  padding:16px;
+  background:var(--g);
+  color:#000;
+  border:none;
+  border-radius:12px;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:20px;
+  letter-spacing:3px;
+  cursor:pointer;
+  margin-top:24px;
+  transition:transform .15s,box-shadow .15s;
+  box-shadow:0 4px 20px rgba(0,200,83,.3);
+}
+.sub-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,200,83,.4);}
+.sub-btn:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+
+/* SUCCESS */
+.success{
+  display:none;
+  text-align:center;
+  padding:48px 24px;
+}
+.success .chk{font-size:64px;margin-bottom:16px;}
+.success h2{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:36px;letter-spacing:4px;color:var(--g);
+  margin-bottom:10px;
+}
+.success p{color:var(--mt);font-size:14px;margin-bottom:24px;}
+.again-btn{
+  padding:12px 28px;
+  background:transparent;
+  border:1.5px solid var(--g);
+  border-radius:10px;
+  color:var(--g);
+  font-family:'Bebas Neue',sans-serif;
+  font-size:17px;letter-spacing:2px;
+  cursor:pointer;
+  transition:background .2s;
+}
+.again-btn:hover{background:rgba(0,200,83,.1);}
+
+/* ERROR STATE */
+.err-state{text-align:center;padding:60px 24px;}
+.err-state .ico{font-size:48px;margin-bottom:16px;}
+.err-state h2{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;color:var(--red);margin-bottom:8px;}
+.err-state p{color:var(--mt);font-size:13px;line-height:1.6;}
+
+/* LOADING */
+.loading{text-align:center;padding:60px 24px;}
+.loading .spinner{
+  width:40px;height:40px;border-radius:50%;
+  border:3px solid var(--bd);
+  border-top-color:var(--g);
+  animation:spin .8s linear infinite;
+  margin:0 auto 16px;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading p{color:var(--mt);font-size:14px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- LOADING STATE -->
+  <div class="loading" id="state-loading">
+    <div class="spinner"></div>
+    <p>Loading registration form…</p>
+  </div>
+
+  <!-- ERROR STATE -->
+  <div class="err-state" id="state-error" style="display:none;">
+    <div class="ico">⚠️</div>
+    <h2 id="err-title">Error</h2>
+    <p id="err-msg">Something went wrong. Please try again.</p>
+  </div>
+
+  <!-- FORM -->
+  <div id="state-form" style="display:none;">
+    <div class="rh">
+      <div class="rb" id="pub-badge"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div>
+      <h1 id="pub-tname">TEAM</h1>
+      <p id="pub-motto">Coach Management System · Player Registration</p>
+    </div>
+
+    <div id="pub-form">
+      <div class="slbl">Personal Information</div>
+
+      <!-- PLAYER PHOTO UPLOAD -->
+      <div class="field">
+        <label>Player Photo <small style="text-transform:none;letter-spacing:0;font-weight:400;color:var(--mt);">(optional, max 2MB)</small></label>
+        <div class="photo-up" onclick="document.getElementById('pf-photo-inp').click()">
+          <input type="file" id="pf-photo-inp" accept="image/*" style="display:none" onchange="handlePfPhoto(this)">
+          <img id="pf-photo-preview" src="" alt="">
+          <div id="pf-photo-ph" style="color:var(--mt);font-size:13px;">📷 Tap to upload headshot</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Full Name <span>*</span></label>
+        <input type="text" id="pf-name" placeholder="Player's full name">
+      </div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label>Date of Birth <span>*</span></label>
+          <input type="date" id="pf-dob" onchange="calcAge()">
+        </div>
+        <div class="field">
+          <label>Age</label>
+          <input type="number" id="pf-age" readonly>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Father's Name <span>*</span></label>
+        <input type="text" id="pf-father" placeholder="Father's full name">
+      </div>
+
+      <div class="field">
+        <label>Address <span>*</span></label>
+        <textarea id="pf-addr" placeholder="Residential address"></textarea>
+      </div>
+
+      <div class="field">
+        <label>Phone <span>*</span></label>
+        <div class="phone-wrap">
+          <div class="phone-pre">+91</div>
+          <input type="tel" id="pf-ph" placeholder="10-digit number" maxlength="10" oninput="this.value=this.value.replace(/\D/g,'')">
+        </div>
+      </div>
+
+      <div class="slbl">Player Details</div>
+
+      <div class="field" style="margin-bottom:14px;">
+        <label>Position <span>*</span></label>
+        <div class="pos-wrap">
+          <div class="pos-btn" id="pos-btn" onclick="togglePos(event)">
+            <span class="pos-placeholder" id="pos-label">Select position</span>
+            <span class="pos-arrow">▾</span>
+          </div>
+          <div class="pos-list" id="pos-list"></div>
+          <input type="hidden" id="pf-pos">
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label>Squad #</label>
+          <input type="number" id="pf-sq" min="1" max="99">
+        </div>
+        <div class="field">
+          <label>Jersey # <span>*</span> <small style="text-transform:none;letter-spacing:0;font-weight:400;font-size:10px;">1st choice</small></label>
+          <input type="number" id="pf-j1" min="1" max="99">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Jersey # <small style="text-transform:none;letter-spacing:0;font-weight:400;font-size:10px;">2nd choice</small></label>
+        <input type="number" id="pf-j2" min="1" max="99">
+      </div>
+
+      <div class="field">
+        <label>Preferred Foot</label>
+        <select id="pf-foot">
+          <option value="">Select preferred foot</option>
+          <option value="Right">Right</option>
+          <option value="Left">Left</option>
+          <option value="Both">Both</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Extra Notes</label>
+        <textarea id="pf-notes" placeholder="Any additional information, medical conditions, etc." style="min-height:80px;"></textarea>
+      </div>
+
+      <button class="sub-btn" id="sub-btn" onclick="submitForm()">⚡ SUBMIT REGISTRATION</button>
+    </div>
+
+    <!-- SUCCESS -->
+    <div class="success" id="pub-success">
+      <div class="chk">✅</div>
+      <h2>REGISTERED!</h2>
+      <p>You're registered. See you on the field!</p>
+      <button class="again-btn" onclick="resetForm()">Register Another Player</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+// ── FIREBASE INIT ───────────────────────────────────────────────────
+firebase.initializeApp({
+  apiKey: "AIzaSyBf_L4yFf_P-SS6SIQjDA67OaZ8pJQtRuk",
+  authDomain: "coachmanagementsystem.firebaseapp.com",
+  projectId: "coachmanagementsystem",
+  storageBucket: "coachmanagementsystem.firebasestorage.app",
+  messagingSenderId: "892324628193",
+  appId: "1:892324628193:web:d300cee74e3d27d8ee99a0"
+});
+const db=firebase.firestore();
+
+const DEFAULT_POS=['GK','RB','LB','CB','RWB','LWB','CDM','CM','CAM','RM','LM','RW','LW','CF','ST'];
+const POS_FULL={GK:'Goalkeeper',RB:'Right Back',LB:'Left Back',CB:'Centre Back',RWB:'Right Wing Back',LWB:'Left Wing Back',CDM:'Central Defensive Midfielder',CM:'Central Midfielder',CAM:'Central Attacking Midfielder',RM:'Right Midfielder',LM:'Left Midfielder',RW:'Right Winger',LW:'Left Winger',CF:'Centre Forward',ST:'Striker'};
+
+function posCode(position){
+  const key=String(position||'').trim().toUpperCase();
+  if(POS_FULL[key])return key;
+  const low=key.toLowerCase();
+  const map={'goalkeeper':'GK','keeper':'GK','gk':'GK','right back':'RB','rb':'RB','left back':'LB','lb':'LB','centre back':'CB','cb':'CB','right wing back':'RWB','rwb':'RWB','left wing back':'LWB','lwb':'LWB','defensive mid':'CDM','cdm':'CDM','central mid':'CM','cm':'CM','attacking mid':'CAM','cam':'CAM','right midfielder':'RM','rm':'RM','left midfielder':'LM','lm':'LM','right winger':'RW','rw':'RW','left winger':'LW','lw':'LW','centre forward':'CF','cf':'CF','striker':'ST','st':'ST'};
+  if(map[low])return map[low];
+  return key;
+}
+
+let teamId=null;
+let selectedPos='';
+let pfPhotoData=null; // Stores the Base64 photo string
+
+function show(id){
+  ['state-loading','state-error','state-form'].forEach(s=>{
+    document.getElementById(s).style.display=(s===id?'block':'none');
+  });
+}
+
+function showError(title,msg){
+  document.getElementById('err-title').textContent=title;
+  document.getElementById('err-msg').textContent=msg;
+  show('state-error');
+}
+
+function compressImage(file, maxDimension, quality, callback) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+      if (width > height) {
+        if (width > maxDimension) {
+          height = Math.round((height * maxDimension) / width);
+          width = maxDimension;
+        }
+      } else {
+        if (height > maxDimension) {
+          width = Math.round((width * maxDimension) / height);
+          height = maxDimension;
+        }
+      }
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      const dataUrl = canvas.toDataURL('image/jpeg', quality || 0.85);
+      callback(dataUrl);
+    };
+    img.onerror = function() {
+      callback(e.target.result);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function handlePfPhoto(input) {
+  const file = input.files[0];
+  if(!file) return;
+  compressImage(file, 300, 0.85, dataUrl => {
+    pfPhotoData = dataUrl;
+    const prev = document.getElementById('pf-photo-preview');
+    prev.src = pfPhotoData;
+    prev.style.display = 'block';
+    document.getElementById('pf-photo-ph').style.display = 'none';
+  });
+}
+
+function buildPositions(positions){
+  const list=document.getElementById('pos-list');
+  list.innerHTML='';
+  positions.forEach(function(p){
+    const d=document.createElement('div');
+    d.className='pos-item';
+    d.textContent=p;
+    d.addEventListener('click',function(e){
+      e.stopPropagation();
+      selectedPos=p;
+      document.getElementById('pf-pos').value=p;
+      const lbl=document.getElementById('pos-label');
+      lbl.textContent=p;
+      lbl.className='';
+      list.querySelectorAll('.pos-item').forEach(function(x){x.classList.remove('active');});
+      d.classList.add('active');
+      list.classList.remove('open');
+      document.getElementById('pos-btn').classList.remove('open');
+    });
+    list.appendChild(d);
+  });
+}
+
+function togglePos(e){
+  e.stopPropagation();
+  const btn=document.getElementById('pos-btn');
+  const list=document.getElementById('pos-list');
+  const isOpen=list.classList.contains('open');
+  if(isOpen){
+    list.classList.remove('open');
+    btn.classList.remove('open');
+  }else{
+    list.classList.add('open');
+    btn.classList.add('open');
+  }
+}
+
+document.addEventListener('click',function(){
+  document.getElementById('pos-list').classList.remove('open');
+  document.getElementById('pos-btn').classList.remove('open');
+});
+
+function calcAge(){
+  const d=document.getElementById('pf-dob').value;
+  if(!d)return;
+  const today=new Date(),born=new Date(d);
+  let age=today.getFullYear()-born.getFullYear();
+  if(today.getMonth()-born.getMonth()<0||(today.getMonth()===born.getMonth()&&today.getDate()<born.getDate()))age--;
+  document.getElementById('pf-age').value=age;
+}
+
+async function loadTeam(tid){
+  teamId=tid;
+  try{
+    const snap=await db.collection('teams').doc(tid).get();
+    if(!snap.exists){
+      showError('Team Not Found','This registration link is not valid.');
+      return;
+    }
+    const team=snap.data();
+    document.getElementById('pub-tname').textContent=(team.name||'TEAM').toUpperCase();
+    document.getElementById('pub-motto').textContent=team.motto||'Coach Management System · Player Registration';
+    document.title=(team.name||'Team')+' — Coach Management System';
+    if(team.logo){
+      document.getElementById('pub-badge').innerHTML='<img src="'+team.logo+'" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+    }else if(team.emoji){
+      document.getElementById('pub-badge').textContent=team.emoji;
+    }
+    buildPositions([...new Set((team.positions||DEFAULT_POS).map(posCode).filter(Boolean))]);
+    show('state-form');
+  }catch(e){
+    if(e.code==='permission-denied'){
+      showError('Access Blocked','Firestore rules are blocking this request.');
+    }else{
+      showError('Error Loading',e.message||'Check your internet connection and try again.');
+    }
+  }
+}
+
+async function submitForm(){
+  const name=document.getElementById('pf-name').value.trim();
+  const ph=document.getElementById('pf-ph').value.trim();
+  const j1=document.getElementById('pf-j1').value;
+  const pos=document.getElementById('pf-pos').value;
+  const dob=document.getElementById('pf-dob').value;
+  const father=document.getElementById('pf-father').value.trim();
+  const addr=document.getElementById('pf-addr').value.trim();
+
+  if(!name||!dob||!father||!addr||!ph||!pos||!j1){
+    alert('Please fill all required fields (*).');return;
+  }
+  if(ph.length!==10){alert('Phone number must be 10 digits.');return;}
+
+  const btn=document.getElementById('sub-btn');
+  btn.textContent='⏳ SAVING…';btn.disabled=true;
+  try{
+    const phoneFormatted = '+91'+ph;
+    const dataToSave = {
+      teamId:teamId,
+      name:name,
+      dob:dob,
+      age:document.getElementById('pf-age').value,
+      father:father,
+      address:addr,
+      phone:phoneFormatted,
+      position:pos,
+      jersey:j1,
+      jersey2:document.getElementById('pf-j2').value,
+      playernum:document.getElementById('pf-sq').value,
+      foot:document.getElementById('pf-foot').value,
+      notes:document.getElementById('pf-notes').value.trim(),
+      photo: pfPhotoData,
+      registeredAt:new Date().toISOString()
+    };
+    
+    // Duplication Check (by name & phone)
+    const existingSnap = await db.collection('players').where('teamId','==',teamId).where('name','==',name).where('phone','==',phoneFormatted).get();
+    
+    if (!existingSnap.empty) {
+      // Update existing record
+      await db.collection('players').doc(existingSnap.docs[0].id).update(dataToSave);
+    } else {
+      // Add new record
+      await db.collection('players').add(dataToSave);
+    }
+    
+    document.getElementById('pub-form').style.display='none';
+    document.getElementById('pub-success').style.display='block';
+  }catch(e){
+    alert('❌ Registration failed: '+(e.message||'Check your connection.'));
+  }finally{
+    btn.textContent='⚡ SUBMIT REGISTRATION';btn.disabled=false;
+  }
+}
+
+function resetForm(){
+  ['pf-name','pf-dob','pf-age','pf-father','pf-addr','pf-ph','pf-j1','pf-j2','pf-sq','pf-notes'].forEach(function(id){
+    document.getElementById(id).value='';
+  });
+  document.getElementById('pf-pos').value='';
+  document.getElementById('pf-foot').value='';
+  selectedPos='';
+  
+  pfPhotoData = null;
+  document.getElementById('pf-photo-inp').value = '';
+  document.getElementById('pf-photo-preview').style.display = 'none';
+  document.getElementById('pf-photo-preview').src = '';
+  document.getElementById('pf-photo-ph').style.display = 'block';
+
+  const lbl=document.getElementById('pos-label');
+  lbl.textContent='Select position';
+  lbl.className='pos-placeholder';
+  document.getElementById('pos-list').querySelectorAll('.pos-item').forEach(function(x){x.classList.remove('active');});
+  document.getElementById('pub-form').style.display='block';
+  document.getElementById('pub-success').style.display='none';
+  window.scrollTo(0,0);
+}
+
+const params=new URLSearchParams(location.search);
+const tid=params.get('team');
+if(tid){
+  loadTeam(tid);
+}else{
+  showError('No Team Selected','Please use the link provided by your team manager.');
+}
+</script>
+</body>
+</html>

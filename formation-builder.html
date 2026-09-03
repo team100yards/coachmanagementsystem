@@ -1,0 +1,2446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Line-Up Builder</title>
+
+<!-- Tailwind (utility classes used throughout the component) -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- React + Babel (same in-browser JSX pattern as the rest of the app) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js" crossorigin></script>
+
+<!-- Optional: Firebase (uncomment + configure to pull the roster live from Football Forum's Firestore) -->
+<!--
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+-->
+
+<style>
+  html, body { margin: 0; padding: 0; }
+  html:fullscreen, html:-webkit-full-screen { background: #0F1B14; overflow-y: auto; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useMemo, useRef, useEffect } = React;
+
+/* ==========================================================================
+   OPTIONAL FIRESTORE SYNC
+   To pull the roster live from Football Forum's database instead of pasting
+   or importing a file, fill in your Firebase config below, uncomment the
+   Firebase <script> tags in <head>, and uncomment the block below.
+   This assumes a collection (e.g. "players") with documents shaped like
+   { name: "...", number: "...", position: "..." } — adjust field names to
+   match your actual Football Forum schema.
+============================================================================
+const firebaseConfig = {
+  apiKey: "...",
+  authDomain: "...",
+  projectId: "...",
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+function useFootballForumRoster(collectionName) {
+  const [rows, setRows] = useState([]);
+  useEffect(() => {
+    const unsub = db.collection(collectionName).onSnapshot((snap) => {
+      const players = snap.docs.map((doc) => {
+        const d = doc.data();
+        return `${d.number || "-"}, ${d.name || ""}, ${d.position || "ST"}`;
+      });
+      setRows(players.join("\n"));
+    });
+    return () => unsub();
+  }, [collectionName]);
+  return rows;
+}
+============================================================================ */
+
+
+// ---------- Position vocabulary ----------
+// Standardized to the same 15 codes used across the whole app:
+// GK, RB, LB, CB, RWB, LWB, CDM, CM, CAM, RM, LM, RW, LW, CF, ST
+const ALIASES = {
+  GK: "GK", GOALKEEPER: "GK", GOALIE: "GK",
+  RB: "RB", RIGHTBACK: "RB", DR: "RB",
+  LB: "LB", LEFTBACK: "LB", DL: "LB",
+  CB: "CB", "CENTRE-BACK": "CB", CENTERBACK: "CB", CENTREBACK: "CB", DC: "CB", D: "CB", DF: "CB", DEF: "CB", SWEEPER: "CB", CD: "CB",
+  RWB: "RWB", RIGHTWINGBACK: "RWB",
+  LWB: "LWB", LEFTWINGBACK: "LWB",
+  CDM: "CDM", DM: "CDM", DMC: "CDM",
+  CM: "CM", MC: "CM", MID: "CM", MIDFIELDER: "CM", M: "CM",
+  CAM: "CAM", AM: "CAM", AMC: "CAM", "10": "CAM",
+  RM: "RM", RIGHTMID: "RM", RIGHTMIDFIELDER: "RM",
+  LM: "LM", LEFTMID: "LM", LEFTMIDFIELDER: "LM",
+  RW: "RW", RIGHTWINGER: "RW",
+  LW: "LW", LEFTWINGER: "LW",
+  CF: "CF", CENTREFORWARD: "CF", CENTERFORWARD: "CF", SECONDSTRIKER: "CF",
+  ST: "ST", STRIKER: "ST", FW: "ST", FORWARD: "ST", F: "ST", ATT: "ST",
+};
+const GROUP = {
+  GK: "GK",
+  RB: "DEF", LB: "DEF", CB: "DEF", RWB: "DEF", LWB: "DEF",
+  CDM: "MID", CM: "MID", CAM: "MID", RM: "MID", LM: "MID",
+  RW: "FWD", LW: "FWD", CF: "FWD", ST: "FWD",
+};
+const SIDE = {
+  GK: "C", RB: "R", LB: "L", CB: "C", RWB: "R", LWB: "L",
+  CDM: "C", CM: "C", CAM: "C", RM: "R", LM: "L",
+  RW: "R", LW: "L", CF: "C", ST: "C",
+};
+const canonicalize = (raw) => {
+  const key = String(raw || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+  return ALIASES[key] || (key ? key : "ST");
+};
+
+const POSITION_OPTIONS = [
+  { code: "GK", label: "GK — Goalkeeper" },
+  { code: "RB", label: "RB — Right Back" },
+  { code: "LB", label: "LB — Left Back" },
+  { code: "CB", label: "CB — Centre Back" },
+  { code: "RWB", label: "RWB — Right Wing Back" },
+  { code: "LWB", label: "LWB — Left Wing Back" },
+  { code: "CDM", label: "CDM — Central Defensive Mid" },
+  { code: "CM", label: "CM — Central Midfielder" },
+  { code: "CAM", label: "CAM — Central Attacking Mid" },
+  { code: "RM", label: "RM — Right Midfielder" },
+  { code: "LM", label: "LM — Left Midfielder" },
+  { code: "RW", label: "RW — Right Winger" },
+  { code: "LW", label: "LW — Left Winger" },
+  { code: "CF", label: "CF — Centre Forward" },
+  { code: "ST", label: "ST — Striker" },
+];
+
+const ZONE_COLORS = {
+  GK: "#8B5FBF",
+  DEF: "#3D7DB0",
+  MID: "#D9A63E",
+  FWD: "#C0453A",
+};
+// Per-code overrides — used when a specific position needs to stand out from its broader
+// group (color) or needs a shape that reflects how much ground that role actually covers (size).
+const CODE_COLORS = {
+  CDM: "#4FA37A", // distinct from the rest of midfield (CM/CAM/RM/LM stay MID gold)
+};
+const CODE_ZONE_SIZE = {
+  // Wing-backs patrol the full flank, box to box — much taller/narrower zone than a regular back.
+  LWB: [18, 52],
+  RWB: [18, 52],
+};
+// Vertical anchor (0 = jersey at top of zone, 0.5 = centered, 1 = jersey at bottom of zone).
+// Wing-backs sit near the bottom of their zone since the zone represents how far forward
+// they push from their base position, not ground behind them.
+const CODE_ZONE_ANCHOR = {
+  LWB: 0.88,
+  RWB: 0.88,
+};
+const hexToRgba = (hex, alpha) => {
+  const n = parseInt(hex.slice(1), 16);
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  return `rgba(${r},${g},${b},${alpha})`;
+};
+
+
+const FORMATIONS = {
+  "4-4-2": [
+    { code: "GK", label: "GK", x: 50, y: 93 },
+    { code: "LB", label: "LB", x: 14, y: 74 },
+    { code: "CB", label: "CB", x: 37, y: 78 },
+    { code: "CB", label: "CB", x: 63, y: 78 },
+    { code: "RB", label: "RB", x: 86, y: 74 },
+    { code: "LM", label: "LM", x: 14, y: 46 },
+    { code: "CM", label: "CM", x: 37, y: 50 },
+    { code: "CM", label: "CM", x: 63, y: 50 },
+    { code: "RM", label: "RM", x: 86, y: 46 },
+    { code: "ST", label: "ST", x: 37, y: 15 },
+    { code: "ST", label: "ST", x: 63, y: 15 },
+  ],
+  "4-3-3": [
+    { code: "GK", label: "GK", x: 50, y: 93 },
+    { code: "LB", label: "LB", x: 14, y: 74 },
+    { code: "CB", label: "CB", x: 37, y: 78 },
+    { code: "CB", label: "CB", x: 63, y: 78 },
+    { code: "RB", label: "RB", x: 86, y: 74 },
+    { code: "CM", label: "CM", x: 30, y: 52 },
+    { code: "CDM", label: "CDM", x: 50, y: 58 },
+    { code: "CM", label: "CM", x: 70, y: 52 },
+    { code: "LW", label: "LW", x: 16, y: 20 },
+    { code: "ST", label: "ST", x: 50, y: 12 },
+    { code: "RW", label: "RW", x: 84, y: 20 },
+  ],
+  "4-2-3-1": [
+    { code: "GK", label: "GK", x: 50, y: 93 },
+    { code: "LB", label: "LB", x: 14, y: 74 },
+    { code: "CB", label: "CB", x: 37, y: 78 },
+    { code: "CB", label: "CB", x: 63, y: 78 },
+    { code: "RB", label: "RB", x: 86, y: 74 },
+    { code: "CDM", label: "CDM", x: 36, y: 60 },
+    { code: "CDM", label: "CDM", x: 64, y: 60 },
+    { code: "LM", label: "LAM", x: 18, y: 35 },
+    { code: "CAM", label: "CAM", x: 50, y: 32 },
+    { code: "RM", label: "RAM", x: 82, y: 35 },
+    { code: "ST", label: "ST", x: 50, y: 12 },
+  ],
+  "3-5-2": [
+    { code: "GK", label: "GK", x: 50, y: 93 },
+    { code: "CB", label: "CB", x: 28, y: 78 },
+    { code: "CB", label: "CB", x: 50, y: 80 },
+    { code: "CB", label: "CB", x: 72, y: 78 },
+    { code: "LWB", label: "LWB", x: 9, y: 54 },
+    { code: "CM", label: "CM", x: 34, y: 50 },
+    { code: "CDM", label: "CDM", x: 50, y: 55 },
+    { code: "CM", label: "CM", x: 66, y: 50 },
+    { code: "RWB", label: "RWB", x: 91, y: 54 },
+    { code: "ST", label: "ST", x: 37, y: 15 },
+    { code: "ST", label: "ST", x: 63, y: 15 },
+  ],
+  "3-4-3": [
+    { code: "GK", label: "GK", x: 50, y: 93 },
+    { code: "CB", label: "CB", x: 28, y: 78 },
+    { code: "CB", label: "CB", x: 50, y: 80 },
+    { code: "CB", label: "CB", x: 72, y: 78 },
+    { code: "LM", label: "LM", x: 14, y: 50 },
+    { code: "CM", label: "CM", x: 37, y: 53 },
+    { code: "CM", label: "CM", x: 63, y: 53 },
+    { code: "RM", label: "RM", x: 86, y: 50 },
+    { code: "LW", label: "LW", x: 20, y: 18 },
+    { code: "ST", label: "ST", x: 50, y: 12 },
+    { code: "RW", label: "RW", x: 80, y: 18 },
+  ],
+  "5-3-2": [
+    { code: "GK", label: "GK", x: 50, y: 93 },
+    { code: "LWB", label: "LWB", x: 10, y: 68 },
+    { code: "CB", label: "CB", x: 30, y: 78 },
+    { code: "CB", label: "CB", x: 50, y: 80 },
+    { code: "CB", label: "CB", x: 70, y: 78 },
+    { code: "RWB", label: "RWB", x: 90, y: 68 },
+    { code: "CM", label: "CM", x: 30, y: 48 },
+    { code: "CDM", label: "CDM", x: 50, y: 52 },
+    { code: "CM", label: "CM", x: 70, y: 48 },
+    { code: "ST", label: "ST", x: 37, y: 15 },
+    { code: "ST", label: "ST", x: 63, y: 15 },
+  ],
+  "4-1-4-1": [
+    { code: "GK", label: "GK", x: 50, y: 93 },
+    { code: "LB", label: "LB", x: 14, y: 74 },
+    { code: "CB", label: "CB", x: 37, y: 78 },
+    { code: "CB", label: "CB", x: 63, y: 78 },
+    { code: "RB", label: "RB", x: 86, y: 74 },
+    { code: "CDM", label: "CDM", x: 50, y: 62 },
+    { code: "LM", label: "LM", x: 14, y: 42 },
+    { code: "CM", label: "CM", x: 37, y: 44 },
+    { code: "CM", label: "CM", x: 63, y: 44 },
+    { code: "RM", label: "RM", x: 86, y: 42 },
+    { code: "ST", label: "ST", x: 50, y: 15 },
+  ],
+  "3-3-2": [
+    { code: "GK", label: "GK", x: 50, y: 93 },
+    { code: "CB", label: "CB", x: 25, y: 76 },
+    { code: "CB", label: "CB", x: 50, y: 78 },
+    { code: "CB", label: "CB", x: 75, y: 76 },
+    { code: "LM", label: "LM", x: 20, y: 48 },
+    { code: "CM", label: "CM", x: 50, y: 50 },
+    { code: "RM", label: "RM", x: 80, y: 48 },
+    { code: "ST", label: "ST", x: 38, y: 18 },
+    { code: "ST", label: "ST", x: 62, y: 18 },
+  ],
+  "3-4-1": [
+    { code: "GK", label: "GK", x: 50, y: 93 },
+    { code: "CB", label: "CB", x: 25, y: 76 },
+    { code: "CB", label: "CB", x: 50, y: 78 },
+    { code: "CB", label: "CB", x: 75, y: 76 },
+    { code: "LM", label: "LM", x: 15, y: 48 },
+    { code: "CM", label: "CM", x: 38, y: 50 },
+    { code: "CM", label: "CM", x: 62, y: 50 },
+    { code: "RM", label: "RM", x: 85, y: 48 },
+    { code: "ST", label: "ST", x: 50, y: 16 },
+  ],
+  "4-3-1": [
+    { code: "GK", label: "GK", x: 50, y: 93 },
+    { code: "LB", label: "LB", x: 14, y: 74 },
+    { code: "CB", label: "CB", x: 37, y: 78 },
+    { code: "CB", label: "CB", x: 63, y: 78 },
+    { code: "RB", label: "RB", x: 86, y: 74 },
+    { code: "LM", label: "LM", x: 22, y: 48 },
+    { code: "CM", label: "CM", x: 50, y: 50 },
+    { code: "RM", label: "RM", x: 78, y: 48 },
+    { code: "ST", label: "ST", x: 50, y: 16 },
+  ],
+  "3-2-1": [
+    { code: "GK", label: "GK", x: 50, y: 93 },
+    { code: "LB", label: "LB", x: 22, y: 75 },
+    { code: "CB", label: "CB", x: 50, y: 78 },
+    { code: "RB", label: "RB", x: 78, y: 75 },
+    { code: "CM", label: "CM", x: 35, y: 48 },
+    { code: "CM", label: "CM", x: 65, y: 48 },
+    { code: "ST", label: "ST", x: 50, y: 18 },
+  ],
+  "2-3-1": [
+    { code: "GK", label: "GK", x: 50, y: 93 },
+    { code: "CB", label: "CB", x: 35, y: 76 },
+    { code: "CB", label: "CB", x: 65, y: 76 },
+    { code: "LM", label: "LM", x: 20, y: 48 },
+    { code: "CM", label: "CM", x: 50, y: 48 },
+    { code: "RM", label: "RM", x: 80, y: 48 },
+    { code: "ST", label: "ST", x: 50, y: 18 },
+  ],
+  "2-2-2": [
+    { code: "GK", label: "GK", x: 50, y: 93 },
+    { code: "CB", label: "CB", x: 35, y: 76 },
+    { code: "CB", label: "CB", x: 65, y: 76 },
+    { code: "CM", label: "CM", x: 35, y: 48 },
+    { code: "CM", label: "CM", x: 65, y: 48 },
+    { code: "ST", label: "ST", x: 35, y: 18 },
+    { code: "ST", label: "ST", x: 65, y: 18 },
+  ],
+  "2-1-1": [
+    { code: "GK", label: "GK", x: 50, y: 93 },
+    { code: "CB", label: "CB", x: 35, y: 74 },
+    { code: "CB", label: "CB", x: 65, y: 74 },
+    { code: "CM", label: "CM", x: 50, y: 46 },
+    { code: "ST", label: "ST", x: 50, y: 18 },
+  ],
+  "1-2-1": [
+    { code: "GK", label: "GK", x: 50, y: 93 },
+    { code: "CB", label: "CB", x: 50, y: 75 },
+    { code: "LM", label: "LM", x: 28, y: 48 },
+    { code: "RM", label: "RM", x: 72, y: 48 },
+    { code: "ST", label: "ST", x: 50, y: 18 },
+  ],
+  "1-1": [
+    { code: "GK", label: "GK", x: 50, y: 93 },
+    { code: "CB", label: "CB", x: 50, y: 68 },
+    { code: "ST", label: "ST", x: 50, y: 22 },
+  ],
+};
+
+const ZONE_SIZE = { GK: [22, 15], DEF: [30, 20], MID: [34, 22], FWD: [30, 22] };
+
+
+function assignToFormation(players, slots) {
+  const pool = [...players];
+  const filled = slots.map((slot) => {
+    let idx = pool.findIndex((p) => p.canonical === slot.code);
+    if (idx === -1) {
+      const group = GROUP[slot.code] || "MID";
+      const side = SIDE[slot.code] || "C";
+      idx = pool.findIndex((p) => p.group === group && p.side === side);
+    }
+    if (idx === -1) {
+      const group = GROUP[slot.code] || "MID";
+      idx = pool.findIndex((p) => p.group === group);
+    }
+    if (idx === -1) return { slot, player: null };
+    const [player] = pool.splice(idx, 1);
+    return { slot, player };
+  });
+  const order = { GK: 0, DEF: 1, MID: 2, FWD: 3 };
+  pool.sort((a, b) => (order[a.group] - order[b.group]) || a.name.localeCompare(b.name));
+  return { filled, subs: pool };
+}
+
+function FormationBuilder() {
+  const [manualPlayers, setManualPlayers] = useState([]);
+  const [formationKey, setFormationKey] = useState("4-3-3");
+  const [showZones, setShowZones] = useState(true);
+  const [showThirds, setShowThirds] = useState(false);
+  const [unitCoverShift, setUnitCoverShift] = useState(true);
+  const [showCoverLines, setShowCoverLines] = useState(true);
+  const [activeDragSlot, setActiveDragSlot] = useState(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const LINE_GROUPS = ["GK", "DEF", "MID", "FWD"];
+  const [activeLines, setActiveLines] = useState(LINE_GROUPS);
+  const [ballPos, setBallPos] = useState({ x: 50, y: 50 });
+  const [panelOpen, setPanelOpen] = useState(true);
+  const [customPos, setCustomPos] = useState({});
+  const [dragKey, setDragKey] = useState(null);
+  const [syncInfo, setSyncInfo] = useState("");
+  const pitchRef = useRef(null);
+  const [pitchHeight, setPitchHeight] = useState(null);
+  const [showChat, setShowChat] = useState(() => {
+    try { return localStorage.getItem("cms_fb_chat") === "open"; } catch(e) { return false; }
+  });
+  const [chatMsgs, setChatMsgs] = useState([]);
+  const [isCoach, setIsCoach] = useState(false);
+  const [myChatId, setMyChatId] = useState({ name: 'Visitor', role: 'member' });
+  const [chatInputText, setChatInputText] = useState('');
+  const chatMessagesEndRef = useRef(null);
+  const [syncTeamId, setSyncTeamId] = useState("");
+  const [syncTeamName, setSyncTeamName] = useState("");
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [modalCopied, setModalCopied] = useState(false);
+
+  // ---------- Exact Match XI slot data (the source of truth for pitch placement) ----------
+  // exactStarters[i] lines up 1:1 with FORMATIONS[syncedFormationKey][i] — this is what
+  // guarantees the pitch always matches Match XI exactly, with no re-calculation/mismatch.
+  const [exactStarters, setExactStarters] = useState(null);
+  const [exactSubs, setExactSubs] = useState(null);
+  const [outOfSquad, setOutOfSquad] = useState([]);
+  const [syncedFormationKey, setSyncedFormationKey] = useState(null);
+  const [isDirty, setIsDirty] = useState(false); // true once the roster is hand-edited
+
+  const reportHeight = () => {
+    try {
+      if (window.parent && window.parent !== window) {
+        const h = document.documentElement.scrollHeight;
+        window.parent.postMessage({ type: "ff-height", height: h }, "*");
+      }
+    } catch (e) {}
+  };
+
+  // Builds a pitch layout (x/y per slot) for ANY formation given just its role/count
+  // definition (e.g. [{r:'GK',n:1},{r:'DEF',n:4},{r:'MID',n:4},{r:'FWD',n:2}]) — this is
+  // what lets custom formations from Match XI render here even though they're not one of
+  // the 6 built-in shapes.
+  const autoLayoutFormation = (def) => {
+    const roleCode = { GK: "GK", DEF: "CB", MID: "CM", FWD: "ST" };
+    const lines = (def || []).filter((l) => l && l.n > 0);
+    const outfield = lines.length - 1;
+    const slots = [];
+    lines.forEach((line, li) => {
+      let y;
+      if (li === 0) y = 93;
+      else if (outfield <= 1) y = 45;
+      else y = 76 - (li - 1) * (64 / (outfield - 1));
+      const n = line.n;
+      for (let i = 0; i < n; i++) {
+        const x = 8 + (84 / (n + 1)) * (i + 1);
+        const code = roleCode[line.r] || "CM";
+        slots.push({ code, label: line.lbl || code, x, y });
+      }
+    });
+    return slots;
+  };
+
+  // ---------- Sync roster from the Football Forum parent app (Match XI: playing 11 + subs + management) ----------
+  const applySyncPayload = (data) => {
+    if (!data) return;
+    if (typeof data.isCoach === "boolean") setIsCoach(data.isCoach);
+    if (data.formation && !FORMATIONS[data.formation] && data.formationDef) {
+      FORMATIONS[data.formation] = autoLayoutFormation(data.formationDef);
+    }
+    if (data.customPos && typeof data.customPos === "object") {
+      setCustomPos(data.customPos);
+    }
+    if (data.ballPos && typeof data.ballPos === "object" && data.ballPos.x != null) {
+      setBallPos(data.ballPos);
+    }
+    if (data.formation && FORMATIONS[data.formation]) {
+      setFormationKey(data.formation);
+    }
+    if (typeof data.showZones === "boolean") setShowZones(data.showZones);
+    if (typeof data.showThirds === "boolean") setShowThirds(data.showThirds);
+    if (typeof data.unitCoverShift === "boolean") setUnitCoverShift(data.unitCoverShift);
+    if (typeof data.showCoverLines === "boolean") setShowCoverLines(data.showCoverLines);
+    if (Array.isArray(data.activeLines)) setActiveLines(data.activeLines);
+    if (data.starters) {
+      // Exact per-slot data from a saved Match XI squad — preserves placement exactly.
+      setExactStarters(data.starters);
+      setExactSubs(data.subs || []);
+      setOutOfSquad(Array.isArray(data.outOfSquad) ? data.outOfSquad : []);
+      setSyncedFormationKey(data.formation && FORMATIONS[data.formation] ? data.formation : null);
+      const startRows = [];
+      data.starters.forEach((p) => { if (p) startRows.push({ ...p, type: "start" }); });
+      const subRows = (data.subs || []).map((p) => ({ ...p, type: "sub" }));
+      const flat = [...startRows, ...subRows];
+      setManualPlayers(flat.map((p) => ({
+        id: p.id || `sync-${Math.random().toString(36).slice(2, 8)}`,
+        name: p.name || "",
+        number: p.number != null && p.number !== "" ? String(p.number) : "-",
+        position: p.position || "ST",
+        type: p.type,
+      })));
+    } else {
+      // No saved Match XI squad — fell back to the full player database (flat list only).
+      // Split it the same way the pitch would: first N (formation size) as Playing XI, rest as Substitutes.
+      setExactStarters(null);
+      setExactSubs(null);
+      setOutOfSquad([]);
+      setSyncedFormationKey(null);
+      const startCount = (FORMATIONS[data.formation || formationKey] || FORMATIONS["4-3-3"]).length;
+      const incoming = (data.players || []).map((p, idx) => ({
+        id: p.id || `sync-${Math.random().toString(36).slice(2, 8)}`,
+        name: p.name || "",
+        number: p.number != null && p.number !== "" ? String(p.number) : "-",
+        position: p.position || "ST",
+        type: idx < startCount ? "start" : "sub",
+      }));
+      setManualPlayers(incoming);
+    }
+    const incomingMgmt = (data.management || []).map((m) => ({
+      id: m.id || `mg-${Math.random().toString(36).slice(2, 8)}`,
+      name: m.name || "",
+      role: m.role || "Other",
+    }));
+    setManagement(incomingMgmt.length ? incomingMgmt : [{ id: "mg-1", name: "", role: "Head Coach" }]);
+    if (data.teamId) setSyncTeamId(data.teamId);
+    if (data.teamName) setSyncTeamName(data.teamName);
+    setIsDirty(false);
+    setPanelOpen(true);
+    setSyncInfo(data.source || "Synced from Football Forum");
+    setTimeout(reportHeight, 50);
+    setTimeout(reportHeight, 300);
+  };
+
+  useEffect(() => {
+    const handleMessage = (e) => {
+      const data = e.data;
+      if (!data || typeof data !== "object") return;
+      if (data.type === "ff-sync") applySyncPayload(data);
+      if (data.type === "ff-chat-sync") {
+        if (Array.isArray(data.msgs)) setChatMsgs(data.msgs);
+        if (typeof data.isCoach === "boolean") setIsCoach(data.isCoach);
+        if (data.currentId) setMyChatId(data.currentId);
+        setTimeout(() => {
+          if (chatMessagesEndRef.current) {
+            chatMessagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 50);
+      }
+    };
+    window.addEventListener("message", handleMessage);
+    // Check localStorage cache if opened standalone in a new window/tab
+    try {
+      const cached = localStorage.getItem('formation_sync_payload');
+      if(cached){
+        const parsed = JSON.parse(cached);
+        applySyncPayload(parsed);
+      }
+    } catch(e){}
+
+    const handleStorage = (e) => {
+      if(e.key === 'formation_sync_payload' && e.newValue){
+        try {
+          applySyncPayload(JSON.parse(e.newValue));
+        } catch(err){}
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+
+    // Let the parent app know we're mounted and ready to receive the roster
+    try {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: "ff-ready" }, "*");
+      }
+    } catch (e) {}
+    reportHeight();
+    const ro = new ResizeObserver(() => reportHeight());
+    ro.observe(document.documentElement);
+    window.addEventListener("resize", reportHeight);
+    const t1 = setTimeout(reportHeight, 300);
+    const t2 = setTimeout(reportHeight, 1000);
+    return () => {
+      window.removeEventListener("message", handleMessage);
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("resize", reportHeight);
+      ro.disconnect();
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, []);
+
+  const requestResync = () => {
+    try {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: "ff-request-sync" }, "*");
+      }
+    } catch (e) {}
+  };
+
+  const toggleFullscreen = () => {
+    const el = document.documentElement;
+    if (!document.fullscreenElement) {
+      (el.requestFullscreen || el.webkitRequestFullscreen || (() => {})).call(el);
+    } else {
+      (document.exitFullscreen || document.webkitExitFullscreen || (() => {})).call(document);
+    }
+  };
+
+  useEffect(() => {
+    const onFsChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", onFsChange);
+    document.addEventListener("webkitfullscreenchange", onFsChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", onFsChange);
+      document.removeEventListener("webkitfullscreenchange", onFsChange);
+    };
+  }, []);
+
+  const isEmbedded = typeof window !== 'undefined' && window.self !== window.top;
+
+  const toggleChatVisibility = () => {
+    if (isEmbedded && !isFullscreen) {
+      window.parent.postMessage({ type: 'ff-chat-toggle', isCoach }, '*');
+      return;
+    }
+    setShowChat(prev => {
+      const next = !prev;
+      try { localStorage.setItem("cms_fb_chat", next ? "open" : "min"); } catch(e) {}
+      return next;
+    });
+  };
+
+  const getTeamViewLink = () => {
+    const tid = syncTeamId || new URLSearchParams(window.location.search).get('view') || new URLSearchParams(window.location.search).get('team') || '';
+    const origin = window.location.origin;
+    let path = window.location.pathname;
+    if (path.endsWith('formation-builder.html')) {
+      path = path.replace('formation-builder.html', 'index.html');
+    }
+    if (tid) return `${origin}${path}?view=${tid}`;
+    return `${origin}${path}`;
+  };
+
+  const getTeamViewShareText = () => {
+    const tName = (syncTeamName || "Team").toUpperCase();
+    const link = getTeamViewLink();
+    return `🎯 *${tName} — Match Squad & Tactics Studio*\n\nView our match lineup, game changers, and formation here:\n👉 ${link}`;
+  };
+
+  const handleShareTeamView = () => {
+    if (isEmbedded && !isFullscreen) {
+      window.parent.postMessage({ type: 'ff-open-share', shareType: 'view' }, '*');
+      return;
+    }
+    setShowShareModal(true);
+  };
+
+  const handleWhatsAppTeamView = () => {
+    const msg = getTeamViewShareText();
+    const waUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+    window.open(waUrl, '_blank');
+  };
+
+  const copyShareModalLink = () => {
+    const link = getTeamViewLink();
+    if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(link).then(() => {
+        setModalCopied(true);
+        setTimeout(() => setModalCopied(false), 2000);
+      });
+    }
+  };
+
+  const shareEmail = () => {
+    const tName = (syncTeamName || "Team").toUpperCase();
+    const subject = `${tName} — Match Squad & Tactics Studio`;
+    const body = getTeamViewShareText();
+    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  };
+
+  const shareSMS = () => {
+    const body = getTeamViewShareText();
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const separator = isIOS ? '&' : '?';
+    window.location.href = `sms:${separator}body=${encodeURIComponent(body)}`;
+  };
+
+  useEffect(() => {
+    const updatePitchHeight = () => {
+      if (pitchRef.current) {
+        const h = pitchRef.current.getBoundingClientRect().height;
+        if (h > 50) setPitchHeight(Math.round(h));
+      }
+    };
+    updatePitchHeight();
+    const ro = new ResizeObserver(() => {
+      requestAnimationFrame(updatePitchHeight);
+    });
+    if (pitchRef.current) ro.observe(pitchRef.current);
+    window.addEventListener("resize", updatePitchHeight);
+    document.addEventListener("fullscreenchange", updatePitchHeight);
+    document.addEventListener("webkitfullscreenchange", updatePitchHeight);
+    const t1 = setTimeout(updatePitchHeight, 50);
+    const t2 = setTimeout(updatePitchHeight, 250);
+    const t3 = setTimeout(updatePitchHeight, 600);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", updatePitchHeight);
+      document.removeEventListener("fullscreenchange", updatePitchHeight);
+      document.removeEventListener("webkitfullscreenchange", updatePitchHeight);
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+  }, [formationKey, isFullscreen]);
+
+  const sendChatMessage = (e) => {
+    if (e) e.preventDefault();
+    const text = chatInputText.trim();
+    if (!text) return;
+    setChatInputText('');
+    try {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: "ff-chat-send", text }, "*");
+      }
+    } catch(err) {}
+  };
+
+  const togglePinMessage = (msgId, currentPinned) => {
+    try {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: "ff-chat-pin", msgId, currentPinned }, "*");
+      }
+    } catch(err) {}
+  };
+
+  const deleteChatMessage = (msgId) => {
+    try {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: "ff-chat-delete", msgId }, "*");
+      }
+    } catch(err) {}
+  };
+
+  const clearAllChat = () => {
+    try {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: "ff-chat-clear" }, "*");
+      }
+    } catch(err) {}
+  };
+
+  const openIdentityModal = () => {
+    try {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: "ff-chat-change-id" }, "*");
+      }
+    } catch(err) {}
+  };
+
+  const formatTime = (iso) => {
+    if (!iso) return '';
+    try {
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return '';
+      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch(e) { return ''; }
+  };
+
+  const updateManualRow = (id, field, value) => {
+    setIsDirty(true);
+    setManualPlayers((prev) => prev.map((p) => (p.id === id ? { ...p, [field]: value } : p)));
+  };
+
+  const addManualRow = (type) => {
+    setIsDirty(true);
+    setManualPlayers((prev) => [
+      ...prev,
+      { id: `m-${Math.random().toString(36).slice(2, 8)}`, name: "", number: String(prev.length + 1), position: "ST", type: type || "sub" },
+    ]);
+  };
+
+  const removeManualRow = (id) => {
+    setIsDirty(true);
+    setManualPlayers((prev) => prev.filter((p) => p.id !== id));
+  };
+
+  const MANAGEMENT_ROLES = ["Head Coach", "Assistant Coach", "Goalkeeping Coach", "Fitness Coach", "Physiotherapist", "Team Manager", "Kit Manager", "Analyst", "Other"];
+  const [management, setManagement] = useState([
+    { id: "mg-1", name: "", role: "Head Coach" },
+  ]);
+
+  const addManagementRow = () => {
+    setManagement((prev) => [...prev, { id: `mg-${Math.random().toString(36).slice(2, 8)}`, name: "", role: "Other" }]);
+  };
+  const updateManagementRow = (id, field, value) => {
+    setManagement((prev) => prev.map((m) => (m.id === id ? { ...m, [field]: value } : m)));
+  };
+  const removeManagementRow = (id) => {
+    setManagement((prev) => prev.filter((m) => m.id !== id));
+  };
+  const managementFilled = useMemo(() => management.filter((m) => m.name.trim()), [management]);
+
+  const canonicalizePlayer = (p) => {
+    const canonical = canonicalize(p.position);
+    return {
+      id: p.id,
+      number: p.number || "-",
+      name: p.name,
+      rawPosition: p.position,
+      canonical,
+      group: GROUP[canonical] || "MID",
+      side: SIDE[canonical] || "C",
+    };
+  };
+
+  const manualPlayersParsed = useMemo(() => {
+    return manualPlayers
+      .filter((p) => p.name.trim())
+      .map((p) => canonicalizePlayer({ ...p, name: p.name.trim() }));
+  }, [manualPlayers]);
+
+  const players = manualPlayersParsed;
+  const slots = FORMATIONS[formationKey];
+
+  // Use the exact Match XI slot-by-slot placement whenever it's still valid (not hand-edited,
+  // and the selected formation matches what was saved in Match XI) — this is what removes the
+  // mismatch between Match XI and the Formation Builder. Otherwise fall back to auto-placement
+  // by position, e.g. when exploring a different formation than the one saved in Match XI.
+  const usingExactPlacement = !isDirty && !!exactStarters && (!syncedFormationKey || formationKey === syncedFormationKey);
+
+  const { filled, subs } = useMemo(() => {
+    if (usingExactPlacement && Array.isArray(exactStarters) && slots) {
+      const filledExact = slots.map((slot, i) => ({
+        slot,
+        player: exactStarters[i] ? canonicalizePlayer(exactStarters[i]) : null,
+      }));
+      const subsExact = (exactSubs || []).map(canonicalizePlayer);
+      return { filled: filledExact, subs: subsExact };
+    }
+    return assignToFormation(players, slots);
+  }, [usingExactPlacement, exactStarters, exactSubs, players, slots]);
+
+  const handlePrint = () => window.print();
+
+  const getSlotKey = (i) => `${formationKey}::${i}`;
+  const getPos = (slot, i) => customPos[getSlotKey(i)] || { x: slot.x, y: slot.y };
+  const toggleLine = (g) => {
+    setActiveLines((prev) => {
+      let nextLines;
+      if (prev.includes(g)) {
+        if (prev.length === 1) return prev; // keep at least one line visible
+        nextLines = prev.filter((x) => x !== g);
+      } else {
+        nextLines = [...prev, g];
+      }
+      saveVisualizerPositions(customPos, ballPos, formationKey, { activeLines: nextLines });
+      return nextLines;
+    });
+  };
+
+  const saveVisualizerPositions = (newCustomPos, newBallPos, key, overrides = {}) => {
+    try {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({
+          type: "ff-visualizer-save",
+          customPos: newCustomPos || customPos,
+          ballPos: newBallPos || ballPos,
+          formationKey: key || formationKey,
+          showZones: overrides.showZones !== undefined ? overrides.showZones : showZones,
+          showThirds: overrides.showThirds !== undefined ? overrides.showThirds : showThirds,
+          unitCoverShift: overrides.unitCoverShift !== undefined ? overrides.unitCoverShift : unitCoverShift,
+          showCoverLines: overrides.showCoverLines !== undefined ? overrides.showCoverLines : showCoverLines,
+          activeLines: overrides.activeLines !== undefined ? overrides.activeLines : activeLines,
+        }, "*");
+      }
+    } catch (e) {}
+  };
+
+  const resetPositions = () => {
+    setCustomPos((prev) => {
+      const next = { ...prev };
+      Object.keys(next).forEach((k) => {
+        if (k.startsWith(`${formationKey}::`)) delete next[k];
+      });
+      saveVisualizerPositions(next, ballPos, formationKey);
+      return next;
+    });
+  };
+
+  const onFormationChange = (newKey) => {
+    setFormationKey(newKey);
+    saveVisualizerPositions(customPos, ballPos, newKey);
+  };
+
+  // Zone-Aware Dynamic Tactical Unit Shift Engine
+  // Tailors unit cohesion, spacing, and covering vectors specifically to Attacking Third, Middle Third, and Defensive Third
+  const computeTacticalUnitShift = (dragSlotIndex, targetX, targetY, filledSlots, currentFormationKey, currentCustom) => {
+    if (!filledSlots || !filledSlots[dragSlotIndex]) {
+      return { ...currentCustom, [`${currentFormationKey}::${dragSlotIndex}`]: { x: targetX, y: targetY } };
+    }
+
+    const draggedItem = filledSlots[dragSlotIndex];
+    const draggedCode = draggedItem.player ? draggedItem.player.canonical : draggedItem.slot.code;
+    const draggedGroup = GROUP[draggedCode] || "MID";
+
+    // Only apply unit cohesion for outfield units: DEF, MID, FWD
+    if (draggedGroup === "GK" || !["DEF", "MID", "FWD"].includes(draggedGroup)) {
+      return { ...currentCustom, [`${currentFormationKey}::${dragSlotIndex}`]: { x: targetX, y: targetY } };
+    }
+
+    // Continuous pitch third factors
+    // y: 0-33.33 (Attacking Third), 33.33-66.67 (Middle Third), 66.67-100 (Defensive Third)
+    const tAttack = Math.max(0, Math.min(1, (48 - targetY) / 30));
+    const tDefend = Math.max(0, Math.min(1, (targetY - 52) / 30));
+    const tMid = Math.max(0, 1 - tAttack - tDefend);
+
+    const draggedBase = draggedItem.slot;
+    const deltaX = targetX - draggedBase.x;
+    const deltaY = targetY - draggedBase.y;
+
+    const nextCustom = { ...currentCustom };
+
+    // Find all slots in this formation belonging to the same tactical group
+    const unitMembers = filledSlots
+      .map((item, idx) => {
+        const c = item.player ? item.player.canonical : item.slot.code;
+        const g = GROUP[c] || "MID";
+        return { idx, slot: item.slot, player: item.player, code: c, group: g };
+      })
+      .filter((m) => m.group === draggedGroup);
+
+    if (unitMembers.length <= 1) {
+      return { ...currentCustom, [`${currentFormationKey}::${dragSlotIndex}`]: { x: targetX, y: targetY } };
+    }
+
+    // Sort laterally from left to right by default slot X position
+    unitMembers.sort((a, b) => a.slot.x - b.slot.x);
+    const dragRank = unitMembers.findIndex((m) => m.idx === dragSlotIndex);
+    if (dragRank === -1) {
+      return { ...currentCustom, [`${currentFormationKey}::${dragSlotIndex}`]: { x: targetX, y: targetY } };
+    }
+
+    // =========================================================================
+    // 1. MIDFIELD UNIT (MID) — Zone-Aware Cohesion with Tight CDM Proximity
+    // =========================================================================
+    if (draggedGroup === "MID") {
+      const isDraggedCDM = draggedCode === "CDM";
+      const isDraggedCAM = draggedCode === "CAM" || draggedCode === "LAM" || draggedCode === "RAM";
+
+      unitMembers.forEach((m, r) => {
+        if (m.idx === dragSlotIndex) {
+          nextCustom[`${currentFormationKey}::${m.idx}`] = {
+            x: Math.round(Math.max(4, Math.min(96, targetX)) * 10) / 10,
+            y: Math.round(Math.max(4, Math.min(96, targetY)) * 10) / 10,
+          };
+          return;
+        }
+
+        const isMemberCDM = m.code === "CDM";
+        const isMemberCAM = m.code === "CAM" || m.code === "LAM" || m.code === "RAM";
+        const isMemberWide = ["LM", "RM", "LW", "RW"].includes(m.code);
+        const isMemberCM = !isMemberCDM && !isMemberCAM && !isMemberWide;
+
+        let nextX = m.slot.x;
+        let nextY = m.slot.y;
+
+        // LATERAL (X) COHESION: Ball-oriented shift with corridor compression
+        const lateralCoupling = isMemberWide ? 0.72 : 0.86;
+        let shiftX = deltaX * lateralCoupling;
+
+        // When shifted wide, tuck far-side players slightly towards the inner channel
+        if (Math.abs(deltaX) > 4) {
+          if ((deltaX < 0 && m.slot.x > 50) || (deltaX > 0 && m.slot.x < 50)) {
+            shiftX += (deltaX < 0 ? -1 : 1) * Math.min(5, Math.abs(deltaX) * 0.22);
+          }
+        }
+        nextX = m.slot.x + shiftX;
+
+        // Ensure central CDM stays anchored in the central spine / inner corridor
+        if (isMemberCDM && !isDraggedCDM) {
+          nextX = 50 + deltaX * 0.48;
+        }
+
+        // VERTICAL (Y) POSITIONING — ZONE-SPECIFIC WITH COMPACT CDM DISTANCE:
+        if (isDraggedCDM) {
+          // Dragging CDM: other midfielders position naturally ahead of CDM
+          if (isMemberCAM) {
+            const camGap = tAttack * 10.0 + tMid * 8.0 + tDefend * 5.0;
+            nextY = targetY - camGap;
+          } else if (isMemberCM) {
+            const cmGap = tAttack * 8.0 + tMid * 6.5 + tDefend * 4.5;
+            nextY = targetY - cmGap;
+          } else if (isMemberWide) {
+            const wideGap = tAttack * 8.0 + tMid * 6.0 + tDefend * 4.0;
+            nextY = targetY - wideGap;
+          }
+        } else {
+          // Dragging CM, CAM, or Wide Midfielder:
+          const verticalCoupling = 0.88;
+          const baseShiftY = deltaY * verticalCoupling;
+
+          if (isMemberCDM) {
+            // FIX: Keep CDM tightly connected to other midfielders across all pitch thirds!
+            // In Attacking Third: CDM locks the edge in rest-defense (6.5-8.5% behind lead)
+            // In Middle Third: CDM provides 45° central pivot support (5.5-7.5% behind lead)
+            // In Defensive Third: CDM drops to top of box / Zone 14 (4.5-6.0% behind lead)
+            const cdmIdealGap = tAttack * 8.0 + tMid * 6.8 + tDefend * 4.8;
+            const cdmIdealY = targetY + cdmIdealGap;
+
+            // In attack, step up aggressively from default slot
+            const cdmStepUp = tAttack * 14;
+            const cdmShiftedY = m.slot.y + baseShiftY * 0.80 - cdmStepUp;
+
+            nextY = cdmIdealY * 0.75 + cdmShiftedY * 0.25;
+
+            // Ensure CDM is never disconnected (max 9% behind lead, min 4.5% behind lead)
+            if (nextY > targetY + 9.0) nextY = targetY + 9.0;
+            if (nextY < targetY + 4.5) nextY = targetY + 4.5;
+          } else if (isMemberCAM) {
+            const camShift = m.slot.y + baseShiftY;
+            nextY = Math.min(targetY, camShift);
+          } else if (isMemberCM) {
+            const rDist = Math.abs(r - dragRank);
+            let staggerCover = 0;
+            if (deltaY < 0) { // pressing forward
+              staggerCover = rDist === 1 ? (tAttack * 2.2 + tMid * 3.2 + tDefend * 1.8) : 1.2;
+            } else if (deltaY > 0) { // dropping back
+              staggerCover = rDist === 1 ? -1.2 : 0;
+            }
+            nextY = m.slot.y + baseShiftY + staggerCover;
+          } else if (isMemberWide) {
+            const wideCover = deltaY < 0 ? (tAttack * 1.0 + tMid * 2.2) : 0;
+            nextY = m.slot.y + baseShiftY + wideCover;
+          }
+        }
+
+        // Clamp within pitch
+        nextX = Math.max(4, Math.min(96, nextX));
+        nextY = Math.max(4, Math.min(96, nextY));
+
+        nextCustom[`${currentFormationKey}::${m.idx}`] = {
+          x: Math.round(nextX * 10) / 10,
+          y: Math.round(nextY * 10) / 10,
+        };
+      });
+    }
+
+    // =========================================================================
+    // 2. DEFENSIVE UNIT (DEF) — High Line / Staggered Cover / Low Box Protect
+    // =========================================================================
+    else if (draggedGroup === "DEF") {
+      unitMembers.forEach((m, r) => {
+        if (m.idx === dragSlotIndex) {
+          nextCustom[`${currentFormationKey}::${m.idx}`] = {
+            x: Math.round(Math.max(4, Math.min(96, targetX)) * 10) / 10,
+            y: Math.round(Math.max(4, Math.min(96, targetY)) * 10) / 10,
+          };
+          return;
+        }
+
+        const dist = Math.abs(r - dragRank);
+
+        // LATERAL (X) COMPACTNESS:
+        // Deep defending: full-backs tuck into 18-yard box width to deny central space
+        let shiftX = deltaX * 0.82;
+        if (tDefend > 0.3) {
+          if (m.slot.x < 50) shiftX += tDefend * 3.5;
+          else if (m.slot.x > 50) shiftX -= tDefend * 3.5;
+        }
+        let nextX = m.slot.x + shiftX;
+
+        // VERTICAL (Y) SHIFT:
+        // Attacking Third: High line pushed up to y: 46-56
+        // Middle Third: Mid-block line with staggered sweeper depth
+        // Defensive Third: Deep low-block box line (y: 78-88)
+        const lineShiftY = deltaY * 0.86;
+        let coverDepth = 0;
+
+        if (deltaY < 0) { // Stepping forward / pressing
+          if (dist === 1) {
+            coverDepth = Math.min(4.5, Math.abs(deltaY) * 0.30 + Math.abs(deltaX) * 0.10);
+          } else {
+            coverDepth = Math.min(3.5, Math.abs(deltaY) * 0.20);
+          }
+        } else if (deltaY > 0) { // Dropping deep
+          coverDepth = dist === 1 ? Math.min(2.0, deltaY * 0.10) : 0;
+        }
+
+        let nextY = m.slot.y + lineShiftY + coverDepth;
+
+        nextX = Math.max(4, Math.min(96, nextX));
+        nextY = Math.max(4, Math.min(96, nextY));
+
+        nextCustom[`${currentFormationKey}::${m.idx}`] = {
+          x: Math.round(nextX * 10) / 10,
+          y: Math.round(nextY * 10) / 10,
+        };
+      });
+    }
+
+    // =========================================================================
+    // 3. FORWARD UNIT (FWD) — Box Attack / Mid Pressing / Outlet Positioning
+    // =========================================================================
+    else if (draggedGroup === "FWD") {
+      unitMembers.forEach((m, r) => {
+        if (m.idx === dragSlotIndex) {
+          nextCustom[`${currentFormationKey}::${m.idx}`] = {
+            x: Math.round(Math.max(4, Math.min(96, targetX)) * 10) / 10,
+            y: Math.round(Math.max(4, Math.min(96, targetY)) * 10) / 10,
+          };
+          return;
+        }
+
+        const dist = Math.abs(r - dragRank);
+        let shiftX = deltaX * 0.78;
+
+        // In attacking third, wingers make diagonal inside runs to overload box
+        if (tAttack > 0.35) {
+          if (m.code === "LW" && deltaX > 0) shiftX += 3.0;
+          if (m.code === "RW" && deltaX < 0) shiftX -= 3.0;
+        }
+
+        let nextX = m.slot.x + shiftX;
+
+        // Vertical shift:
+        // Attacking third: box penetration & cutback options
+        // Middle third: mid screening & trap
+        // Defensive third: counter-attack outlet
+        const fwdLineShiftY = deltaY * 0.82;
+        let shadowDepth = 0;
+        if (deltaY < 0 && dist === 1) {
+          shadowDepth = Math.min(3.5, Math.abs(deltaY) * 0.22);
+        }
+
+        let nextY = m.slot.y + fwdLineShiftY + shadowDepth;
+
+        nextX = Math.max(4, Math.min(96, nextX));
+        nextY = Math.max(4, Math.min(96, nextY));
+
+        nextCustom[`${currentFormationKey}::${m.idx}`] = {
+          x: Math.round(nextX * 10) / 10,
+          y: Math.round(nextY * 10) / 10,
+        };
+      });
+    }
+
+    return nextCustom;
+  };
+
+  const tacticalUnitVisuals = useMemo(() => {
+    if (!showCoverLines && !unitCoverShift) return [];
+
+    const units = ["DEF", "MID", "FWD"];
+    const results = [];
+
+    units.forEach((g) => {
+      if (!activeLines.includes(g)) return;
+
+      const members = filled
+        .map((item, idx) => {
+          const code = item.player ? item.player.canonical : item.slot.code;
+          const group = GROUP[code] || "MID";
+          return {
+            idx,
+            slot: item.slot,
+            player: item.player,
+            code,
+            group,
+            pos: getPos(item.slot, idx),
+          };
+        })
+        .filter((m) => m.group === g);
+
+      if (members.length === 0) return;
+
+      members.sort((a, b) => a.slot.x - b.slot.x);
+
+      // Find if any member is displaced from base slot
+      let leadMember = null;
+      let maxDisplacement = 0;
+
+      members.forEach((m) => {
+        const dx = m.pos.x - m.slot.x;
+        const dy = m.pos.y - m.slot.y;
+        const disp = Math.sqrt(dx * dx + dy * dy);
+        if (disp > maxDisplacement && disp > 1.5) {
+          maxDisplacement = disp;
+          leadMember = m;
+        }
+      });
+
+      // If active drag is in this group, that player is the lead
+      if (activeDragSlot != null) {
+        const activeM = members.find((m) => m.idx === activeDragSlot);
+        if (activeM) leadMember = activeM;
+      }
+
+      // Polyline points for chain
+      const points = members.map((m) => `${m.pos.x},${m.pos.y}`).join(" ");
+
+      // Cover / support vectors from lead member to teammates
+      const coverVectors = [];
+      if (leadMember && members.length > 1) {
+        const leadRank = members.findIndex((m) => m.idx === leadMember.idx);
+        const leadY = leadMember.pos.y;
+        const inAttackingThird = leadY < 33.33;
+        const inDefensiveThird = leadY > 66.67;
+
+        members.forEach((m, r) => {
+          if (m.idx === leadMember.idx) return;
+          const dist = Math.abs(r - leadRank);
+          let label = "🛡️ Cover";
+
+          if (g === "DEF") {
+            if (inAttackingThird) {
+              label = dist === 1 ? "⚔️ High Line" : "🔒 Rest-Def";
+            } else if (inDefensiveThird) {
+              label = dist === 1 ? "🧱 Box Protect" : (r === 0 || r === members.length - 1 ? "🔒 Far Post" : "🛡️ Near Post");
+            } else {
+              if (dist === 1) {
+                label = "🛡️ Cover";
+              } else if (r === 0 || r === members.length - 1) {
+                label = "🔒 Pinch";
+              } else {
+                label = "🧹 Sweep";
+              }
+            }
+          } else if (g === "MID") {
+            if (m.code === "CDM") {
+              if (inAttackingThird) label = "🛡️ Rest-Def Anchor";
+              else if (inDefensiveThird) label = "🛡️ Zone 14 Shield";
+              else label = "🛡️ Pivot Screen";
+            } else if (m.code === "CAM" || m.code === "LAM" || m.code === "RAM") {
+              if (inAttackingThird) label = "🎯 Overload";
+              else if (inDefensiveThird) label = "🧱 Low Block Wall";
+              else label = "📐 Pocket Link";
+            } else if (m.code === "LM" || m.code === "RM" || m.code === "LW" || m.code === "RW") {
+              if (inAttackingThird) label = "↗️ Width / Cutback";
+              else if (inDefensiveThird) label = "🔒 Flank Track";
+              else label = "📐 Flank Triangle";
+            } else {
+              // Central Midfielder (CM)
+              if (inAttackingThird) label = dist === 1 ? "⚡ Counter-Press" : "📐 Cutback Option";
+              else if (inDefensiveThird) label = "🧱 Low Block Screen";
+              else label = dist === 1 ? "📐 Passing Triangle" : "🔄 Pivot Support";
+            }
+          } else if (g === "FWD") {
+            if (inAttackingThird) {
+              label = dist === 1 ? "🎯 Box Attack" : "↗️ Diagonal Run";
+            } else if (inDefensiveThird) {
+              label = "🏃 Break Outlet";
+            } else {
+              label = "🔄 Shadow Press";
+            }
+          }
+
+          coverVectors.push({
+            from: leadMember.pos,
+            to: m.pos,
+            targetCode: m.code,
+            targetIdx: m.idx,
+            label,
+            isPrimary: dist === 1,
+            color: CODE_COLORS[m.code] || ZONE_COLORS[g],
+          });
+        });
+      }
+
+      // Compactness shading polygon
+      let polygonPoints = "";
+      if (members.length >= 3) {
+        const topPts = members.map((m) => `${m.pos.x},${Math.max(2, m.pos.y - 3.5)}`);
+        const btmPts = [...members].reverse().map((m) => `${m.pos.x},${Math.min(98, m.pos.y + 3.5)}`);
+        polygonPoints = [...topPts, ...btmPts].join(" ");
+      }
+
+      results.push({
+        group: g,
+        color: ZONE_COLORS[g],
+        points,
+        members,
+        leadMember,
+        coverVectors,
+        polygonPoints,
+      });
+    });
+
+    return results;
+  }, [filled, customPos, formationKey, activeLines, showCoverLines, unitCoverShift, activeDragSlot]);
+
+  const activeTacticalPhase = useMemo(() => {
+    if (!unitCoverShift) return null;
+    let targetY = 50;
+    if (activeDragSlot != null && filled[activeDragSlot]) {
+      const pos = getPos(filled[activeDragSlot].slot, activeDragSlot);
+      targetY = pos.y;
+    } else {
+      const outfieldPositions = filled.map((item, idx) => getPos(item.slot, idx));
+      if (outfieldPositions.length > 0) {
+        targetY = outfieldPositions.reduce((acc, p) => acc + p.y, 0) / outfieldPositions.length;
+      }
+    }
+
+    if (targetY < 33.33) {
+      return {
+        key: "ATTACKING",
+        name: "ATTACKING THIRD",
+        desc: "High Press & Rest-Defense Pivot Active — Midfield Compressed & Locking Counter-Press",
+        color: "#EF4444",
+        badgeBg: "rgba(239, 68, 68, 0.18)",
+        badgeBorder: "rgba(239, 68, 68, 0.45)",
+      };
+    } else if (targetY > 66.67) {
+      return {
+        key: "DEFENSIVE",
+        name: "DEFENSIVE THIRD",
+        desc: "Low Block & Zone 14 Shield — CDM Dropped onto D & Midfield Wall Compressed",
+        color: "#3B82F6",
+        badgeBg: "rgba(59, 130, 246, 0.18)",
+        badgeBorder: "rgba(59, 130, 246, 0.45)",
+      };
+    } else {
+      return {
+        key: "MIDDLE",
+        name: "MIDDLE THIRD",
+        desc: "Mid-Block Triangular Structure — Staggered Pivot & Dynamic Passing Lanes",
+        color: "#E8B34C",
+        badgeBg: "rgba(232, 179, 76, 0.18)",
+        badgeBorder: "rgba(232, 179, 76, 0.45)",
+      };
+    }
+  }, [unitCoverShift, activeDragSlot, filled, customPos, formationKey]);
+
+  useEffect(() => {
+    if (!dragKey) return;
+    const clamp = (v) => Math.max(3, Math.min(97, v));
+    let curCustom = customPos;
+    let curBall = ballPos;
+    const handleMove = (e) => {
+      if (!pitchRef.current) return;
+      const rect = pitchRef.current.getBoundingClientRect();
+      const point = e.touches ? e.touches[0] : e;
+      const x = clamp(((point.clientX - rect.left) / rect.width) * 100);
+      const y = clamp(((point.clientY - rect.top) / rect.height) * 100);
+      if (dragKey === "ball") {
+        curBall = { x, y };
+        setBallPos(curBall);
+      } else {
+        const slotIdx = parseInt(dragKey.replace(`${formationKey}::`, ""), 10);
+        if (unitCoverShift && !isNaN(slotIdx)) {
+          setActiveDragSlot(slotIdx);
+          curCustom = computeTacticalUnitShift(slotIdx, x, y, filled, formationKey, curCustom);
+        } else {
+          curCustom = { ...curCustom, [dragKey]: { x, y } };
+        }
+        setCustomPos(curCustom);
+      }
+    };
+    const handleUp = () => {
+      setDragKey(null);
+      setActiveDragSlot(null);
+      saveVisualizerPositions(curCustom, curBall, formationKey);
+    };
+    window.addEventListener("pointermove", handleMove);
+    window.addEventListener("pointerup", handleUp);
+    window.addEventListener("touchmove", handleMove, { passive: false });
+    window.addEventListener("touchend", handleUp);
+    return () => {
+      window.removeEventListener("pointermove", handleMove);
+      window.removeEventListener("pointerup", handleUp);
+      window.removeEventListener("touchmove", handleMove);
+      window.removeEventListener("touchend", handleUp);
+    };
+  }, [dragKey, isCoach, formationKey, customPos, ballPos, unitCoverShift, filled]);
+
+  const C = {
+    bg: "#0F1B14",
+    panel: "#132B1C",
+    border: "#3A5A44",
+    cream: "#F4F1E8",
+    creamSoft: "#DCE8DE",
+    sage: "#8FBF9F",
+    amber: "#E8B34C",
+    ink: "#132B1C",
+  };
+
+  return (
+    <div className="w-full" style={{ background: C.bg, fontFamily: "'Inter', sans-serif" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@600&display=swap');
+        .oswald { font-family: 'Oswald', sans-serif; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .pitch-stripe { background-image: repeating-linear-gradient(to bottom, #1E4D2B 0, #1E4D2B 9.09%, #21532F 9.09%, #21532F 18.18%); }
+        .token { transition: transform .15s ease; }
+        .token:hover { transform: translate(-50%, -50%) scale(1.08); }
+        .roster-toggle:hover { background: #1E4D2B; }
+        .roster-input:focus { outline: none; border-color: #E8B34C; }
+        .mode-tab { transition: background .15s ease, color .15s ease; }
+        @media print {
+          body { background: white; }
+          .no-print { display: none !important; }
+          .print-grid { display: block !important; }
+          .print-pitch-wrap { max-width: 480px; margin: 0 auto; }
+          .print-title { display: block !important; }
+        }
+        .chat-scroll {
+          scrollbar-width: thin;
+          scrollbar-color: #3A5A44 rgba(19, 43, 28, 0.5);
+        }
+        .chat-scroll::-webkit-scrollbar {
+          width: 6px;
+        }
+        .chat-scroll::-webkit-scrollbar-track {
+          background: rgba(19, 43, 28, 0.5);
+        }
+        .chat-scroll::-webkit-scrollbar-thumb {
+          background: #3A5A44;
+          border-radius: 3px;
+        }
+        .chat-scroll::-webkit-scrollbar-thumb:hover {
+          background: #8FBF9F;
+        }
+      `}</style>
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-6 md:py-8">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-4 no-print">
+          <div>
+            <div className="oswald" style={{ fontSize: 12, letterSpacing: "0.3em", color: C.sage, marginBottom: 2 }}>SQUAD SHEET</div>
+            <h1 className="oswald text-3xl md:text-4xl" style={{ color: C.cream, fontWeight: 600, letterSpacing: "0.02em" }}>Line-Up Builder</h1>
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* 1. Open in New Window */}
+            <button
+              onClick={() => {
+                try {
+                  const statePayload = {
+                    formation: formationKey,
+                    customPos,
+                    ballPos,
+                    showZones,
+                    showThirds,
+                    unitCoverShift,
+                    showCoverLines,
+                    activeLines,
+                  };
+                  const cached = localStorage.getItem('formation_sync_payload');
+                  const merged = cached ? { ...JSON.parse(cached), ...statePayload } : statePayload;
+                  localStorage.setItem('formation_sync_payload', JSON.stringify(merged));
+                } catch(e){}
+                window.open('formation-builder.html', '_blank');
+              }}
+              className="oswald"
+              style={{ fontSize: 13, letterSpacing: "0.02em", height: 42, padding: "0 14px", borderRadius: 8, border: `1px solid ${C.border}`, color: C.creamSoft, background: "transparent", fontWeight: 600, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5 }}
+              title="Open Formation visualizer in a new window"
+            >
+              ↗️ Open in New Window
+            </button>
+
+            {/* 2. Sync from Match XI */}
+            <button
+              onClick={requestResync}
+              className="oswald"
+              style={{ fontSize: 13, letterSpacing: "0.02em", height: 42, padding: "0 14px", borderRadius: 8, border: `1px solid ${C.border}`, color: C.creamSoft, background: "transparent", fontWeight: 600, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5 }}
+            >
+              🔄 Sync from Match XI
+            </button>
+
+            {/* 3. Team View Link with share and whatsapp icons below */}
+            <div
+              style={{
+                height: 42,
+                padding: "3px 12px",
+                borderRadius: 8,
+                border: `1px solid ${C.border}`,
+                background: "rgba(244,241,232,0.04)",
+                display: "inline-flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 2,
+                boxSizing: "border-box"
+              }}
+            >
+              <span className="oswald" style={{ fontSize: 11, letterSpacing: "0.06em", color: C.cream, fontWeight: 700, lineHeight: 1 }}>
+                👁️ TEAM VIEW LINK
+              </span>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <button
+                  type="button"
+                  onClick={handleShareTeamView}
+                  title="Share Link (Copy, Email, SMS)"
+                  style={{
+                    background: "rgba(244,241,232,0.08)",
+                    border: `1px solid ${C.border}`,
+                    borderRadius: 4,
+                    color: C.cream,
+                    fontSize: 10.5,
+                    padding: "1px 7px",
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 3,
+                    lineHeight: 1.2
+                  }}
+                >
+                  <span>🔗</span> Share
+                </button>
+                <button
+                  type="button"
+                  onClick={handleWhatsAppTeamView}
+                  title="Share via WhatsApp"
+                  style={{
+                    background: "rgba(37,211,102,0.18)",
+                    border: "1px solid rgba(37,211,102,0.4)",
+                    borderRadius: 4,
+                    color: "#25D366",
+                    fontSize: 10.5,
+                    padding: "1px 7px",
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 3,
+                    lineHeight: 1.2
+                  }}
+                >
+                  <span>📱</span> WhatsApp
+                </button>
+              </div>
+            </div>
+
+            {/* 4. Print formation */}
+            <button
+              onClick={handlePrint}
+              className="oswald"
+              style={{ fontSize: 13, letterSpacing: "0.02em", height: 42, padding: "0 14px", borderRadius: 8, border: "none", color: C.ink, background: C.amber, fontWeight: 600, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5 }}
+            >
+              🖨️ Print formation
+            </button>
+          </div>
+        </div>
+
+        {syncInfo && (
+          <div className="no-print" style={{ fontSize: 12, color: C.sage, background: C.panel, border: `1px solid ${C.border}`, borderRadius: 6, padding: "8px 12px", marginBottom: 14, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+            <span>✅ {syncInfo}</span>
+          </div>
+        )}
+
+        <div className="print-title" style={{ display: "none" }}>
+          <h1 className="oswald" style={{ fontSize: 26, color: "#132B1C", fontWeight: 700, textAlign: "center", marginBottom: 12 }}>
+            FORMATION: {formationKey}
+          </h1>
+        </div>
+
+        {/* TOP TOOLBAR: Controls & Settings spanning the full width above Pitch & Chat */}
+        <div className="no-print" style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 10, padding: "10px 14px", marginBottom: 16 }}>
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={resetPositions}
+                className="oswald"
+                style={{ fontSize: 12, letterSpacing: "0.02em", color: C.sage, background: "transparent", border: `1px solid ${C.border}`, borderRadius: 6, padding: "6px 10px", cursor: "pointer" }}
+              >
+                Reset positions
+              </button>
+              <select
+                value={formationKey}
+                onChange={(e) => onFormationChange(e.target.value)}
+                className="oswald"
+                style={{ background: C.bg, color: C.cream, border: `1px solid ${C.border}`, borderRadius: 6, padding: "6px 10px", fontSize: 13, letterSpacing: "0.02em" }}
+              >
+                {Object.keys(FORMATIONS).map((k) => (
+                  <option key={k} value={k}>{k}</option>
+                ))}
+              </select>
+              <div className="flex items-center gap-1 flex-wrap">
+                {LINE_GROUPS.map((g) => {
+                  const on = activeLines.includes(g);
+                  const color = ZONE_COLORS[g];
+                  const labels = { GK: "GK", DEF: "DEF", MID: "MID", FWD: "FWD" };
+                  return (
+                    <button
+                      key={g}
+                      onClick={() => toggleLine(g)}
+                      className="oswald"
+                      style={{
+                        fontSize: 11.5, letterSpacing: "0.02em", fontWeight: 700, padding: "5px 8px", borderRadius: 6,
+                        border: `1px solid ${on ? color : C.border}`,
+                        background: on ? hexToRgba(color, 0.28) : "transparent",
+                        color: on ? C.cream : C.sage,
+                        cursor: "pointer",
+                      }}
+                    >
+                      {labels[g]}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 flex-wrap">
+              <label className="flex items-center gap-1.5 oswald" style={{ fontSize: 13, color: C.creamSoft, letterSpacing: "0.02em", cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={showZones}
+                  onChange={(e) => {
+                    const val = e.target.checked;
+                    setShowZones(val);
+                    saveVisualizerPositions(customPos, ballPos, formationKey, { showZones: val });
+                  }}
+                />
+                Position zones
+              </label>
+              <label className="flex items-center gap-1.5 oswald" style={{ fontSize: 13, color: C.creamSoft, letterSpacing: "0.02em", cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={showThirds}
+                  onChange={(e) => {
+                    const val = e.target.checked;
+                    setShowThirds(val);
+                    saveVisualizerPositions(customPos, ballPos, formationKey, { showThirds: val });
+                  }}
+                />
+                Pitch thirds
+              </label>
+              <label className="flex items-center gap-1.5 oswald" style={{ fontSize: 13, color: unitCoverShift ? C.amber : C.creamSoft, letterSpacing: "0.02em", cursor: "pointer" }} title="When enabled, moving one player automatically adjusts their line teammates into realistic match covering & supporting positions">
+                <input
+                  type="checkbox"
+                  checked={unitCoverShift}
+                  onChange={(e) => {
+                    const val = e.target.checked;
+                    setUnitCoverShift(val);
+                    saveVisualizerPositions(customPos, ballPos, formationKey, { unitCoverShift: val });
+                  }}
+                />
+                <span className="flex items-center gap-1">
+                  🛡️ Unit Cover & Shift
+                </span>
+              </label>
+              <label className="flex items-center gap-1.5 oswald" style={{ fontSize: 13, color: showCoverLines ? C.sage : C.creamSoft, letterSpacing: "0.02em", cursor: "pointer" }} title="Show tactical unit chain lines and dynamic cover/support vectors">
+                <input
+                  type="checkbox"
+                  checked={showCoverLines}
+                  onChange={(e) => {
+                    const val = e.target.checked;
+                    setShowCoverLines(val);
+                    saveVisualizerPositions(customPos, ballPos, formationKey, { showCoverLines: val });
+                  }}
+                />
+                <span className="flex items-center gap-1">
+                  📐 Cover Lines
+                </span>
+              </label>
+              <button
+                onClick={toggleChatVisibility}
+                className="oswald"
+                style={{
+                  fontSize: 12,
+                  letterSpacing: "0.02em",
+                  fontWeight: 700,
+                  color: showChat ? C.cream : C.ink,
+                  background: showChat ? "rgba(244,241,232,0.14)" : C.amber,
+                  border: `1px solid ${showChat ? C.border : C.amber}`,
+                  borderRadius: 6,
+                  padding: "6px 12px",
+                  cursor: "pointer"
+                }}
+              >
+                {showChat ? "💬 Close Chat" : "💬 Chat (Popup)"}
+              </button>
+              <button
+                onClick={toggleFullscreen}
+                className="oswald"
+                style={{ fontSize: 12, letterSpacing: "0.02em", fontWeight: 700, color: C.ink, background: C.amber, border: "none", borderRadius: 6, padding: "6px 12px", cursor: "pointer" }}
+              >
+                {isFullscreen ? "⤡ Exit Full Screen" : "⛶ Full Screen"}
+              </button>
+            </div>
+          </div>
+          <div className="oswald flex items-center justify-between flex-wrap gap-2" style={{ fontSize: 11, color: "rgba(143,191,159,0.85)", marginTop: 6, letterSpacing: "0.02em" }}>
+            <span>
+              {unitCoverShift && activeTacticalPhase ? (
+                <strong style={{ color: activeTacticalPhase.color }}>🛡️ {activeTacticalPhase.name}: </strong>
+              ) : unitCoverShift ? (
+                <strong style={{ color: C.amber }}>🛡️ Tactical Unit Cohesion Active: </strong>
+              ) : (
+                <span>💡 Tip: </span>
+              )}
+              {unitCoverShift && activeTacticalPhase
+                ? activeTacticalPhase.desc
+                : unitCoverShift
+                ? "Drag any defender, midfielder, or striker to see automatic match-realistic unit covering and tactical support lines!"
+                : "Drag any jersey or the ball to fine-tune the picture. Tap GK / DEF / MID / FWD to combine lines."}
+            </span>
+            {unitCoverShift && activeTacticalPhase && (
+              <span
+                className="mono rounded px-1.5 py-0.5"
+                style={{
+                  fontSize: 9.5,
+                  background: activeTacticalPhase.badgeBg,
+                  color: activeTacticalPhase.color,
+                  border: `1px solid ${activeTacticalPhase.badgeBorder}`,
+                }}
+              >
+                {activeTacticalPhase.name} PHASE
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* FULL STAGE: FOOTBALL GROUND (Pitch) */}
+        <div
+          className="flex justify-center print-grid mb-8"
+          style={{ alignItems: "start" }}
+        >
+          {/* THE FOOTBALL GROUND (Pitch) */}
+          <div
+            className="print-pitch-wrap w-full flex flex-col justify-start"
+            style={{
+              maxWidth: (isFullscreen ? "calc((100vh - 140px) * 0.68)" : 680),
+              margin: "0 auto",
+              ...(isFullscreen ? { maxHeight: "calc(100vh - 140px)", display: "flex", alignItems: "center" } : {})
+            }}
+          >
+            <div
+              ref={pitchRef}
+              className="relative w-full rounded-lg overflow-hidden pitch-stripe"
+              style={{
+                aspectRatio: "68 / 100",
+                maxHeight: isFullscreen ? "calc(100vh - 140px)" : "none",
+                maxWidth: isFullscreen ? "calc((100vh - 140px) * 0.68)" : "100%",
+                border: `2px solid rgba(220,232,222,0.7)`,
+                touchAction: "none",
+                width: "100%",
+                boxSizing: "border-box",
+                margin: "0 auto"
+              }}
+            >
+              {/* pitch markings */}
+              <svg
+                viewBox="0 0 68 100"
+                preserveAspectRatio="none"
+                className="absolute inset-0 w-full h-full"
+                style={{ pointerEvents: "none" }}
+              >
+                <g fill="none" stroke="rgba(244,241,232,0.55)" strokeWidth="0.35">
+                  <rect x="1" y="1" width="66" height="98" />
+                  <line x1="1" y1="50" x2="67" y2="50" />
+                  <circle cx="34" cy="50" r="9.15" />
+                  <circle cx="34" cy="50" r="0.4" fill="rgba(244,241,232,0.55)" />
+                  {/* top penalty box + six-yard box (attacking end) */}
+                  <rect x="13.85" y="1" width="40.3" height="16.5" />
+                  <rect x="24.84" y="1" width="18.32" height="5.5" />
+                  <circle cx="34" cy="12" r="0.4" fill="rgba(244,241,232,0.55)" />
+                  <path d="M 26.69,17.5 A 9.15,9.15 0 0 0 41.31,17.5" />
+                  {/* bottom penalty box + six-yard box (goalkeeper end) */}
+                  <rect x="13.85" y="82.5" width="40.3" height="16.5" />
+                  <rect x="24.84" y="93.5" width="18.32" height="5.5" />
+                  <circle cx="34" cy="88" r="0.4" fill="rgba(244,241,232,0.55)" />
+                  <path d="M 26.69,82.5 A 9.15,9.15 0 0 1 41.31,82.5" />
+                  {/* corner arcs */}
+                  <path d="M 1,3 A 2,2 0 0 0 3,1" />
+                  <path d="M 65,1 A 2,2 0 0 0 67,3" />
+                  <path d="M 67,97 A 2,2 0 0 0 65,99" />
+                  <path d="M 3,99 A 2,2 0 0 0 1,97" />
+                </g>
+              </svg>
+
+              {/* pitch thirds */}
+              {showThirds && (
+                <>
+                  <div className="absolute no-print" style={{ left: 0, top: "0%", width: "100%", height: "33.33%", background: "rgba(220,38,38,0.20)", borderBottom: "1px dashed rgba(220,38,38,0.55)", pointerEvents: "none" }}>
+                    <div className="oswald" style={{ position: "absolute", top: 6, left: 8, fontSize: 10, letterSpacing: "0.15em", color: "#F4F1E8", opacity: 0.85 }}>ATTACKING THIRD</div>
+                  </div>
+                  <div className="absolute no-print" style={{ left: 0, top: "33.33%", width: "100%", height: "33.34%", background: "rgba(234,179,8,0.18)", borderBottom: "1px dashed rgba(234,179,8,0.55)", pointerEvents: "none" }}>
+                    <div className="oswald" style={{ position: "absolute", top: 6, left: 8, fontSize: 10, letterSpacing: "0.15em", color: "#F4F1E8", opacity: 0.85 }}>MIDDLE THIRD</div>
+                  </div>
+                  <div className="absolute no-print" style={{ left: 0, top: "66.67%", width: "100%", height: "33.33%", background: "rgba(37,99,235,0.18)", pointerEvents: "none" }}>
+                    <div className="oswald" style={{ position: "absolute", top: 6, left: 8, fontSize: 10, letterSpacing: "0.15em", color: "#F4F1E8", opacity: 0.85 }}>DEFENSIVE THIRD</div>
+                  </div>
+                </>
+              )}
+
+              {/* zones */}
+              {showZones &&
+                filled.map(({ slot, player }, i) => {
+                  const code = player ? player.canonical : slot.code;
+                  const group = GROUP[code] || "MID";
+                  if (!activeLines.includes(group)) return null;
+                  const [rw, rh] = CODE_ZONE_SIZE[code] || ZONE_SIZE[group];
+                  const color = CODE_COLORS[code] || ZONE_COLORS[group];
+                  const anchorY = CODE_ZONE_ANCHOR[code] != null ? CODE_ZONE_ANCHOR[code] : 0.5;
+                  const pos = getPos(slot, i);
+                  return (
+                    <div
+                      key={`zone-${i}`}
+                      className="absolute"
+                      style={{
+                        left: `${pos.x}%`,
+                        top: `${pos.y}%`,
+                        width: `${rw}%`,
+                        height: `${rh}%`,
+                        transform: `translate(-50%,-${anchorY * 100}%)`,
+                        borderRadius: 14,
+                        background: `radial-gradient(ellipse at center, ${hexToRgba(color, 0.32)} 0%, ${hexToRgba(color, 0.08)} 75%, transparent 100%)`,
+                        border: `2px dashed ${hexToRgba(color, 0.65)}`,
+                        pointerEvents: "none",
+                      }}
+                    />
+                  );
+                })}
+
+              {/* Tactical Unit Connection & Dynamic Cover Lines */}
+              {(showCoverLines || unitCoverShift) && (
+                <svg
+                  viewBox="0 0 100 100"
+                  preserveAspectRatio="none"
+                  className="absolute inset-0 w-full h-full"
+                  style={{ pointerEvents: "none", zIndex: 6 }}
+                >
+                  <defs>
+                    <filter id="tacticalGlow" x="-20%" y="-20%" width="140%" height="140%">
+                      <feGaussianBlur stdDeviation="0.4" result="blur" />
+                    </filter>
+                    <marker id="arrowCoverDef" viewBox="0 0 6 6" refX="4" refY="3" markerWidth="3" markerHeight="3" orient="auto-start-reverse">
+                      <path d="M 0 1 L 5 3 L 0 5 z" fill="#3D7DB0" />
+                    </marker>
+                    <marker id="arrowCoverMid" viewBox="0 0 6 6" refX="4" refY="3" markerWidth="3" markerHeight="3" orient="auto-start-reverse">
+                      <path d="M 0 1 L 5 3 L 0 5 z" fill="#D9A63E" />
+                    </marker>
+                    <marker id="arrowCoverFwd" viewBox="0 0 6 6" refX="4" refY="3" markerWidth="3" markerHeight="3" orient="auto-start-reverse">
+                      <path d="M 0 1 L 5 3 L 0 5 z" fill="#C0453A" />
+                    </marker>
+                  </defs>
+
+                  {tacticalUnitVisuals.map((unit) => {
+                    const arrowId = unit.group === "DEF" ? "arrowCoverDef" : (unit.group === "MID" ? "arrowCoverMid" : "arrowCoverFwd");
+                    return (
+                      <g key={`tactical-unit-${unit.group}`}>
+                        {/* Compactness Corridor Polygon */}
+                        {unit.polygonPoints && (
+                          <polygon
+                            points={unit.polygonPoints}
+                            fill={hexToRgba(unit.color, 0.06)}
+                            stroke={hexToRgba(unit.color, 0.18)}
+                            strokeWidth="0.25"
+                            strokeDasharray="1.2 1.2"
+                          />
+                        )}
+
+                        {/* Unit Chain Backbone Line */}
+                        {unit.members.length > 1 && (
+                          <>
+                            {/* Subtle Outer Glow */}
+                            <polyline
+                              points={unit.points}
+                              fill="none"
+                              stroke={unit.color}
+                              strokeWidth="0.8"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              opacity="0.20"
+                              filter="url(#tacticalGlow)"
+                            />
+                            {/* Crisp Tactical Dashed Chain */}
+                            <polyline
+                              points={unit.points}
+                              fill="none"
+                              stroke={unit.color}
+                              strokeWidth="0.38"
+                              strokeDasharray="2 1.2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              opacity="0.82"
+                            />
+                          </>
+                        )}
+
+                        {/* Dynamic Cover & Support Vectors (connecting lead member to teammates) */}
+                        {unit.coverVectors.map((v, vi) => {
+                          return (
+                            <g key={`cover-vec-${unit.group}-${vi}`}>
+                              {/* Directional Cover Line */}
+                              <line
+                                x1={v.from.x}
+                                y1={v.from.y}
+                                x2={v.to.x}
+                                y2={v.to.y}
+                                stroke={v.color}
+                                strokeWidth="0.38"
+                                strokeDasharray="1.5 1.0"
+                                markerEnd={`url(#${arrowId})`}
+                                opacity="0.85"
+                              />
+                            </g>
+                          );
+                        })}
+
+                        {/* Distinct, Non-overlapping Tactical Role Badges placed directly above each teammate token */}
+                        {unit.coverVectors.map((v, vi) => {
+                          const badgeX = v.to.x;
+                          const badgeY = Math.max(2.5, v.to.y - 5.4);
+                          return (
+                            <g key={`cover-badge-${unit.group}-${vi}`} transform={`translate(${badgeX}, ${badgeY})`}>
+                              <rect
+                                x="-6.5"
+                                y="-1.6"
+                                width="13"
+                                height="3.2"
+                                rx="0.8"
+                                fill="rgba(15, 27, 20, 0.95)"
+                                stroke={v.color}
+                                strokeWidth="0.3"
+                              />
+                              <text
+                                x="0"
+                                y="0.75"
+                                textAnchor="middle"
+                                fill="#F4F1E8"
+                                fontSize="1.3"
+                                fontWeight="700"
+                                letterSpacing="0.02em"
+                                style={{ fontFamily: "'Oswald', sans-serif" }}
+                              >
+                                {v.label}
+                              </text>
+                            </g>
+                          );
+                        })}
+                      </g>
+                    );
+                  })}
+                </svg>
+              )}
+
+              {/* players */}
+              {filled.map(({ slot, player }, i) => {
+                const pos = getPos(slot, i);
+                const key = getSlotKey(i);
+                const dragging = dragKey === key;
+                const code = player ? player.canonical : slot.code;
+                const group = GROUP[code] || "MID";
+                const groupColor = CODE_COLORS[code] || ZONE_COLORS[group];
+                const dimmed = !activeLines.includes(group);
+                return (
+                  <div
+                    key={`slot-${i}`}
+                    className="token absolute flex flex-col items-center"
+                    onPointerDown={(e) => {
+                      e.preventDefault();
+                      setDragKey(key);
+                    }}
+                    onTouchStart={(e) => {
+                      e.preventDefault();
+                      setDragKey(key);
+                    }}
+                    style={{
+                      left: `${pos.x}%`,
+                      top: `${pos.y}%`,
+                      transform: "translate(-50%,-50%)",
+                      cursor: dragging ? "grabbing" : "grab",
+                      zIndex: dragging ? 20 : 10,
+                      userSelect: "none",
+                      opacity: dimmed ? 0.25 : 1,
+                    }}
+                  >
+                    <svg width="40" height="40" viewBox="0 0 64 64" style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))", pointerEvents: "none" }}>
+                      <path
+                        d="M20,6 L8,14 L14,26 L20,22 L20,58 L44,58 L44,22 L50,26 L56,14 L44,6 L38,10 Q32,16 26,10 Z"
+                        fill={player ? C.cream : "rgba(244,241,232,0.25)"}
+                        stroke={groupColor}
+                        strokeWidth="2.5"
+                        strokeLinejoin="round"
+                      />
+                      <text
+                        x="32" y="42"
+                        textAnchor="middle"
+                        fontSize="18"
+                        fontWeight="700"
+                        fill={C.ink}
+                        style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                      >
+                        {player ? player.number : "–"}
+                      </text>
+                    </svg>
+                    <div
+                      className="oswald text-center leading-tight"
+                      style={{
+                        fontSize: 10.5,
+                        color: C.cream,
+                        marginTop: 2,
+                        maxWidth: 72,
+                        pointerEvents: "none",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        wordBreak: "break-word",
+                        lineHeight: 1.15
+                      }}
+                    >
+                      {player ? player.name : slot.label}
+                    </div>
+                    <div style={{ fontSize: 9, color: groupColor, letterSpacing: "0.02em", pointerEvents: "none", fontWeight: 700 }}>{player ? player.canonical : slot.label}</div>
+                  </div>
+                );
+              })}
+
+              {/* floating ball */}
+              <div
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  setDragKey("ball");
+                }}
+                onTouchStart={(e) => {
+                  e.preventDefault();
+                  setDragKey("ball");
+                }}
+                className="absolute"
+                style={{
+                  left: `${ballPos.x}%`,
+                  top: `${ballPos.y}%`,
+                  transform: "translate(-50%,-50%)",
+                  cursor: dragKey === "ball" ? "grabbing" : "grab",
+                  zIndex: 30,
+                  userSelect: "none",
+                }}
+              >
+                <svg width="28" height="28" viewBox="0 0 100 100" style={{ filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.5))", pointerEvents: "none" }}>
+                  <defs>
+                    <clipPath id="ballClip">
+                      <circle cx="50" cy="50" r="47" />
+                    </clipPath>
+                  </defs>
+                  <circle cx="50" cy="50" r="47" fill="#FFFFFF" stroke="#111111" strokeWidth="3" />
+                  <g clipPath="url(#ballClip)">
+                    <g stroke="#111111" strokeWidth="1.6" fill="none">
+                      <line x1="50" y1="36" x2="50" y2="3" />
+                      <line x1="63.31" y1="45.67" x2="94.7" y2="35.47" />
+                      <line x1="58.23" y1="61.33" x2="77.62" y2="88.03" />
+                      <line x1="41.77" y1="61.33" x2="22.38" y2="88.03" />
+                      <line x1="36.69" y1="45.67" x2="5.3" y2="35.47" />
+                    </g>
+                    <g fill="#111111" stroke="#111111" strokeWidth="1.2" strokeLinejoin="round">
+                      <polygon points="50,36 63.31,45.67 58.23,61.33 41.77,61.33 36.69,45.67" />
+                      <polygon points="50,1 58.56,7.22 55.29,17.29 44.71,17.29 41.44,7.22" />
+                      <polygon points="88.04,28.64 96.6,34.86 93.33,44.93 82.75,44.93 79.48,34.86" />
+                      <polygon points="73.51,73.36 82.07,79.58 78.8,89.65 68.22,89.65 64.95,79.58" />
+                      <polygon points="26.49,73.36 35.05,79.58 31.78,89.65 21.2,89.65 17.93,79.58" />
+                      <polygon points="11.96,28.64 20.52,34.86 17.25,44.93 6.67,44.93 3.4,34.86" />
+                    </g>
+                  </g>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* FLOATING TEAM CHAT DOCK WIDGET (Bottom Right - standalone or in Fullscreen) */}
+        {(!isEmbedded || isFullscreen) && (
+        <div
+          className="no-print"
+          style={{
+            position: "fixed",
+            bottom: 22,
+            right: 24,
+            zIndex: 9999,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-end",
+            pointerEvents: "none"
+          }}
+        >
+          {/* Pop-up Window */}
+          {showChat && (
+            <div
+              className="flex flex-col"
+              style={{
+                width: 380,
+                maxWidth: "calc(100vw - 32px)",
+                height: 520,
+                maxHeight: "calc(100vh - 120px)",
+                background: C.panel,
+                border: `1.5px solid ${C.border}`,
+                borderRadius: 18,
+                overflow: "hidden",
+                marginBottom: 10,
+                boxShadow: "0 16px 48px rgba(0,0,0,0.55)",
+                pointerEvents: "all"
+              }}
+            >
+              {/* Chat Header */}
+              <div className="flex items-center justify-between px-4 py-3 border-b flex-shrink-0" style={{ borderColor: C.border, background: "rgba(19,43,28,0.95)" }}>
+                <div className="flex items-center gap-2">
+                  <span style={{ fontSize: 18 }}>💬</span>
+                  <div>
+                    <div className="oswald" style={{ fontSize: 14, letterSpacing: "0.15em", color: C.cream, fontWeight: 700 }}>TEAM CHAT & NOTICES</div>
+                    <div style={{ fontSize: 11, color: C.sage }}>
+                      Posting as: <strong style={{ color: C.amber }}>{isCoach ? (myChatId.name || "Head Coach") : (myChatId.name || "Visitor")}</strong> {(!isCoach) && <button onClick={openIdentityModal} style={{ textDecoration: "underline", color: C.cream, marginLeft: 6, background: "none", border: "none", cursor: "pointer", fontSize: 11 }}>Change</button>}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {isCoach && (
+                    <button
+                      onClick={clearAllChat}
+                      className="oswald"
+                      style={{ fontSize: 11, color: "#E88A6D", background: "rgba(220,38,38,0.12)", border: "1px solid rgba(220,38,38,0.3)", borderRadius: 6, padding: "3px 7px", cursor: "pointer" }}
+                    >
+                      🗑️ Clear
+                    </button>
+                  )}
+                  <button
+                    onClick={toggleChatVisibility}
+                    style={{ background: "none", border: "none", color: C.cream, fontSize: 16, cursor: "pointer", padding: "2px 6px", fontWeight: 700 }}
+                    title="Minimize Chat"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              {/* Pinned Notice Card */}
+              {chatMsgs.find(m => m.pinned) && (() => {
+                const pinnedMsg = chatMsgs.find(m => m.pinned);
+                return (
+                  <div className="flex items-start gap-2 px-4 py-2 border-b flex-shrink-0" style={{ borderColor: C.border, background: "rgba(232,179,76,0.12)" }}>
+                    <span style={{ fontSize: 15 }}>📌</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className="oswald" style={{ fontSize: 10, letterSpacing: "0.1em", color: C.amber, fontWeight: 700 }}>PINNED ANNOUNCEMENT</div>
+                      <div style={{ fontSize: 12, color: C.cream, wordBreak: "break-word" }}>{pinnedMsg.senderName} ({formatTime(pinnedMsg.createdAt)}): {pinnedMsg.text}</div>
+                    </div>
+                    {isCoach && (
+                      <button onClick={() => togglePinMessage(pinnedMsg.id, true)} style={{ color: C.sage, background: "none", border: "none", cursor: "pointer", fontSize: 12 }}>✕</button>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {/* Scrollable Messages Stream */}
+              <div className="chat-scroll flex-1 overflow-y-auto p-4 flex flex-col gap-3" style={{ minHeight: 0 }}>
+                {chatMsgs.length === 0 ? (
+                  <div className="m-auto text-center py-8" style={{ color: C.sage }}>
+                    <div style={{ fontSize: 32, marginBottom: 6 }}>💬</div>
+                    <div className="oswald" style={{ fontSize: 14, color: C.creamSoft }}>No messages yet</div>
+                    <div style={{ fontSize: 11.5, marginTop: 4, opacity: 0.8 }}>Start a tactical discussion with the squad!</div>
+                  </div>
+                ) : (
+                  chatMsgs.map((m) => {
+                    const isMine = isCoach ? (m.senderRole === 'coach') : (m.senderName === myChatId.name);
+                    const isCoachMsg = m.senderRole === 'coach';
+                    const roleLabel = (m.senderRole || 'member').toUpperCase();
+                    const timeStr = formatTime(m.createdAt);
+                    let avatar = '💬';
+                    if (isCoachMsg) avatar = '👑';
+                    else if (m.senderRole === 'player') avatar = '⚽';
+                    else if (m.senderRole === 'staff') avatar = '🧑‍💼';
+
+                    return (
+                      <div key={m.id} className={`flex gap-2.5 items-start ${isMine ? 'flex-row-reverse self-end' : 'self-start'}`} style={{ maxWidth: "88%" }}>
+                        <div className="flex items-center justify-center rounded-full flex-shrink-0" style={{ width: 28, height: 28, background: "rgba(244,241,232,0.1)", border: `1px solid ${C.border}`, fontSize: 12 }}>
+                          {avatar}
+                        </div>
+                        <div className="flex flex-col gap-0.5" style={{ alignItems: isMine ? "flex-end" : "flex-start" }}>
+                          <div className="flex items-center gap-1.5" style={{ fontSize: 10, color: C.sage }}>
+                            <span style={{ fontWeight: 700, color: C.cream }}>{m.senderName}</span>
+                            <span className="mono rounded px-1" style={{ fontSize: 8.5, background: isCoachMsg ? "rgba(232,179,76,0.2)" : "rgba(244,241,232,0.1)", color: isCoachMsg ? C.amber : C.sage }}>{roleLabel}</span>
+                          </div>
+                          <div className="rounded-xl px-3 py-2 relative group" style={{
+                            background: isMine ? "#1A5C1A" : "rgba(30,77,43,0.6)",
+                            border: `1px solid ${isMine ? "#237A23" : C.border}`,
+                            color: C.cream,
+                            fontSize: 13,
+                            lineHeight: 1.35,
+                            wordBreak: "break-word",
+                            borderTopLeftRadius: !isMine ? 2 : 12,
+                            borderTopRightRadius: isMine ? 2 : 12,
+                          }}>
+                            {isCoach && (
+                              <div className="hidden group-hover:flex absolute -top-3 right-1 gap-1 px-1.5 py-0.5 rounded" style={{ background: C.panel, border: `1px solid ${C.border}`, fontSize: 10 }}>
+                                <button onClick={() => togglePinMessage(m.id, !!m.pinned)} style={{ color: C.amber, background: "none", border: "none", cursor: "pointer", fontSize: 10 }}>{m.pinned ? '📌 Unpin' : '📌 Pin'}</button>
+                                <button onClick={() => deleteChatMessage(m.id)} style={{ color: "#E88A6D", background: "none", border: "none", cursor: "pointer", fontSize: 10 }}>🗑️</button>
+                              </div>
+                            )}
+                            <div>{m.text}</div>
+                            <div style={{ fontSize: 9, opacity: 0.6, marginTop: 3, textAlign: "right" }}>{timeStr} {m.pinned ? '📌' : ''}</div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+                <div ref={chatMessagesEndRef} />
+              </div>
+
+              {/* Message Input Row */}
+              <form onSubmit={sendChatMessage} className="flex gap-2 p-3 border-t flex-shrink-0" style={{ borderColor: C.border, background: "rgba(19,43,28,0.95)" }}>
+                <input
+                  type="text"
+                  placeholder={isCoach ? "Post a message as Coach…" : "Type a message to chat with the team…"}
+                  value={chatInputText}
+                  onChange={(e) => setChatInputText(e.target.value)}
+                  className="flex-1 px-3.5 py-2 rounded-full text-sm outline-none"
+                  style={{ background: C.bg, border: `1px solid ${C.border}`, color: C.cream }}
+                />
+                <button
+                  type="submit"
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-white flex-shrink-0 cursor-pointer hover:scale-105 transition-transform"
+                  style={{ background: "#1A5C1A", border: "none", boxShadow: "0 2px 8px rgba(0,0,0,0.3)" }}
+                  title="Send"
+                >
+                  ➤
+                </button>
+              </form>
+            </div>
+          )}
+
+          {/* Minimized Pill Button */}
+          <button
+            onClick={toggleChatVisibility}
+            className="oswald flex items-center gap-2 cursor-pointer transition-all hover:scale-105 shadow-xl"
+            style={{
+              padding: "10px 18px",
+              background: C.panel,
+              border: `1.5px solid ${C.amber}`,
+              borderRadius: 30,
+              color: C.cream,
+              fontSize: 13,
+              letterSpacing: "0.05em",
+              fontWeight: 700,
+              pointerEvents: "all",
+              boxShadow: "0 8px 24px rgba(0,0,0,0.4)"
+            }}
+            title="Click to open Team Chat"
+          >
+            <span>💬 Team Chat</span>
+            <span
+              className="mono rounded-full px-2 py-0.5"
+              style={{ background: C.amber, color: C.ink, fontSize: 11, fontWeight: 700 }}
+            >
+              {chatMsgs.length}
+            </span>
+          </button>
+        </div>
+        )}
+
+        {/* GAME CHANGERS + MANAGEMENT SECTION (Below the Pitch & Chat stage) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Substitutes */}
+          <div>
+            <div className="oswald" style={{ fontSize: 12, letterSpacing: "0.3em", color: C.sage, marginBottom: 8 }}>
+              GAME CHANGERS · {subs.length}
+            </div>
+            {subs.length === 0 ? (
+              <div style={{ fontSize: 14, color: "rgba(143,191,159,0.7)", fontStyle: "italic", background: C.panel, border: `1px solid ${C.border}`, borderRadius: 6, padding: "12px 16px" }}>No players left on the bench.</div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {subs.map((p) => (
+                  <div
+                    key={p.id}
+                    className="flex items-center gap-3"
+                    style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 6, padding: "8px 12px" }}
+                  >
+                    <div className="mono font-bold text-center" style={{ color: C.amber, fontSize: 14, width: 24 }}>{p.number}</div>
+                    <div style={{ minWidth: 0 }}>
+                      <div className="truncate" style={{ color: C.cream, fontSize: 13 }}>{p.name}</div>
+                      <div style={{ fontSize: 10, color: C.sage, letterSpacing: "0.02em" }}>{p.rawPosition}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Management / Staff */}
+          <div>
+            <div className="oswald" style={{ fontSize: 12, letterSpacing: "0.3em", color: C.sage, marginBottom: 8 }}>
+              MANAGEMENT / STAFF · {managementFilled.length}
+            </div>
+            {managementFilled.length === 0 ? (
+              <div style={{ fontSize: 14, color: "rgba(143,191,159,0.7)", fontStyle: "italic", background: C.panel, border: `1px solid ${C.border}`, borderRadius: 6, padding: "12px 16px" }}>No management staff assigned.</div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {managementFilled.map((m) => (
+                  <div
+                    key={m.id}
+                    className="flex items-center gap-3"
+                    style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 6, padding: "8px 12px" }}
+                  >
+                    <div
+                      className="flex items-center justify-center"
+                      style={{ width: 26, height: 26, borderRadius: "50%", background: "rgba(139,95,191,0.25)", border: `1px solid ${ZONE_COLORS.GK}`, flexShrink: 0 }}
+                    >
+                      <span style={{ fontSize: 12 }}>👔</span>
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <div className="truncate" style={{ color: C.cream, fontSize: 13 }}>{m.name}</div>
+                      <div style={{ fontSize: 10, color: C.sage, letterSpacing: "0.02em" }}>{m.role}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* OUT OF SQUAD SECTION */}
+        {outOfSquad && outOfSquad.length > 0 && (
+          <div style={{ marginTop: 24 }}>
+            <div className="oswald" style={{ fontSize: 12, letterSpacing: "0.3em", color: C.sage, marginBottom: 8 }}>
+              OUT OF SQUAD · {outOfSquad.length}
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+              {outOfSquad.map((p) => (
+                <div
+                  key={p.id}
+                  className="flex items-center gap-3"
+                  style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 6, padding: "8px 12px", opacity: 0.75 }}
+                >
+                  <div className="mono font-bold text-center" style={{ color: "rgba(143,191,159,0.5)", fontSize: 14, width: 24 }}>{p.number}</div>
+                  <div style={{ minWidth: 0 }}>
+                    <div className="truncate" style={{ color: C.cream, fontSize: 13 }}>{p.name}</div>
+                    <div style={{ fontSize: 10, color: C.sage, letterSpacing: "0.02em" }}>{p.position || "—"} · Out of squad</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* TEAM VIEW SHARE POPUP MODAL */}
+        {showShareModal && (
+          <div
+            className="no-print"
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0,0,0,0.65)",
+              zIndex: 10000,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 20
+            }}
+            onClick={() => setShowShareModal(false)}
+          >
+            <div
+              style={{
+                width: 440,
+                maxWidth: "100%",
+                background: C.panel,
+                border: `1.5px solid ${C.border}`,
+                borderRadius: 18,
+                padding: 24,
+                boxShadow: "0 16px 48px rgba(0,0,0,0.6)"
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                <div>
+                  <h3 className="oswald" style={{ fontSize: 18, margin: 0, color: C.cream, fontWeight: 700, letterSpacing: "0.05em" }}>
+                    👁️ SHARE TEAM VIEW LINK
+                  </h3>
+                  <p style={{ fontSize: 12, color: C.sage, margin: "3px 0 0" }}>
+                    Read-only view link for players &amp; parents (no login needed)
+                  </p>
+                </div>
+                <button
+                  style={{ fontSize: 18, background: "none", border: "none", color: C.sage, cursor: "pointer", fontWeight: 700, padding: 4 }}
+                  onClick={() => setShowShareModal(false)}
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Link Input Box */}
+              <div style={{ display: "flex", alignItems: "center", background: "rgba(19,43,28,0.9)", border: `1px solid ${C.border}`, borderRadius: 10, padding: "10px 14px", marginTop: 12 }}>
+                <input
+                  type="text"
+                  readOnly
+                  value={getTeamViewLink()}
+                  style={{ width: "100%", background: "none", border: "none", color: C.cream, fontSize: 12.5, outline: "none", fontFamily: "inherit" }}
+                />
+              </div>
+
+              {/* 3 Horizontal Uniform Share Options */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginTop: 16 }}>
+                <button
+                  type="button"
+                  onClick={copyShareModalLink}
+                  className="oswald"
+                  style={{
+                    height: 42,
+                    padding: "0 12px",
+                    background: "rgba(244,241,232,0.06)",
+                    border: `1px solid ${C.border}`,
+                    borderRadius: 10,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 7,
+                    color: C.cream,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: "pointer"
+                  }}
+                >
+                  <span style={{ fontSize: 16 }}>📋</span>
+                  <span>{modalCopied ? "Copied!" : "Copy Link"}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={shareEmail}
+                  className="oswald"
+                  style={{
+                    height: 42,
+                    padding: "0 12px",
+                    background: "rgba(244,241,232,0.06)",
+                    border: `1px solid ${C.border}`,
+                    borderRadius: 10,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 7,
+                    color: C.cream,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: "pointer"
+                  }}
+                >
+                  <span style={{ fontSize: 16 }}>✉️</span>
+                  <span>Email</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={shareSMS}
+                  className="oswald"
+                  style={{
+                    height: 42,
+                    padding: "0 12px",
+                    background: "rgba(244,241,232,0.06)",
+                    border: `1px solid ${C.border}`,
+                    borderRadius: 10,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 7,
+                    color: C.cream,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: "pointer"
+                  }}
+                >
+                  <span style={{ fontSize: 16 }}>💬</span>
+                  <span>SMS</span>
+                </button>
+              </div>
+
+              <div style={{ marginTop: 16, display: "flex", justifyContent: "flex-end" }}>
+                <button
+                  className="oswald"
+                  style={{ padding: "7px 18px", borderRadius: 8, background: "rgba(244,241,232,0.1)", border: `1px solid ${C.border}`, color: C.cream, fontSize: 12, cursor: "pointer" }}
+                  onClick={() => setShowShareModal(false)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* FOOTER COPYRIGHT */}
+        <div className="text-center py-6 mt-8 no-print border-t" style={{ borderColor: C.border, color: C.sage, fontSize: 12 }}>
+          <div>&copy; 2026 <strong style={{ color: C.cream, fontWeight: 700 }}>100 Yards</strong>. All rights reserved.</div>
+          <div style={{ fontSize: 11, marginTop: 2, opacity: 0.8 }}>Tactical Visualizer &amp; Squad Studio</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<FormationBuilder />);
+</script>
+</body>
+</html>
