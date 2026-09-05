@@ -487,7 +487,7 @@ function doTeamLogin(){
 }
 
 function enterTeam(){
-  $('tt-name').textContent=(curTeam.name||'TEAM').toUpperCase();
+  if($('tt-name')) $('tt-name').textContent=(curTeam.name||'TEAM').toUpperCase();
   applyTeamTopbarLogo();
   ss('s-team');showTab('squad');loadShare();subscribeTeam();
 }
@@ -2410,18 +2410,18 @@ async function saveBranding(){
   const logoSrc = $('logo-pi')?.src;
   const logo = (logoSrc && logoSrc.length > 30) ? logoSrc : (curTeam.logo || null);
   const data={
-    name: $('cfg-name').value.trim() || curTeam.name || '',
-    motto: $('cfg-motto').value.trim() || '',
-    emoji: $('cfg-emoji').value || '⚽',
-    season: $('cfg-season').value.trim() || '',
+    name: ($('cfg-name')?.value || '').trim() || curTeam.name || '',
+    motto: ($('cfg-motto')?.value || '').trim() || '',
+    emoji: $('cfg-emoji')?.value || '⚽',
+    season: ($('cfg-season')?.value || '').trim() || '',
     logo: logo
   };
   try{
     await updateDoc(doc(db,'teams',curTeam.id),data);
     Object.assign(curTeam,data);
-    $('tt-name').textContent=(data.name||'TEAM').toUpperCase();
-    $('sh-name').textContent=(data.name||'TEAM').toUpperCase();
-    $('sh-motto').textContent=data.motto||'Player Registration';
+    if($('tt-name')) $('tt-name').textContent=(data.name||'TEAM').toUpperCase();
+    if($('sh-name')) $('sh-name').textContent=(data.name||'TEAM').toUpperCase();
+    if($('sh-motto')) $('sh-motto').textContent=data.motto||'Player Registration';
     const sb=$('sh-badge');
     if(sb) sb.innerHTML=data.logo?`<img src="${esc(data.logo)}" alt="">`:(data.emoji||'⚽');
     applyTeamTopbarLogo();
@@ -2436,15 +2436,19 @@ async function saveBranding(){
 function handleLogo(input){
   const file=input.files[0];if(!file)return;
   compressImage(file, 256, 0.88, dataUrl => {
-    $('logo-pi').src=dataUrl;
-    $('logo-pr').style.display='flex';
-    $('logo-ph').style.display='none';
+    if($('logo-pi')) $('logo-pi').src=dataUrl;
+    if($('logo-pr')) $('logo-pr').style.display='flex';
+    if($('logo-ph')) $('logo-ph').style.display='none';
     if(curTeam) curTeam.logo=dataUrl;
   });
 }
 
 async function removeLogo(e){
-  e.stopPropagation();$('logo-pi').src='';$('logo-pr').style.display='none';$('logo-ph').style.display='block';$('logo-inp').value='';
+  e.stopPropagation();
+  if($('logo-pi')) $('logo-pi').src='';
+  if($('logo-pr')) $('logo-pr').style.display='none';
+  if($('logo-ph')) $('logo-ph').style.display='block';
+  if($('logo-inp')) $('logo-inp').value='';
   if(curTeam){await updateDoc(doc(db,'teams',curTeam.id),{logo:null});curTeam.logo=null;applyTeamTopbarLogo();}
 }
 

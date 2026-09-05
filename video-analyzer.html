@@ -1917,6 +1917,13 @@
             <path d="M7 6 3 18"/><path d="m17 6 4 12"/><circle cx="12" cy="6" r="3"/>
           </svg>
         </button>
+        <button class="tool-btn" id="tool-tracker-ring" data-tooltip="Player Tracker&#10;(H)" onclick="toggleOrSetActiveTool('tracker-ring')">
+          <svg class="svg-icon" viewBox="0 0 24 24">
+            <ellipse cx="12" cy="12" rx="9" ry="5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="5 3"/>
+            <ellipse cx="12" cy="12" rx="5.5" ry="3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="3 2" opacity="0.8"/>
+            <circle cx="12" cy="12" r="2.2" fill="currentColor"/>
+          </svg>
+        </button>
         <button class="tool-btn" id="tool-arrow-curved-right" data-tooltip="Right Arc&#10;(A)" onclick="toggleOrSetActiveTool('arrow-curved-right')">
           <svg class="svg-icon" viewBox="0 0 24 24">
             <path d="M5 19C5 11 11 7 20 6"/>
@@ -2040,6 +2047,16 @@
           <span class="ctx-label">SPOTLIGHT:</span>
           <span class="ctx-badge" style="background:rgba(0,230,118,0.15);color:var(--accent-green);border:1px solid rgba(0,230,118,0.35);">ACTIVE</span>
           <span class="ctx-hint">💡 Drag or click on pitch to place illuminated 3D spotlight.</span>
+        </div>
+
+        <!-- PLAYER TRACKER RING CONTEXTUAL CONTROLS -->
+        <div id="ctx-tracker-group" class="ctx-group" style="display:none;align-items:center;gap:8px;">
+          <span class="ctx-label">HIGHLIGHT TRACKER:</span>
+          <span class="ctx-badge" style="background:rgba(0,230,118,0.15);color:var(--accent-green);border:1px solid rgba(0,230,118,0.35);">ACTIVE</span>
+          <button class="ctx-btn" id="btn-toggle-tracker-spotlight" onclick="toggleTrackerSpotlightBeam()" title="Toggle 3D Stadium Spotlight Beam">
+            <span id="tracker-spotlight-status-icon">💡</span> <span id="tracker-spotlight-status-text">Spotlight: ON</span>
+          </button>
+          <span class="ctx-hint">💡 Click or drag on player to place 4-dash rotating tactical ring.</span>
         </div>
 
         <!-- LINE & ARROW OPTIONS -->
@@ -2277,7 +2294,23 @@
               <span>⏸ Auto-Pause</span>
             </button>
 
-            <button class="ctrl-btn" id="bar-btn-toggle-ui" title="Hide / Show Tactical Tools (H)" onclick="toggleStageUI()">
+            <label style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted);font-weight:600;cursor:pointer;" title="Default Hold Duration for drawings and tactical moments">
+              <span>⏱ Hold:</span>
+              <select class="speed-select" id="global-hold-duration-select" onchange="changeDefaultHoldDuration(this.value)" title="Default Hold Duration for drawings">
+                <option value="0.25" selected>0.25s (Default)</option>
+                <option value="0.5">0.5s</option>
+                <option value="0.75">0.75s</option>
+                <option value="1">1.0s</option>
+                <option value="1.5">1.5s</option>
+                <option value="2">2.0s</option>
+                <option value="3">3.0s</option>
+                <option value="5">5.0s</option>
+                <option value="10">10.0s</option>
+                <option value="999">Persistent</option>
+              </select>
+            </label>
+
+            <button class="ctrl-btn" id="bar-btn-toggle-ui" title="Hide / Show Tactical Tools (U)" onclick="toggleStageUI()">
               <span id="bar-toggle-ui-icon" style="font-size:16px;">👁️</span>
             </button>
 
@@ -2346,6 +2379,7 @@
         <div class="shortcut-row"><span>Jump ±5 Seconds</span><span class="kbd-chip">Shift + ← / →</span></div>
         <div class="shortcut-row"><span>Select & Move Tool</span><span class="kbd-chip">V</span></div>
         <div class="shortcut-row"><span>3D Spotlight Tool</span><span class="kbd-chip">S</span></div>
+        <div class="shortcut-row"><span>Player Tracker Ring (4-Dash)</span><span class="kbd-chip">H</span></div>
         <div class="shortcut-row"><span>Right Curved Run Arc</span><span class="kbd-chip">A</span></div>
         <div class="shortcut-row"><span>Left Curved Run Arc</span><span class="kbd-chip">Q</span></div>
         <div class="shortcut-row"><span>Straight Passing Arrow</span><span class="kbd-chip">D</span></div>
@@ -2513,6 +2547,8 @@
     let currentPlaybackRate = 1.0; // Tracks the currently active playback speed
     let basePlaybackRate = 1.0;    // Tracks standard playback speed outside tactical keyframe moments
     let isUsingLocalVideo = false;
+    let defaultHoldDuration = parseFloat(localStorage.getItem('cms_default_hold_duration')) || 0.25;
+    let _lastRenderedKfKey = '';
 
     // Video Recording State (Feature 1)
     let mediaRecorder = null;
@@ -3474,11 +3510,16 @@
 
     function getSupportedRecorderMimeType() {
       const candidates = [
+        'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
+        'video/mp4;codecs=avc1',
+        'video/mp4;codecs=h264,aac',
+        'video/mp4;codecs=h264',
+        'video/mp4',
+        'video/webm;codecs=h264',
+        'video/webm;codecs=vp9,opus',
         'video/webm;codecs=vp8,opus',
         'video/webm;codecs=vp8',
-        'video/webm;codecs=h264',
-        'video/webm',
-        'video/mp4'
+        'video/webm'
       ];
       for (const mime of candidates) {
         if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(mime)) {
@@ -3560,7 +3601,7 @@
         recordedChunks = [];
         const chosenMime = getSupportedRecorderMimeType();
         const options = {
-          videoBitsPerSecond: 2500000 // 2.5 Mbps hardware profile: smooth 1080p without encoder stalling
+          videoBitsPerSecond: 8000000 // 8.0 Mbps high-fidelity profile: crisp, broadcast-quality 1080p recording
         };
         if (chosenMime) options.mimeType = chosenMime;
 
@@ -3912,7 +3953,7 @@
           canvas.freeDrawingBrush.width = strokeWidth;
           canvas.freeDrawingBrush.decimate = 2;
         } else {
-          // Tactical drawing tools ('spotlight', 'player', 'arrow-curved', 'arrow-straight', 'ruler', 'polygon', 'text')
+          // Tactical drawing tools ('spotlight', 'tracker-ring', 'player', 'arrow-curved', 'arrow-straight', 'ruler', 'polygon', 'text')
           canvas.defaultCursor = 'crosshair';
           canvas.isDrawingMode = false;
           canvas.selection = false;
@@ -3930,9 +3971,41 @@
       updateCanvasBadge();
     }
 
+    function toggleTrackerSpotlightBeam() {
+      const activeObj = canvas ? canvas.getActiveObject() : null;
+      if (activeObj && (activeObj.tacticalType === 'tracker-ring' || activeObj.type === 'tracker-ring')) {
+        activeObj.showSpotlight = !activeObj.showSpotlight;
+        activeObj.height = activeObj.showSpotlight ? Math.max(220, activeObj.ry * 5.5) : (activeObj.ry * 2);
+        activeObj.setCoords();
+        canvas.requestRenderAll();
+        saveCurrentCanvasToActiveKeyframe();
+        updateTrackerControlsUI(activeObj);
+      } else {
+        trackerSpotlightEnabled = !trackerSpotlightEnabled;
+        updateTrackerControlsUI(null);
+      }
+    }
+
+    function updateTrackerControlsUI(activeObj) {
+      const isBeamOn = (activeObj && (activeObj.tacticalType === 'tracker-ring' || activeObj.type === 'tracker-ring'))
+        ? !!activeObj.showSpotlight
+        : trackerSpotlightEnabled;
+      const btn = document.getElementById('btn-toggle-tracker-spotlight');
+      const icon = document.getElementById('tracker-spotlight-status-icon');
+      const text = document.getElementById('tracker-spotlight-status-text');
+      if (btn) {
+        btn.style.background = isBeamOn ? 'rgba(0,230,118,0.22)' : 'rgba(255,255,255,0.08)';
+        btn.style.borderColor = isBeamOn ? '#00e676' : 'rgba(255,255,255,0.2)';
+        btn.style.color = isBeamOn ? '#00e676' : '#cbd5e1';
+      }
+      if (icon) icon.textContent = isBeamOn ? '💡' : '⭕';
+      if (text) text.textContent = isBeamOn ? 'Spotlight: ON' : 'Spotlight: OFF';
+    }
+
     function updateContextualControls(activeObj) {
       const defaultGroup = document.getElementById('ctx-default-group');
       const spotlightGroup = document.getElementById('ctx-spotlight-group');
+      const trackerGroup = document.getElementById('ctx-tracker-group');
       const arcGroup = document.getElementById('ctx-arc-group');
       const rulerGroup = document.getElementById('ctx-ruler-group');
       const playerGroup = document.getElementById('ctx-player-group');
@@ -3941,6 +4014,7 @@
       const zoomGroup = document.getElementById('ctx-zoom-group');
 
       const isSpotlight = (activeTool === 'spotlight') || (activeObj && activeObj.tacticalType === 'spotlight');
+      const isTracker = (activeTool === 'tracker-ring') || (activeObj && (activeObj.tacticalType === 'tracker-ring' || activeObj.type === 'tracker-ring'));
       const isZoom = (activeTool === 'zoom');
       const isPolygon = (activeTool === 'polygon') || (activeObj && activeObj.tacticalType === 'polygon-zone');
       const isPolyline = (activeTool === 'polyline') || (activeObj && activeObj.tacticalType === 'polyline-chain');
@@ -3957,6 +4031,7 @@
       // Hide all contextual bars first
       if (defaultGroup) defaultGroup.style.display = 'none';
       if (spotlightGroup) spotlightGroup.style.display = 'none';
+      if (trackerGroup) trackerGroup.style.display = 'none';
       if (arcGroup) arcGroup.style.display = 'none';
       if (rulerGroup) rulerGroup.style.display = 'none';
       if (playerGroup) playerGroup.style.display = 'none';
@@ -3966,6 +4041,11 @@
 
       if (isSpotlight) {
         if (spotlightGroup) spotlightGroup.style.display = 'flex';
+      } else if (isTracker) {
+        if (trackerGroup) {
+          trackerGroup.style.display = 'flex';
+          updateTrackerControlsUI(activeObj);
+        }
       } else if (isZoom) {
         if (zoomGroup) {
           zoomGroup.style.display = 'flex';
@@ -4160,6 +4240,13 @@
         canvas.add(tempShape);
         canvas.renderAll();
       }
+      else if (activeTool === 'tracker-ring') {
+        tempShape = createTrackerRing(p.x, p.y, 46, 22, drawColor, trackerSpotlightEnabled);
+        tempShape.selectable = false;
+        tempShape.evented = false;
+        canvas.add(tempShape);
+        canvas.renderAll();
+      }
       else if (activeTool === 'arrow-curved-right') {
         arrowCurveDirection = 1;
         tempShape = createCurvedTacticalArrow(p.x, p.y, p.x + 1, p.y + 1, drawColor, strokeWidth, 1);
@@ -4257,6 +4344,16 @@
         canvas.add(tempShape);
         canvas.renderAll();
       }
+      else if (activeTool === 'tracker-ring' && tempShape) {
+        const rx = Math.max(26, Math.hypot(p.x - shapeStartPoint.x, p.y - shapeStartPoint.y));
+        const ry = rx * 0.48;
+        tempShape.rx = rx;
+        tempShape.ry = ry;
+        tempShape.width = rx * 2;
+        tempShape.height = tempShape.showSpotlight ? Math.max(220, ry * 5.5) : (ry * 2);
+        tempShape.setCoords();
+        canvas.requestRenderAll();
+      }
       else if (activeTool === 'arrow-curved-right' && tempShape) {
         canvas.remove(tempShape);
         tempShape = createCurvedTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, p.x, p.y, drawColor, strokeWidth, 1);
@@ -4301,7 +4398,12 @@
         const dist = Math.hypot(p.x - shapeStartPoint.x, p.y - shapeStartPoint.y);
 
         if (dist < 6) {
-          if (activeTool === 'arrow-curved-right') {
+          if (activeTool === 'tracker-ring') {
+            tempShape.rx = 46;
+            tempShape.ry = 22;
+            tempShape.width = 92;
+            tempShape.height = tempShape.showSpotlight ? Math.max(220, 22 * 5.5) : 44;
+          } else if (activeTool === 'arrow-curved-right') {
             canvas.remove(tempShape);
             tempShape = createCurvedTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, shapeStartPoint.x + 90, shapeStartPoint.y - 45, drawColor, strokeWidth, 1);
             canvas.add(tempShape);
@@ -4458,6 +4560,157 @@
     /* --------------------------------------------------------------------------
        TACTICAL SHAPE FACTORIES
     -------------------------------------------------------------------------- */
+    // 0. Dynamic 4-Dash Player Tracker Ring with 3D Spotlight Beam (Player Tracker Lab integration)
+    let trackerSpotlightEnabled = true;
+
+    fabric.TrackerRing = fabric.util.createClass(fabric.Object, {
+      type: 'tracker-ring',
+      tacticalType: 'tracker-ring',
+      rx: 46,
+      ry: 22,
+      trackerColor: '#00e676',
+      showSpotlight: true,
+      originX: 'center',
+      originY: 'center',
+      hasRotatingPoint: false,
+
+      initialize: function(options) {
+        options = options || {};
+        this.callSuper('initialize', options);
+        this.rx = options.rx || 46;
+        this.ry = options.ry || (this.rx * 0.48);
+        this.trackerColor = options.trackerColor || options.stroke || '#00e676';
+        this.showSpotlight = (options.showSpotlight !== undefined) ? options.showSpotlight : true;
+        this.width = this.rx * 2;
+        this.height = this.showSpotlight ? Math.max(220, this.ry * 5.5) : (this.ry * 2);
+        this.objectCaching = false;
+      },
+
+      _render: function(ctx) {
+        const rx = this.rx || 46;
+        const ry = this.ry || (rx * 0.48);
+        const color = this.trackerColor || this.stroke || '#00e676';
+        const timeSec = performance.now() / 1000;
+
+        ctx.save();
+
+        // 1. 3D Stadium Volumetric Spotlight Beam (if enabled)
+        if (this.showSpotlight) {
+          const beamH = Math.max(195, ry * 5.4);
+          const topRx = Math.max(16, rx * 0.38);
+          const bottomRx = rx;
+
+          const beamGrad = ctx.createLinearGradient(0, 0, 0, -beamH);
+          beamGrad.addColorStop(0, hexToRgba(color, 0.70));
+          beamGrad.addColorStop(0.35, hexToRgba(color, 0.42));
+          beamGrad.addColorStop(0.75, hexToRgba(color, 0.16));
+          beamGrad.addColorStop(1, hexToRgba(color, 0.0));
+
+          ctx.fillStyle = beamGrad;
+          ctx.beginPath();
+          ctx.moveTo(-topRx, -beamH);
+          ctx.lineTo(topRx, -beamH);
+          ctx.lineTo(bottomRx, 0);
+          ctx.ellipse(0, 0, bottomRx, ry, 0, 0, Math.PI, false);
+          ctx.lineTo(-topRx, -beamH);
+          ctx.closePath();
+          ctx.fill();
+
+          // Top floodlight head
+          ctx.fillStyle = '#ffffff';
+          ctx.shadowColor = color;
+          ctx.shadowBlur = 18;
+          ctx.beginPath();
+          ctx.ellipse(0, -beamH, topRx, 4.5, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+
+          // Outer Glowing Floor Disc
+          const groundGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, rx * 1.35);
+          groundGrad.addColorStop(0, hexToRgba(color, 0.65));
+          groundGrad.addColorStop(0.5, hexToRgba(color, 0.28));
+          groundGrad.addColorStop(1, hexToRgba(color, 0.0));
+
+          ctx.fillStyle = groundGrad;
+          ctx.beginPath();
+          ctx.ellipse(0, 0, rx * 1.35, ry * 1.35, 0, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // 2. Base Ground Disc Underlay
+        ctx.fillStyle = hexToRgba(color, 0.26);
+        ctx.beginPath();
+        ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 3. Concentric Inner Dashed Tactical Ring (White)
+        ctx.save();
+        ctx.beginPath();
+        ctx.ellipse(0, 0, rx * 0.64, ry * 0.64, 0, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+        ctx.lineWidth = 1.8;
+        ctx.setLineDash([4, 3]);
+        ctx.lineDashOffset = -timeSec * 15;
+        ctx.stroke();
+        ctx.restore();
+
+        // 4. DYNAMIC CIRCUMFERENCE TRACKER: 4 distinct dashed lines orbiting
+        const numDashes = 4;
+        const dashArc = (Math.PI * 2) / numDashes;
+        const arcSpan = dashArc * 0.58;
+        const rotSpeed = 1.6;
+        const baseAngle = (timeSec * rotSpeed) % (Math.PI * 2);
+
+        ctx.save();
+        ctx.lineWidth = 3.4;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = color;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 14;
+
+        for (let i = 0; i < numDashes; i++) {
+          const startA = baseAngle + i * dashArc;
+          const endA = startA + arcSpan;
+          ctx.beginPath();
+          ctx.ellipse(0, 0, rx, ry, 0, startA, endA);
+          ctx.stroke();
+        }
+        ctx.restore();
+
+        ctx.restore();
+      },
+
+      toObject: function(propertiesToInclude) {
+        return fabric.util.object.extend(this.callSuper('toObject', propertiesToInclude), {
+          tacticalType: 'tracker-ring',
+          rx: this.rx,
+          ry: this.ry,
+          trackerColor: this.trackerColor,
+          showSpotlight: this.showSpotlight
+        });
+      }
+    });
+
+    fabric.TrackerRing.fromObject = function(object, callback) {
+      callback && callback(new fabric.TrackerRing(object));
+    };
+
+    function createTrackerRing(cx, cy, rx, ry, color, showSpotlight) {
+      rx = Math.max(30, rx || 46);
+      ry = Math.max(14, ry || (rx * 0.48));
+      return new fabric.TrackerRing({
+        left: cx,
+        top: cy,
+        rx: rx,
+        ry: ry,
+        trackerColor: color || drawColor,
+        showSpotlight: (showSpotlight !== undefined) ? showSpotlight : trackerSpotlightEnabled,
+        originX: 'center',
+        originY: 'center',
+        tacticalType: 'tracker-ring'
+      });
+    }
+
     // 1. 3D Isometric Spotlight Ring with Light Beam
     function create3DSpotlight(cx, cy, rx, ry, color, opacity, withBeam) {
       const items = [];
@@ -4788,32 +5041,32 @@
       }
 
       // Offset distance badge parallel and separate from the line
-      const offsetDist = Math.max(26, width * 2.2 + 18);
+      const offsetDist = Math.max(34, width * 2.5 + 24);
       const badgeX = midX + nx * offsetDist;
       const badgeY = midY + ny * offsetDist;
 
-      const badgeW = Math.max(86, distFormatted.length * 11 + 24);
-      const badgeH = 28;
+      const badgeW = Math.max(110, distFormatted.length * 13 + 32);
+      const badgeH = 38;
 
       const badgeBg = new fabric.Rect({
         width: badgeW,
         height: badgeH,
-        rx: 14,
-        ry: 14,
-        fill: 'rgba(8, 12, 20, 0.94)',
+        rx: 19,
+        ry: 19,
+        fill: 'rgba(8, 12, 20, 0.96)',
         stroke: color,
-        strokeWidth: 2,
+        strokeWidth: 2.5,
         originX: 'center',
         originY: 'center',
         shadow: new fabric.Shadow({
-          color: 'rgba(0, 0, 0, 0.8)',
-          blur: 12,
+          color: 'rgba(0, 0, 0, 0.85)',
+          blur: 14,
           offsetY: 2
         })
       });
 
       const badgeText = new fabric.Text(distFormatted, {
-        fontSize: 14,
+        fontSize: 20,
         fontFamily: 'JetBrains Mono, monospace',
         fontWeight: '800',
         fill: '#ffffff',
@@ -4995,33 +5248,33 @@
         angleDeg += 180;
       }
 
-      // Position offset parallel and separate from the line by 22px
-      const offsetDist = 22;
+      // Position offset parallel and separate from the line by 28px
+      const offsetDist = 28;
       const badgeX = midX + nx * offsetDist;
       const badgeY = midY + ny * offsetDist;
 
-      const badgeW = Math.max(76, distFormatted.length * 9.5 + 20);
-      const badgeH = 24;
+      const badgeW = Math.max(96, distFormatted.length * 11.5 + 28);
+      const badgeH = 32;
 
       const bg = new fabric.Rect({
         width: badgeW,
         height: badgeH,
-        rx: 12,
-        ry: 12,
-        fill: 'rgba(8, 12, 20, 0.94)',
+        rx: 16,
+        ry: 16,
+        fill: 'rgba(8, 12, 20, 0.96)',
         stroke: color || '#00e676',
-        strokeWidth: 2,
+        strokeWidth: 2.2,
         originX: 'center',
         originY: 'center',
         shadow: new fabric.Shadow({
-          color: 'rgba(0, 0, 0, 0.8)',
-          blur: 10,
+          color: 'rgba(0, 0, 0, 0.85)',
+          blur: 12,
           offsetY: 2
         })
       });
 
       const txt = new fabric.Text(distFormatted, {
-        fontSize: 12,
+        fontSize: 17,
         fontFamily: 'JetBrains Mono, monospace',
         fontWeight: '800',
         fill: '#ffffff',
@@ -5742,6 +5995,14 @@
           syncTelestrationPlayback();
         }
 
+        // Keep 4-dash dynamic player tracker rotating smoothly in real-time
+        if (canvas) {
+          const objs = canvas.getObjects();
+          if (objs && objs.some(o => o.tacticalType === 'tracker-ring' || o.type === 'tracker-ring')) {
+            canvas.requestRenderAll();
+          }
+        }
+
         requestAnimationFrame(syncFrame);
       }
       requestAnimationFrame(syncFrame);
@@ -5749,49 +6010,130 @@
 
     let _lastPlayActionTime = 0;
 
+    function changeDefaultHoldDuration(val) {
+      defaultHoldDuration = parseFloat(val) || 0.25;
+      localStorage.setItem('cms_default_hold_duration', defaultHoldDuration);
+      const sel = document.getElementById('global-hold-duration-select');
+      if (sel) sel.value = String(defaultHoldDuration);
+    }
+
+    function getVisibleKeyframesAtTime(time) {
+      const dur = defaultHoldDuration;
+      return tacticalKeyframes.filter(kf => {
+        const d = (kf.duration !== undefined) ? kf.duration : dur;
+        return time >= (kf.timestamp - 0.015) && time <= (kf.timestamp + d + 0.015);
+      });
+    }
+
+    function renderKeyframesToCanvas(kfs) {
+      if (!canvas) return;
+      const kfArray = Array.isArray(kfs) ? kfs : (kfs ? [kfs] : []);
+
+      if (kfArray.length === 0) {
+        canvas.clear();
+        return;
+      }
+
+      // Restore zoom & pan from the latest active keyframe with zoom
+      const zoomedKf = [...kfArray].reverse().find(k => k.zoomLevel && k.zoomLevel > 1.0);
+      if (zoomedKf) {
+        stageZoomLevel = zoomedKf.zoomLevel;
+        stagePanX = zoomedKf.panX || 0;
+        stagePanY = zoomedKf.panY || 0;
+        applyStageZoomAndPan(false);
+      } else if (stageZoomLevel > 1.0 && !isPanningStage && !isDraggingZoomBox) {
+        stageZoomLevel = 1.0;
+        stagePanX = 0;
+        stagePanY = 0;
+        applyStageZoomAndPan(false);
+      }
+
+      // Combine objects from all active keyframes
+      const combinedObjects = [];
+      kfArray.forEach(kf => {
+        if (kf.objects && Array.isArray(kf.objects)) {
+          kf.objects.forEach(objDef => {
+            const cloned = JSON.parse(JSON.stringify(objDef));
+            cloned.keyframeId = kf.id;
+            combinedObjects.push(cloned);
+          });
+        }
+      });
+
+      canvas.loadFromJSON({ objects: combinedObjects }, () => {
+        const isSelect = (activeTool === 'select');
+        canvas.getObjects().forEach(obj => {
+          obj.selectable = isSelect;
+          obj.evented = isSelect;
+        });
+        canvas.renderAll();
+      });
+    }
+
+    function renderKeyframeToCanvas(keyframe) {
+      if (Array.isArray(keyframe)) {
+        renderKeyframesToCanvas(keyframe);
+      } else if (keyframe) {
+        const visibleKfs = getVisibleKeyframesAtTime(keyframe.timestamp);
+        if (visibleKfs.length > 0) {
+          renderKeyframesToCanvas(visibleKfs);
+        } else {
+          renderKeyframesToCanvas([keyframe]);
+        }
+      } else {
+        if (canvas) canvas.clear();
+      }
+    }
+
     function syncTelestrationPlayback() {
       if (isDrawingShape) return; // Never wipe canvas while actively drawing
       if (!isPlaying) return;    // Only auto-sync during active playback
 
-      const activeKf = tacticalKeyframes.find(kf => {
-        const start = kf.timestamp;
-        const end = kf.timestamp + (kf.duration !== undefined ? kf.duration : 0.5);
-        return currentVideoTime >= start && currentVideoTime <= end;
-      });
+      const visibleKfs = getVisibleKeyframesAtTime(currentVideoTime);
+      const currentKfKey = visibleKfs.map(k => k.id).sort().join(',');
 
-      if (activeKf) {
-        // Auto-pause triggers ONLY ONCE when entering this keyframe
-        if (isPlaying && autoPauseOnKeyframes && activeKf.autoPause !== false && lastPausedKeyframeId !== activeKf.id) {
-          lastPausedKeyframeId = activeKf.id;
-          pauseVideo();
-        }
+      if (visibleKfs.length > 0) {
+        const primaryKf = visibleKfs[visibleKfs.length - 1];
 
-        if (activeKeyframeId !== activeKf.id) {
-          activeKeyframeId = activeKf.id;
-          renderKeyframeToCanvas(activeKf, true);
-          highlightActiveKeyframeInSidebar(activeKf.id);
-
-          // Automatically apply slow-motion or custom speed during this tactical moment!
-          if (activeKf.playbackRate && activeKf.playbackRate !== currentPlaybackRate) {
-            currentPlaybackRate = activeKf.playbackRate;
-            applyVideoPlaybackRate(activeKf.playbackRate);
+        // Auto-pause triggers ONLY ONCE when entering each tactical keyframe
+        if (autoPauseOnKeyframes) {
+          const newlyEnteredKf = visibleKfs.find(kf => kf.autoPause !== false && lastPausedKeyframeId !== kf.id && Math.abs(currentVideoTime - kf.timestamp) < 0.15);
+          if (newlyEnteredKf) {
+            lastPausedKeyframeId = newlyEnteredKf.id;
+            pauseVideo();
           }
         }
+
+        if (activeKeyframeId !== primaryKf.id) {
+          activeKeyframeId = primaryKf.id;
+          highlightActiveKeyframeInSidebar(primaryKf.id);
+
+          // Automatically apply slow-motion or custom speed during this tactical moment
+          if (primaryKf.playbackRate && primaryKf.playbackRate !== currentPlaybackRate) {
+            currentPlaybackRate = primaryKf.playbackRate;
+            applyVideoPlaybackRate(primaryKf.playbackRate);
+          }
+        }
+
+        if (currentKfKey !== _lastRenderedKfKey) {
+          _lastRenderedKfKey = currentKfKey;
+          renderKeyframesToCanvas(visibleKfs);
+        }
       } else {
-        // When playing and passing beyond the keyframe duration window
-        if (activeKeyframeId !== null && !isDrawingShape && !isCalibratingRuler) {
+        if (_lastRenderedKfKey !== '') {
+          _lastRenderedKfKey = '';
           activeKeyframeId = null;
           lastPausedKeyframeId = null;
           if (canvas) canvas.clear();
           highlightActiveKeyframeInSidebar(null);
 
-          // Restore normal base playback rate when exiting the tactical moment!
+          // Restore normal base playback rate when exiting the tactical moment
           if (currentPlaybackRate !== basePlaybackRate) {
             currentPlaybackRate = basePlaybackRate;
             applyVideoPlaybackRate(basePlaybackRate);
           }
 
-          // Auto-reset zoom to 100% when keyframe duration ends!
+          // Auto-reset zoom to 100% when keyframe duration ends
           if (stageZoomLevel > 1.0) {
             stageZoomLevel = 1.0;
             stagePanX = 0;
@@ -5802,58 +6144,24 @@
       }
     }
 
-    function renderKeyframeToCanvas(keyframe) {
-      if (!canvas) return;
-
-      // 1. Restore Keyframe Zoom & Pan magnification for the keyframe duration window
-      if (keyframe.zoomLevel && keyframe.zoomLevel > 1.0) {
-        stageZoomLevel = keyframe.zoomLevel;
-        stagePanX = keyframe.panX || 0;
-        stagePanY = keyframe.panY || 0;
-        applyStageZoomAndPan(false);
-      } else if (stageZoomLevel > 1.0 && !isPanningStage && !isDraggingZoomBox) {
-        stageZoomLevel = 1.0;
-        stagePanX = 0;
-        stagePanY = 0;
-        applyStageZoomAndPan(false);
-      }
-
-      // 2. Render drawing objects instantaneously
-      canvas.loadFromJSON({ objects: keyframe.objects || [] }, () => {
-        canvas.renderAll();
-      });
-    }
-
     function saveCurrentCanvasToActiveKeyframe() {
       if (!canvas) return;
       pushCanvasHistoryState();
-      const customProps = ['tacticalType', 'playerNumber', 'playerName', 'tokenColor', 'rulerDistance', 'rulerUnit', 'spotlightRadiusX', 'spotlightRadiusY', 'spotlightColor', 'points', 'strokeDashArray', 'strokeLineCap', 'strokeLineJoin', '_showRulerDistance', '_chainPts', '_zonePts', '_chainColor', '_zoneColor'];
-      const objectsJson = canvas.toJSON(customProps).objects || [];
+      const customProps = ['keyframeId', 'tacticalType', 'playerNumber', 'playerName', 'tokenColor', 'rulerDistance', 'rulerUnit', 'spotlightRadiusX', 'spotlightRadiusY', 'spotlightColor', 'rx', 'ry', 'trackerColor', 'showSpotlight', 'points', 'strokeDashArray', 'strokeLineCap', 'strokeLineJoin', '_showRulerDistance', '_chainPts', '_zonePts', '_chainColor', '_zoneColor', '_arrowStart', '_arrowEnd', '_rulerStart', '_rulerEnd'];
       const isZoomed = (stageZoomLevel > 1.0);
+      const currentFrameTime = Math.round(currentVideoTime * 100) / 100;
 
-      let targetKf = null;
-      if (activeKeyframeId) {
-        targetKf = tacticalKeyframes.find(kf => kf.id === activeKeyframeId);
-      }
-      if (!targetKf) {
-        targetKf = tacticalKeyframes.find(kf => {
-          const start = kf.timestamp - 0.25;
-          const end = kf.timestamp + (kf.duration !== undefined ? kf.duration : 0.5) + 0.25;
-          return currentVideoTime >= start && currentVideoTime <= end;
-        });
-      }
-      if (!targetKf) {
-        targetKf = tacticalKeyframes.find(kf => Math.abs(kf.timestamp - currentVideoTime) < 0.5);
-      }
+      // Check if a keyframe already exists at this exact frame timestamp (< 0.025s tolerance)
+      let targetKf = tacticalKeyframes.find(kf => Math.abs(kf.timestamp - currentFrameTime) < 0.025);
 
       if (!targetKf) {
         targetKf = {
-          id: 'kf_' + Date.now(),
-          timestamp: Math.round(currentVideoTime * 100) / 100,
-          duration: 0.5,
+          id: 'kf_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+          timestamp: currentFrameTime,
+          duration: defaultHoldDuration,
           title: isZoomed ? `Tactical Zoom (${stageZoomLevel.toFixed(1)}x) @ ${formatTimecode(currentVideoTime)}` : `Tactical Breakdown @ ${formatTimecode(currentVideoTime)}`,
-          autoPause: true,  // Auto-pause restored by default for drawn tactical moments
-          objects: objectsJson,
+          autoPause: true,
+          objects: [],
           zoomLevel: isZoomed ? stageZoomLevel : 1.0,
           panX: isZoomed ? stagePanX : 0,
           panY: isZoomed ? stagePanY : 0,
@@ -5863,7 +6171,6 @@
         tacticalKeyframes.push(targetKf);
         tacticalKeyframes.sort((a, b) => a.timestamp - b.timestamp);
       } else {
-        targetKf.objects = objectsJson;
         targetKf.zoomLevel = isZoomed ? stageZoomLevel : 1.0;
         targetKf.panX = isZoomed ? stagePanX : 0;
         targetKf.panY = isZoomed ? stagePanY : 0;
@@ -5873,15 +6180,60 @@
         if (targetKf.autoPause === undefined) {
           targetKf.autoPause = true;
         }
+        if (targetKf.duration === undefined) {
+          targetKf.duration = defaultHoldDuration;
+        }
         if (isZoomed && targetKf.title && targetKf.title.startsWith('Tactical Moment')) {
           targetKf.title = `Tactical Zoom (${stageZoomLevel.toFixed(1)}x) @ ${formatTimecode(currentVideoTime)}`;
         }
       }
 
+      // Any shape that was just placed/drawn has no keyframeId yet -> stamp it with targetKf.id!
+      const canvasObjs = canvas.getObjects();
+      canvasObjs.forEach(obj => {
+        if (!obj.keyframeId) {
+          obj.keyframeId = targetKf.id;
+        }
+      });
+
+      // Group all objects on canvas by their keyframeId
+      const objectsByKf = {};
+      const serializedObjs = canvas.toJSON(customProps).objects || [];
+      serializedObjs.forEach(objData => {
+        const kId = objData.keyframeId || targetKf.id;
+        if (!objectsByKf[kId]) objectsByKf[kId] = [];
+        objectsByKf[kId].push(objData);
+      });
+
+      // Update targetKf's objects
+      targetKf.objects = objectsByKf[targetKf.id] || [];
+
+      // Update any other active keyframe whose objects are also on canvas (e.g. if user moved/edited them)
+      Object.keys(objectsByKf).forEach(kId => {
+        if (kId !== targetKf.id) {
+          const kf = tacticalKeyframes.find(k => k.id === kId);
+          if (kf) {
+            kf.objects = objectsByKf[kId];
+          }
+        }
+      });
+
+      // Update empty state for any keyframe visible on current frame that has no objects left
+      const visibleKfs = getVisibleKeyframesAtTime(currentVideoTime);
+      visibleKfs.forEach(vk => {
+        if (!objectsByKf[vk.id]) {
+          vk.objects = [];
+        }
+      });
+
+      // Clean up keyframes that have 0 objects and no zoom
+      tacticalKeyframes = tacticalKeyframes.filter(kf => {
+        return (kf.objects && kf.objects.length > 0) || (kf.zoomLevel && kf.zoomLevel > 1.0);
+      });
+
       activeKeyframeId = targetKf.id;
-      // Do NOT set lastPausedKeyframeId here — it must only be set when auto-pause actually
-      // fires during playback. Setting it on save would prevent the first auto-pause from ever
-      // triggering when the video plays through this keyframe.
+      _lastRenderedKfKey = getVisibleKeyframesAtTime(currentVideoTime).map(k => k.id).sort().join(',');
+
       hasUnsavedChanges = true;
       updateSaveStatusIndicator('unsaved');
 
@@ -5897,12 +6249,13 @@
     function saveCurrentFrameAsKeyframe() {
       if (isPlaying) pauseVideo();
       
-      const customProps = ['tacticalType', 'playerNumber', 'playerName', 'tokenColor', 'rulerDistance', 'rulerUnit', 'spotlightRadiusX', 'spotlightRadiusY', 'spotlightColor', 'points', 'strokeDashArray', 'strokeLineCap', 'strokeLineJoin', '_showRulerDistance', '_chainPts', '_zonePts', '_chainColor', '_zoneColor'];
+      const customProps = ['keyframeId', 'tacticalType', 'playerNumber', 'playerName', 'tokenColor', 'rulerDistance', 'rulerUnit', 'spotlightRadiusX', 'spotlightRadiusY', 'spotlightColor', 'rx', 'ry', 'trackerColor', 'showSpotlight', 'points', 'strokeDashArray', 'strokeLineCap', 'strokeLineJoin', '_showRulerDistance', '_chainPts', '_zonePts', '_chainColor', '_zoneColor', '_arrowStart', '_arrowEnd', '_rulerStart', '_rulerEnd'];
       const objectsJson = canvas ? (canvas.toJSON(customProps).objects || []) : [];
       const isZoomed = (stageZoomLevel > 1.0);
+      const currentFrameTime = Math.round(currentVideoTime * 100) / 100;
 
-      // Check if a keyframe already exists at this timestamp
-      let existingKf = tacticalKeyframes.find(kf => Math.abs(kf.timestamp - currentVideoTime) < 0.3);
+      // Check if a keyframe already exists at this exact frame timestamp (< 0.025s tolerance)
+      let existingKf = tacticalKeyframes.find(kf => Math.abs(kf.timestamp - currentFrameTime) < 0.025);
       if (existingKf) {
         existingKf.objects = objectsJson;
         existingKf.autoPause = true;
@@ -5910,12 +6263,13 @@
         existingKf.panX = isZoomed ? stagePanX : (existingKf.panX || 0);
         existingKf.panY = isZoomed ? stagePanY : (existingKf.panY || 0);
         existingKf.playbackRate = currentPlaybackRate || existingKf.playbackRate || 1.0;
+        if (existingKf.duration === undefined) existingKf.duration = defaultHoldDuration;
         activeKeyframeId = existingKf.id;
       } else {
         const newKf = {
-          id: 'kf_' + Date.now(),
-          timestamp: Math.round(currentVideoTime * 100) / 100,
-          duration: 0.5,
+          id: 'kf_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+          timestamp: currentFrameTime,
+          duration: defaultHoldDuration,
           title: isZoomed ? `Tactical Zoom (${stageZoomLevel.toFixed(1)}x) @ ${formatTimecode(currentVideoTime)}` : `Pinned Frame @ ${formatTimecode(currentVideoTime)}`,
           autoPause: true,
           objects: objectsJson,
@@ -5925,12 +6279,11 @@
           playbackRate: currentPlaybackRate || 1.0,
           createdAt: Date.now()
         };
+        newKf.objects.forEach(o => { o.keyframeId = newKf.id; });
         tacticalKeyframes.push(newKf);
         tacticalKeyframes.sort((a, b) => a.timestamp - b.timestamp);
         activeKeyframeId = newKf.id;
       }
-      // Do NOT set lastPausedKeyframeId here — only set it when auto-pause actually fires.
-      // Pre-setting it here would block the auto-pause from triggering on first playback.
       hasUnsavedChanges = true;
       updateSaveStatusIndicator('unsaved');
 
@@ -5941,7 +6294,7 @@
 
       renderKeyframeListUI();
       renderTimelinePins();
-      highlightActiveKeyframeInSidebar(newKf.id);
+      highlightActiveKeyframeInSidebar(activeKeyframeId);
 
       const modeBadge = document.getElementById('ctx-mode-badge');
       if (modeBadge) {
@@ -5958,17 +6311,16 @@
       if (activeKeyframeId === id) {
         activeKeyframeId = null;
         lastPausedKeyframeId = null;
-        if (canvas) {
-          canvas.discardActiveObject();
-          canvas.clear();
-          canvas.renderAll();
-        }
         updateCanvasBadge();
         updateContextualControls(null);
         if (stageZoomLevel > 1.0) {
           resetStageZoom(false);
         }
       }
+      const visibleKfs = getVisibleKeyframesAtTime(currentVideoTime);
+      _lastRenderedKfKey = visibleKfs.map(k => k.id).sort().join(',');
+      renderKeyframesToCanvas(visibleKfs);
+
       hasUnsavedChanges = true;
       updateSaveStatusIndicator('unsaved');
       try {
@@ -6025,13 +6377,16 @@
     function updateKeyframeDuration(id, newDuration) {
       const kf = tacticalKeyframes.find(k => k.id === id);
       if (kf) {
-        kf.duration = parseFloat(newDuration) || 0.5;
+        kf.duration = parseFloat(newDuration) || defaultHoldDuration;
         hasUnsavedChanges = true;
         updateSaveStatusIndicator('unsaved');
         try {
           localStorage.setItem('cms_telestration_' + currentClipKey, JSON.stringify(tacticalKeyframes));
           clipKeyframesCache[currentClipKey] = JSON.parse(JSON.stringify(tacticalKeyframes));
         } catch(e) {}
+        const visibleKfs = getVisibleKeyframesAtTime(currentVideoTime);
+        _lastRenderedKfKey = visibleKfs.map(k => k.id).sort().join(',');
+        renderKeyframesToCanvas(visibleKfs);
       }
     }
 
@@ -6271,36 +6626,33 @@
       updateTimecodeDisplay();
       updateTimelineProgressBar();
 
-      // Check if there is a matching keyframe at the target timestamp
-      const matchingKf = tacticalKeyframes.find(kf => {
-        const start = kf.timestamp;
-        const end = kf.timestamp + (kf.duration !== undefined ? kf.duration : 0.5);
-        return currentVideoTime >= start && currentVideoTime <= end;
-      });
+      // Check all keyframes visible at the target timestamp
+      const visibleKfs = getVisibleKeyframesAtTime(currentVideoTime);
+      const currentKfKey = visibleKfs.map(k => k.id).sort().join(',');
+      _lastRenderedKfKey = currentKfKey;
 
-      if (matchingKf) {
-        activeKeyframeId = matchingKf.id;
-        renderKeyframeToCanvas(matchingKf, false);
-        highlightActiveKeyframeInSidebar(matchingKf.id);
-        if (matchingKf.playbackRate && matchingKf.playbackRate !== currentPlaybackRate) {
-          currentPlaybackRate = matchingKf.playbackRate;
-          applyVideoPlaybackRate(matchingKf.playbackRate);
+      if (visibleKfs.length > 0) {
+        const primaryKf = visibleKfs[visibleKfs.length - 1];
+        activeKeyframeId = primaryKf.id;
+        renderKeyframesToCanvas(visibleKfs);
+        highlightActiveKeyframeInSidebar(primaryKf.id);
+        if (primaryKf.playbackRate && primaryKf.playbackRate !== currentPlaybackRate) {
+          currentPlaybackRate = primaryKf.playbackRate;
+          applyVideoPlaybackRate(primaryKf.playbackRate);
         }
       } else {
-        if (activeKeyframeId !== null) {
-          activeKeyframeId = null;
-          if (canvas) canvas.clear();
-          highlightActiveKeyframeInSidebar(null);
-          if (currentPlaybackRate !== basePlaybackRate) {
-            currentPlaybackRate = basePlaybackRate;
-            applyVideoPlaybackRate(basePlaybackRate);
-          }
-          if (stageZoomLevel > 1.0 && !isPanningStage && !isDraggingZoomBox) {
-            stageZoomLevel = 1.0;
-            stagePanX = 0;
-            stagePanY = 0;
-            applyStageZoomAndPan(false);
-          }
+        activeKeyframeId = null;
+        if (canvas) canvas.clear();
+        highlightActiveKeyframeInSidebar(null);
+        if (currentPlaybackRate !== basePlaybackRate) {
+          currentPlaybackRate = basePlaybackRate;
+          applyVideoPlaybackRate(basePlaybackRate);
+        }
+        if (stageZoomLevel > 1.0 && !isPanningStage && !isDraggingZoomBox) {
+          stageZoomLevel = 1.0;
+          stagePanX = 0;
+          stagePanY = 0;
+          applyStageZoomAndPan(false);
         }
       }
     }
@@ -6366,6 +6718,17 @@
           tooltip.textContent = formatTimecode(targetTime);
         }
         updateTimecodeDisplay();
+
+        // Real-time telestration rendering while scrubbing
+        if (!isDrawingShape) {
+          const visibleKfs = getVisibleKeyframesAtTime(targetTime);
+          const currentKfKey = visibleKfs.map(k => k.id).sort().join(',');
+          if (currentKfKey !== _lastRenderedKfKey) {
+            _lastRenderedKfKey = currentKfKey;
+            renderKeyframesToCanvas(visibleKfs);
+            highlightActiveKeyframeInSidebar(visibleKfs.length ? visibleKfs[visibleKfs.length - 1].id : null);
+          }
+        }
 
         if (isSyntheticDemo) {
           renderSyntheticPitch(targetTime);
@@ -6587,13 +6950,17 @@
               <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted);cursor:pointer;" onclick="event.stopPropagation()" title="Hold duration for drawings and zoom">
                 <span>Hold:</span>
                 <select style="background:#090d16;border:1px solid rgba(255,255,255,0.18);color:#00e676;border-radius:4px;padding:2px 4px;font-size:11px;font-weight:700;outline:none;cursor:pointer;" onchange="updateKeyframeDuration('${kf.id}', this.value); this.blur();">
-                  <option value="0.5" ${(kf.duration !== undefined ? kf.duration : 0.5) == 0.5 ? 'selected' : ''}>0.5s</option>
+                  <option value="0.25" ${(kf.duration !== undefined ? kf.duration : defaultHoldDuration) == 0.25 ? 'selected' : ''}>0.25s</option>
+                  <option value="0.5" ${kf.duration == 0.5 ? 'selected' : ''}>0.5s</option>
+                  <option value="0.75" ${kf.duration == 0.75 ? 'selected' : ''}>0.75s</option>
                   <option value="1" ${kf.duration == 1.0 ? 'selected' : ''}>1.0s</option>
                   <option value="1.5" ${kf.duration == 1.5 ? 'selected' : ''}>1.5s</option>
                   <option value="2" ${kf.duration == 2 ? 'selected' : ''}>2.0s</option>
-                  <option value="3" ${kf.duration == 3 ? 'selected' : ''}>3.0s</option>
+                  <option value="3" ${(kf.duration !== undefined ? kf.duration : defaultHoldDuration) == 3 ? 'selected' : ''}>3.0s</option>
                   <option value="4" ${kf.duration == 4 ? 'selected' : ''}>4.0s</option>
                   <option value="5" ${kf.duration == 5 ? 'selected' : ''}>5.0s</option>
+                  <option value="10" ${kf.duration == 10 ? 'selected' : ''}>10.0s</option>
+                  <option value="999" ${kf.duration == 999 ? 'selected' : ''}>Persistent</option>
                 </select>
               </label>
             </div>
@@ -6605,7 +6972,13 @@
 
     function highlightActiveKeyframeInSidebar(id) {
       document.querySelectorAll('.keyframe-card').forEach(card => card.classList.remove('active'));
-      if (id) {
+      const visibleKfs = getVisibleKeyframesAtTime(currentVideoTime);
+      if (visibleKfs.length > 0) {
+        visibleKfs.forEach(k => {
+          const activeCard = document.getElementById(`kf-card-${k.id}`);
+          if (activeCard) activeCard.classList.add('active');
+        });
+      } else if (id) {
         const activeCard = document.getElementById(`kf-card-${id}`);
         if (activeCard) activeCard.classList.add('active');
       }
@@ -6688,7 +7061,13 @@
         }
         const activeObj = canvas.getActiveObject();
         if (activeObj) {
-          if (activeObj.tacticalType === 'player-token') {
+          if (activeObj.tacticalType === 'tracker-ring' || activeObj.type === 'tracker-ring') {
+            activeObj.trackerColor = color;
+            activeObj.stroke = color;
+            activeObj.dirty = true;
+            canvas.requestRenderAll();
+            saveCurrentCanvasToActiveKeyframe();
+          } else if (activeObj.tacticalType === 'player-token') {
             const x = activeObj.left;
             const y = activeObj.top;
             const num = activeObj.playerNumber || activePlayerTokenNumber;
@@ -6772,7 +7151,7 @@
     function pushCanvasHistoryState() {
       if (isHistoryAction || !canvas) return;
       try {
-        const json = JSON.stringify(canvas.toJSON(['tacticalType', 'playerNumber', 'playerName', 'tokenColor', 'rulerDistance', 'rulerUnit', 'spotlightRadiusX', 'spotlightRadiusY', 'spotlightColor', '_arrowStart', '_arrowEnd', '_rulerStart', '_rulerEnd']));
+        const json = JSON.stringify(canvas.toJSON(['keyframeId', 'tacticalType', 'playerNumber', 'playerName', 'tokenColor', 'rulerDistance', 'rulerUnit', 'spotlightRadiusX', 'spotlightRadiusY', 'spotlightColor', 'rx', 'ry', 'trackerColor', 'showSpotlight', '_arrowStart', '_arrowEnd', '_rulerStart', '_rulerEnd']));
         if (canvasUndoHistory.length === 0 || canvasUndoHistory[canvasUndoHistory.length - 1] !== json) {
           canvasUndoHistory.push(json);
           if (canvasUndoHistory.length > 40) canvasUndoHistory.shift();
@@ -6788,7 +7167,7 @@
         if (objects.length > 0) {
           const removed = objects[objects.length - 1];
           try {
-            canvasRedoHistory.push(JSON.stringify(canvas.toJSON(['tacticalType', 'playerNumber', 'playerName', 'tokenColor', 'rulerDistance', 'rulerUnit', 'spotlightRadiusX', 'spotlightRadiusY', 'spotlightColor', '_arrowStart', '_arrowEnd', '_rulerStart', '_rulerEnd'])));
+            canvasRedoHistory.push(JSON.stringify(canvas.toJSON(['keyframeId', 'tacticalType', 'playerNumber', 'playerName', 'tokenColor', 'rulerDistance', 'rulerUnit', 'spotlightRadiusX', 'spotlightRadiusY', 'spotlightColor', 'rx', 'ry', 'trackerColor', 'showSpotlight', '_arrowStart', '_arrowEnd', '_rulerStart', '_rulerEnd'])));
           } catch(e) {}
           canvas.remove(removed);
           canvas.renderAll();
@@ -6857,14 +7236,18 @@
       updateCanvasBadge();
       updateContextualControls(null);
 
-      // Remove any keyframe at this current moment so an empty frame doesn't pause video or persist
-      tacticalKeyframes = tacticalKeyframes.filter(kf => kf.id !== activeKeyframeId && Math.abs(kf.timestamp - currentVideoTime) >= 0.4);
+      // Remove only the keyframe at this current exact frame (< 0.025s tolerance) or matching activeKeyframeId
+      tacticalKeyframes = tacticalKeyframes.filter(kf => kf.id !== activeKeyframeId && Math.abs(kf.timestamp - currentVideoTime) >= 0.025);
       activeKeyframeId = null;
       lastPausedKeyframeId = null;
 
       if (stageZoomLevel > 1.0) {
         resetStageZoom(false);
       }
+
+      const visibleKfs = getVisibleKeyframesAtTime(currentVideoTime);
+      _lastRenderedKfKey = visibleKfs.map(k => k.id).sort().join(',');
+      renderKeyframesToCanvas(visibleKfs);
 
       hasUnsavedChanges = true;
       updateSaveStatusIndicator('unsaved');
@@ -7559,6 +7942,14 @@
           break;
         case 'h':
         case 'H':
+          if (e.shiftKey) {
+            toggleStageUI();
+          } else {
+            toggleOrSetActiveTool('tracker-ring');
+          }
+          break;
+        case 'u':
+        case 'U':
           toggleStageUI();
           break;
         case 't':
@@ -7608,6 +7999,8 @@
     window.addEventListener('DOMContentLoaded', () => {
       initTelestrationCanvas();
       initTimelineScrubber();
+      const holdSelect = document.getElementById('global-hold-duration-select');
+      if (holdSelect) holdSelect.value = String(defaultHoldDuration);
     });
   </script>
 </body>
