@@ -4532,20 +4532,26 @@
       const compCanvas = document.createElement('canvas');
       compCanvas.width = 1920;
       compCanvas.height = 1080;
-      const compCtx = compCanvas.getContext('2d');
+      const compCtx = compCanvas.getContext('2d', { alpha: false });
+      compCtx.imageSmoothingEnabled = true;
+      compCtx.imageSmoothingQuality = 'high';
 
-      compCtx.fillStyle = '#080c14';
-      compCtx.fillRect(0, 0, 1920, 1080);
-      if (isLocal && localVid && localVid.readyState >= 2) {
-        try { compCtx.drawImage(localVid, 0, 0, 1920, 1080); } catch(e){}
-      } else if (isPitch && pitchCanvas) {
-        try { compCtx.drawImage(pitchCanvas, 0, 0, 1920, 1080); } catch(e){}
-      } else {
-        try { drawTacticalPitchGeometry(compCtx, 1920, 1080); } catch(e){}
+      function renderCompFrame() {
+        if (isLocal && localVid && localVid.readyState >= 2) {
+          try { compCtx.drawImage(localVid, 0, 0, 1920, 1080); } catch(e){}
+        } else if (isPitch && pitchCanvas) {
+          try { compCtx.drawImage(pitchCanvas, 0, 0, 1920, 1080); } catch(e){}
+        } else {
+          compCtx.fillStyle = '#080c14';
+          compCtx.fillRect(0, 0, 1920, 1080);
+          try { drawTacticalPitchGeometry(compCtx, 1920, 1080); } catch(e){}
+        }
+        if (canvas && canvas.lowerCanvasEl) {
+          try { compCtx.drawImage(canvas.lowerCanvasEl, 0, 0, 1920, 1080); } catch(e){}
+        }
       }
-      if (canvas && canvas.lowerCanvasEl) {
-        try { compCtx.drawImage(canvas.lowerCanvasEl, 0, 0, 1920, 1080); } catch(e){}
-      }
+
+      renderCompFrame();
 
       const streamFn = compCanvas.captureStream || compCanvas.mozCaptureStream || compCanvas.webkitCaptureStream;
       if (!streamFn) {
@@ -4575,7 +4581,7 @@
 
       let recData;
       try {
-        recData = createSafeMediaRecorder(stream, 10000000);
+        recData = createSafeMediaRecorder(stream, 5000000);
       } catch(err) {
         alert('MediaRecorder is not supported in this browser: ' + (err.message || err));
         if (progressContainer) progressContainer.style.display = 'none';
@@ -4645,13 +4651,44 @@
 
       if (exportDirectCancelled) return;
 
-      recorder.start(250);
+      // Prime initial frame
+      renderCompFrame();
+
+      // Start video playback and WAIT until playback is ACTUALLY progressing past startTime!
       playVideo();
 
+      if (isLocal && localVid) {
+        await new Promise(res => {
+          let progressed = false;
+          const onProgressCheck = () => {
+            if (progressed) return;
+            if (!localVid.paused && localVid.currentTime > startTime + 0.015) {
+              progressed = true;
+              localVid.removeEventListener('timeupdate', onProgressCheck);
+              res();
+            }
+          };
+          localVid.addEventListener('timeupdate', onProgressCheck);
+          setTimeout(() => {
+            if (!progressed) {
+              progressed = true;
+              try { localVid.removeEventListener('timeupdate', onProgressCheck); } catch(e){}
+              res();
+            }
+          }, 800);
+        });
+      } else {
+        await new Promise(r => setTimeout(r, 120));
+      }
+
+      if (exportDirectCancelled) return;
+
+      // START RECORDING EXACTLY WHEN VIDEO IS MOVING - NO INITIAL FREEZE DELAY!
+      recorder.start(100);
+
       const totalDuration = Math.max(0.5, endTime - startTime);
-      const startWall = performance.now();
-      let hasPlaybackStarted = false;
-      let playbackStartWall = startWall;
+      const startRecordWall = performance.now();
+      let lastDomUpdate = 0;
 
       const renderLoop = () => {
         if (!isExportingDirectVideo || exportDirectCancelled) {
@@ -4663,43 +4700,28 @@
           return;
         }
 
-        const wallElapsed = (performance.now() - startWall) / 1000;
         const cur = isLocal ? (localVid.currentTime || currentVideoTime) : currentVideoTime;
+        const wallElapsed = (performance.now() - startRecordWall) / 1000;
 
-        if (!hasPlaybackStarted) {
-          if (Math.abs(cur - startTime) <= 0.6 || wallElapsed >= 0.6 || isPitch) {
-            hasPlaybackStarted = true;
-            playbackStartWall = performance.now();
-          }
+        renderCompFrame();
+
+        const elapsed = Math.max(0, Math.min(totalDuration, cur - startTime));
+        const pct = Math.min(100, Math.max(0, Math.round((Math.max(elapsed, wallElapsed) / totalDuration) * 100)));
+
+        const now = performance.now();
+        if (now - lastDomUpdate > 150) {
+          lastDomUpdate = now;
+          if (barFill) barFill.style.width = pct + '%';
+          if (pctEl) pctEl.textContent = pct + '%';
+          if (lblEl) lblEl.textContent = `Rendering: ${pct}% (${elapsed.toFixed(1)}s / ${totalDuration.toFixed(1)}s)`;
         }
 
-        const activeWallElapsed = hasPlaybackStarted ? ((performance.now() - playbackStartWall) / 1000) : wallElapsed;
+        // STOP EXACTLY AT END TIME - ZERO TAIL FREEZE DELAY!
+        const isDone = (cur >= endTime) ||
+                       (isLocal && localVid && localVid.ended) ||
+                       (wallElapsed >= totalDuration + 0.35);
 
-        compCtx.fillStyle = '#080c14';
-        compCtx.fillRect(0, 0, 1920, 1080);
-
-        if (isLocal && localVid && localVid.readyState >= 2) {
-          try { compCtx.drawImage(localVid, 0, 0, 1920, 1080); } catch(e){}
-        } else if (isPitch && pitchCanvas) {
-          try { compCtx.drawImage(pitchCanvas, 0, 0, 1920, 1080); } catch(e){}
-        } else {
-          try { drawTacticalPitchGeometry(compCtx, 1920, 1080); } catch(e){}
-        }
-
-        if (canvas && canvas.lowerCanvasEl) {
-          try { compCtx.drawImage(canvas.lowerCanvasEl, 0, 0, 1920, 1080); } catch(e){}
-        }
-
-        const elapsed = Math.max(0, Math.min(totalDuration, hasPlaybackStarted ? (cur - startTime) : 0));
-        const pct = Math.min(100, Math.max(0, Math.round((Math.max(elapsed, activeWallElapsed) / totalDuration) * 100)));
-        if (barFill) barFill.style.width = pct + '%';
-        if (pctEl) pctEl.textContent = pct + '%';
-        if (lblEl) lblEl.textContent = `Rendering: ${pct}% (${elapsed.toFixed(1)}s / ${totalDuration.toFixed(1)}s)`;
-
-        const isPastEnd = (hasPlaybackStarted && activeWallElapsed >= (totalDuration * 0.85) && (cur >= endTime || (isLocal && localVid.ended))) ||
-                          (activeWallElapsed >= totalDuration + 2.5);
-
-        if (isPastEnd) {
+        if (isDone) {
           isExportingDirectVideo = false;
           pauseVideo();
           if (lblEl) lblEl.textContent = 'Finalizing video file...';
@@ -4952,13 +4974,29 @@
         return;
       }
 
-      recorder.start(250);
       playVideo();
 
+      // Wait until player actually begins moving past startTime
+      let checkYtWait = 0;
+      while (checkYtWait < 25) {
+        await new Promise(r => setTimeout(r, 100));
+        const t = (isYtReady && ytPlayer && typeof ytPlayer.getCurrentTime === 'function') ? ytPlayer.getCurrentTime() : currentVideoTime;
+        if (t > startTime + 0.03) break;
+        checkYtWait++;
+      }
+
+      if (exportDirectCancelled) {
+        try { stream.getTracks().forEach(t => t.stop()); } catch(e){}
+        hideFloatingExportHUD();
+        return;
+      }
+
+      // START RECORDING ONLY ONCE PLAYBACK COMMENCES
+      recorder.start(100);
+
       const totalDuration = Math.max(0.5, endTime - startTime);
-      const startWall = performance.now();
-      let hasPlaybackStarted = false;
-      let playbackStartWall = startWall;
+      const startRecordWall = performance.now();
+      let lastHudUpdate = 0;
 
       function finishScreenExport() {
         if (!isExportingDirectVideo) return;
@@ -4990,33 +5028,27 @@
           return;
         }
 
-        const wallElapsed = (performance.now() - startWall) / 1000;
+        const wallElapsed = (performance.now() - startRecordWall) / 1000;
         const cur = currentVideoTime;
+        const elapsed = Math.max(0, Math.min(totalDuration, cur - startTime));
+        const pct = Math.min(100, Math.max(0, Math.round((Math.max(elapsed, wallElapsed) / totalDuration) * 100)));
 
-        if (!hasPlaybackStarted) {
-          if (Math.abs(cur - startTime) <= 0.8 || wallElapsed >= 0.8) {
-            hasPlaybackStarted = true;
-            playbackStartWall = performance.now();
-          }
+        const now = performance.now();
+        if (now - lastHudUpdate > 150) {
+          lastHudUpdate = now;
+          if (barFill) barFill.style.width = pct + '%';
+          if (pctEl) pctEl.textContent = pct + '%';
+          if (lblEl) lblEl.textContent = `Recording clip: ${pct}% (${elapsed.toFixed(1)}s / ${totalDuration.toFixed(1)}s)`;
+          updateFloatingExportHUD(elapsed, totalDuration, pct);
         }
 
-        const activeWallElapsed = hasPlaybackStarted ? ((performance.now() - playbackStartWall) / 1000) : wallElapsed;
-        const elapsed = Math.max(0, Math.min(totalDuration, hasPlaybackStarted ? (cur - startTime) : 0));
-        const pct = Math.min(100, Math.max(0, Math.round((Math.max(elapsed, activeWallElapsed) / totalDuration) * 100)));
-
-        if (barFill) barFill.style.width = pct + '%';
-        if (pctEl) pctEl.textContent = pct + '%';
-        if (lblEl) lblEl.textContent = `Recording clip: ${pct}% (${elapsed.toFixed(1)}s / ${totalDuration.toFixed(1)}s)`;
-
-        updateFloatingExportHUD(elapsed, totalDuration, pct);
-
-        const isFinished = (hasPlaybackStarted && activeWallElapsed >= (totalDuration * 0.85) && cur >= endTime) ||
-                           (activeWallElapsed >= totalDuration + 2.5);
+        // STOP EXACTLY AT END TIME - ZERO TAIL DELAY
+        const isFinished = (cur >= endTime) || (wallElapsed >= totalDuration + 0.35);
 
         if (isFinished) {
           finishScreenExport();
         }
-      }, 100);
+      }, 50);
     }
 
     function cancelDirectVideoExport() {

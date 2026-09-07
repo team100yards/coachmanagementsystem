@@ -1420,11 +1420,34 @@
             streamInfo.renderFrame();
           }
 
-          recorder.start(100);
+          // Start video playback and WAIT until playback is actually advancing!
           const playPromise = video.play();
           if (playPromise && typeof playPromise.catch === 'function') {
             playPromise.catch(e => console.warn('video.play() notice:', e));
           }
+
+          await new Promise(res => {
+            let begun = false;
+            const onTimeUpdate = () => {
+              if (begun) return;
+              if (video.currentTime > startTime + 0.015) {
+                begun = true;
+                video.removeEventListener('timeupdate', onTimeUpdate);
+                res();
+              }
+            };
+            video.addEventListener('timeupdate', onTimeUpdate);
+            setTimeout(() => {
+              if (!begun) {
+                begun = true;
+                try { video.removeEventListener('timeupdate', onTimeUpdate); } catch(e){}
+                res();
+              }
+            }, 800);
+          });
+
+          // START RECORDER EXACTLY AS VIDEO BEGINS PLAYING - ZERO START DELAY!
+          recorder.start(100);
 
           // Smooth canvas rendering loop for Mac / Safari
           if (streamInfo.isCanvas && streamInfo.renderFrame) {
@@ -1438,9 +1461,8 @@
           }
 
           const totalDuration = Math.max(0.3, endTime - startTime);
-          const startWall = performance.now();
-          let hasPlaybackStarted = false;
-          let playbackStartWall = startWall;
+          const startRecordWall = performance.now();
+          let lastProgUpdate = 0;
 
           checkInterval = setInterval(() => {
             if (exportCancelled) {
@@ -1452,28 +1474,19 @@
               return;
             }
 
-            // Continuous frame draw fallback in case requestAnimationFrame is throttled
-            if (streamInfo.isCanvas && streamInfo.renderFrame) {
-              streamInfo.renderFrame();
-            }
-
             const cur = video.currentTime;
-            const wallElapsed = (performance.now() - startWall) / 1000;
+            const wallElapsed = (performance.now() - startRecordWall) / 1000;
+            const elapsed = Math.max(0, Math.min(totalDuration, cur - startTime));
+            const pct = Math.min(100, Math.max(0, Math.round((Math.max(elapsed, wallElapsed) / totalDuration) * 100)));
 
-            if (!hasPlaybackStarted) {
-              if (Math.abs(cur - startTime) <= 0.5 || wallElapsed >= 0.5) {
-                hasPlaybackStarted = true;
-                playbackStartWall = performance.now();
-              }
+            const now = performance.now();
+            if (now - lastProgUpdate > 150) {
+              lastProgUpdate = now;
+              if (onProgress) onProgress(pct);
             }
 
-            const activeWallElapsed = hasPlaybackStarted ? ((performance.now() - playbackStartWall) / 1000) : wallElapsed;
-            const elapsed = Math.max(0, Math.min(totalDuration, hasPlaybackStarted ? (cur - startTime) : 0));
-            const pct = Math.min(100, Math.max(0, Math.round((Math.max(elapsed, activeWallElapsed) / totalDuration) * 100)));
-            if (onProgress) onProgress(pct);
-
-            const isDone = (hasPlaybackStarted && activeWallElapsed >= (totalDuration * 0.85) && (cur >= endTime || video.ended)) ||
-                           (activeWallElapsed >= totalDuration + 2.5);
+            // STOP IMMEDIATELY ON COMPLETION - ZERO TAIL FREEZE!
+            const isDone = (cur >= endTime) || video.ended || (wallElapsed >= totalDuration + 0.35);
 
             if (isDone) {
               clearInterval(checkInterval);
@@ -1485,7 +1498,7 @@
                 }
               } catch(e){}
             }
-          }, 50);
+          }, 40);
 
         } catch (err) {
           if (animFrameId) cancelAnimationFrame(animFrameId);
