@@ -584,6 +584,10 @@ function openVideoAnalyzer(){
   window.open('video-analyzer.html', '_blank');
 }
 
+function openVideoClipper(){
+  window.open('video-clipper.html', '_blank');
+}
+
 function openPlayerTrackerLab(){
   try {
     const payload = {

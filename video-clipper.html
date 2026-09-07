@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>html,body{background:#080c14;margin:0;padding:0;}</style>
+  <title>Tactical Video Match Clipper | Pro Tactical Suite</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-base: #080c14;
+      --bg-surface: #0f1724;
+      --bg-card: #152033;
+      --bg-card-hover: #1c2b44;
+      --bg-glass: rgba(15, 23, 36, 0.94);
+      
+      --border-subtle: rgba(255, 255, 255, 0.12);
+      --border-accent: rgba(0, 230, 118, 0.45);
+      --border-focus: #00e676;
+      
+      --accent-green: #00e676;
+      --accent-green-glow: rgba(0, 230, 118, 0.35);
+      --accent-blue: #00b0ff;
+      --accent-blue-glow: rgba(0, 176, 255, 0.35);
+      --accent-amber: #ffab00;
+      --accent-rose: #ff1744;
+      --accent-purple: #d500f9;
+      
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-xl: 18px;
+      
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-display: 'Bebas Neue', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      height: 100vh;
+      max-height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-base);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--bg-card);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-dim);
+    }
+
+    /* Studio Header */
+    .app-header {
+      background: rgba(10, 16, 26, 0.96);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 0 20px;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      z-index: 50;
+      flex-shrink: 0;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .brand-badge {
+      background: linear-gradient(135deg, #00b0ff, #00e676);
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #05080e;
+      font-size: 20px;
+      box-shadow: 0 0 16px rgba(0, 176, 255, 0.4);
+    }
+
+    .brand-title {
+      font-family: var(--font-display);
+      font-size: 20px;
+      letter-spacing: 1.2px;
+      background: linear-gradient(to right, #ffffff, #94a3b8);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      line-height: 1;
+    }
+
+    .brand-sub {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--accent-blue);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-header {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text-main);
+      padding: 7px 14px;
+      border-radius: var(--radius-md);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .btn-header:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .btn-header.primary {
+      background: linear-gradient(135deg, #00b0ff, #00e676);
+      border: none;
+      color: #05080e;
+      font-weight: 700;
+      box-shadow: 0 2px 10px rgba(0, 176, 255, 0.35);
+    }
+
+    .btn-header.primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(0, 176, 255, 0.5);
+    }
+
+    /* Main Workspace Layout */
+    .clipper-workspace {
+      display: flex;
+      flex: 1;
+      height: calc(100vh - 58px);
+      overflow: hidden;
+    }
+
+    /* Left Stage Area */
+    .clipper-main-stage {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #060910;
+      overflow: hidden;
+      border-right: 1px solid var(--border-subtle);
+    }
+
+    /* Video Viewport Container */
+    .video-viewport-wrapper {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at center, #0c1424 0%, #060910 100%);
+      padding: 16px;
+      overflow: hidden;
+    }
+
+    .video-frame-container {
+      position: relative;
+      width: 100%;
+      max-width: 1280px;
+      aspect-ratio: 16 / 9;
+      background: #000;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #match-video-player {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #000;
+    }
+
+    /* Empty State Overlay */
+    .empty-video-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      background: rgba(10, 16, 26, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 10;
+      text-align: center;
+      padding: 24px;
+    }
+
+    .empty-video-placeholder.hidden {
+      display: none;
+    }
+
+    .upload-dropzone {
+      border: 2px dashed rgba(0, 176, 255, 0.4);
+      border-radius: var(--radius-xl);
+      padding: 36px 48px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      background: rgba(0, 176, 255, 0.03);
+      transition: all 0.2s ease;
+      max-width: 500px;
+    }
+
+    .upload-dropzone:hover, .upload-dropzone.dragover {
+      border-color: var(--accent-green);
+      background: rgba(0, 230, 118, 0.08);
+      transform: scale(1.01);
+    }
+
+    .dropzone-icon {
+      font-size: 48px;
+      filter: drop-shadow(0 0 12px rgba(0, 176, 255, 0.5));
+    }
+
+    .dropzone-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .dropzone-hint {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Timecode Overlay Badge on Video */
+    .video-time-hud {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: var(--radius-md);
+      padding: 6px 12px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 5;
+    }
+
+    .video-time-hud .rec-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      box-shadow: 0 0 8px var(--accent-green);
+    }
+
+    /* Cutting Controls Bottom Bar */
+    .clipper-bottom-console {
+      background: rgba(12, 19, 32, 0.98);
+      border-top: 1px solid var(--border-subtle);
+      padding: 12px 20px 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    /* Timeline & Range Scrubber */
+    .scrubber-zone {
+      position: relative;
+      width: 100%;
+      user-select: none;
+    }
+
+    .scrubber-track {
+      position: relative;
+      width: 100%;
+      height: 28px;
+      background: #090e18;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+    }
+
+    .scrubber-in-out-highlight {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0%;
+      width: 0%;
+      background: linear-gradient(90deg, rgba(0, 230, 118, 0.35), rgba(0, 176, 255, 0.35));
+      border-left: 2px solid var(--accent-green);
+      border-right: 2px solid var(--accent-blue);
+      pointer-events: none;
+      transition: width 0.05s linear, left 0.05s linear;
+    }
+
+    .scrubber-progress-fill {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 0%;
+      background: rgba(255, 255, 255, 0.12);
+      pointer-events: none;
+    }
+
+    .scrubber-playhead {
+      position: absolute;
+      top: -2px;
+      bottom: -2px;
+      left: 0%;
+      width: 3px;
+      background: #ffffff;
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.9);
+      pointer-events: none;
+      z-index: 4;
+    }
+
+    /* Controls Rows */
+    .controls-main-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .timecodes-cluster {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+
+    .timecode-chip {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .timecode-chip .label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .timecode-chip .val {
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .timecode-chip.in-chip .val { color: var(--accent-green); }
+    .timecode-chip.out-chip .val { color: var(--accent-blue); }
+    .timecode-chip.dur-chip .val { color: var(--accent-amber); }
+
+    /* Buttons Clusters */
+    .transport-buttons {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-ctl {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text-main);
+      padding: 6px 12px;
+      border-radius: var(--radius-md);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+      height: 34px;
+    }
+
+    .btn-ctl:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .btn-ctl.play {
+      background: var(--text-main);
+      color: #05080e;
+      font-size: 14px;
+      padding: 6px 16px;
+      font-weight: 800;
+    }
+
+    .btn-ctl.play:hover {
+      background: #ffffff;
+      box-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
+    }
+
+    .btn-ctl.in-btn {
+      border-color: rgba(0, 230, 118, 0.4);
+      color: var(--accent-green);
+    }
+    .btn-ctl.in-btn:hover {
+      background: rgba(0, 230, 118, 0.15);
+    }
+
+    .btn-ctl.out-btn {
+      border-color: rgba(0, 176, 255, 0.4);
+      color: var(--accent-blue);
+    }
+    .btn-ctl.out-btn:hover {
+      background: rgba(0, 176, 255, 0.15);
+    }
+
+    .cut-actions-cluster {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-action-cut {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 16px;
+      border-radius: var(--radius-md);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      height: 36px;
+      border: none;
+    }
+
+    .btn-action-cut.save-queue {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: #fff;
+    }
+    .btn-action-cut.save-queue:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-action-cut.download {
+      background: linear-gradient(135deg, #00e676, #00b0ff);
+      color: #05080e;
+      box-shadow: 0 2px 10px rgba(0, 230, 118, 0.35);
+    }
+    .btn-action-cut.download:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(0, 230, 118, 0.5);
+    }
+
+    .btn-action-cut.send-analyzer {
+      background: linear-gradient(135deg, #d500f9, #00b0ff);
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(213, 0, 249, 0.35);
+    }
+    .btn-action-cut.send-analyzer:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(213, 0, 249, 0.5);
+    }
+
+    /* Right Sidebar: Clips Playlist */
+    .clipper-sidebar {
+      width: 380px;
+      background: var(--bg-surface);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .sidebar-title {
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .clip-badge-count {
+      background: rgba(0, 176, 255, 0.18);
+      border: 1px solid rgba(0, 176, 255, 0.3);
+      color: var(--accent-blue);
+      font-size: 11px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+
+    .clips-scroll-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .empty-clips-card {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-dim);
+      font-size: 13px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .clip-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .clip-card:hover {
+      border-color: rgba(255, 255, 255, 0.25);
+      background: var(--bg-card-hover);
+    }
+
+    .clip-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .clip-title-input {
+      background: transparent;
+      border: 1px solid transparent;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 3px 6px;
+      border-radius: 4px;
+      width: 100%;
+    }
+
+    .clip-title-input:focus {
+      outline: none;
+      background: rgba(0, 0, 0, 0.3);
+      border-color: var(--accent-blue);
+    }
+
+    .clip-tag-pill {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 10px;
+      background: rgba(0, 230, 118, 0.15);
+      color: var(--accent-green);
+      border: 1px solid rgba(0, 230, 118, 0.3);
+      flex-shrink: 0;
+    }
+
+    .clip-meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .clip-btn-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .btn-clip-sub {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text-main);
+      padding: 5px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-clip-sub:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .btn-clip-sub.del:hover {
+      background: rgba(255, 23, 68, 0.2);
+      color: #ff5252;
+      border-color: #ff5252;
+    }
+
+    /* Export Progress Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 8, 14, 0.85);
+      backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .export-modal-box {
+      background: #0d1524;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: var(--radius-xl);
+      padding: 28px 32px;
+      width: 460px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      text-align: center;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .export-progress-bar {
+      width: 100%;
+      height: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .export-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #00b0ff, #00e676);
+      transition: width 0.1s ease;
+    }
+
+    .export-status-text {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Studio Header -->
+  <header class="app-header">
+    <a href="index.html" class="brand-group" title="Back to Squad Dashboard">
+      <div class="brand-badge">✂️</div>
+      <div>
+        <div class="brand-title">TACTICAL CLIPPER</div>
+        <div class="brand-sub">Match Video Slicer &amp; Trim Studio</div>
+      </div>
+    </a>
+
+    <div class="header-actions">
+      <label class="btn-header" title="Upload match video from computer">
+        <span>📤 Open Match Video</span>
+        <input type="file" id="match-file-input" accept="video/mp4,video/webm,video/quicktime,video/*" style="display:none;" onchange="handleMatchFileSelect(this)">
+      </label>
+
+      <button class="btn-header" onclick="loadSampleMatchVideo()" title="Load Sample Match Video to test trimming">
+        <span>🎬 Load Sample Clip</span>
+      </button>
+
+      <a href="video-analyzer.html" target="_blank" class="btn-header primary" title="Open Telestration &amp; Tactical Analyzer">
+        <span>📹 Open Video Analyzer ↗</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Clipper Layout -->
+  <div class="clipper-workspace">
+    
+    <!-- Left / Center Stage -->
+    <div class="clipper-main-stage">
+      <div class="video-viewport-wrapper">
+        <div class="video-frame-container" id="video-frame-container">
+          
+          <video id="match-video-player" playsinline preload="auto"></video>
+          
+          <!-- Live Time HUD -->
+          <div class="video-time-hud" id="video-time-hud">
+            <span class="rec-dot"></span>
+            <span id="hud-timecode">00:00:00.00</span>
+          </div>
+
+          <!-- Empty Video Placeholder Dropzone -->
+          <div class="empty-video-placeholder" id="empty-placeholder">
+            <label class="upload-dropzone" for="match-file-input" id="dropzone-area">
+              <div class="dropzone-icon">⚽ ✂️</div>
+              <div class="dropzone-title">Upload Full Match Video to Clip</div>
+              <div class="dropzone-hint">Drag &amp; drop MP4, WebM or MOV match file here, or click to browse.</div>
+              <div style="margin-top: 10px; display: flex; gap: 8px;">
+                <span class="btn-header primary" style="pointer-events: none;">Browse File</span>
+                <button type="button" class="btn-header" onclick="event.preventDefault(); loadSampleMatchVideo();">Load Sample</button>
+              </div>
+            </label>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Scrubber & Cut Console -->
+      <div class="clipper-bottom-console">
+        
+        <!-- Interactive Scrubber -->
+        <div class="scrubber-zone" id="scrubber-zone">
+          <div class="scrubber-track" id="scrubber-track" onclick="handleScrubberClick(event)">
+            <div class="scrubber-progress-fill" id="scrubber-progress"></div>
+            <div class="scrubber-in-out-highlight" id="scrubber-in-out-highlight"></div>
+            <div class="scrubber-playhead" id="scrubber-playhead"></div>
+          </div>
+        </div>
+
+        <!-- Controls Row -->
+        <div class="controls-main-row">
+          
+          <!-- Timecode Stats -->
+          <div class="timecodes-cluster">
+            <div class="timecode-chip">
+              <span class="label">Current Time</span>
+              <span class="val" id="tc-current">00:00:00.00</span>
+            </div>
+            <div class="timecode-chip in-chip">
+              <span class="label">Mark In [Start]</span>
+              <span class="val" id="tc-in">00:00:00.00</span>
+            </div>
+            <div class="timecode-chip out-chip">
+              <span class="label">Mark Out [End]</span>
+              <span class="val" id="tc-out">00:00:00.00</span>
+            </div>
+            <div class="timecode-chip dur-chip">
+              <span class="label">Clip Duration</span>
+              <span class="val" id="tc-dur">00:00.00</span>
+            </div>
+          </div>
+
+          <!-- Transport Buttons -->
+          <div class="transport-buttons">
+            <button class="btn-ctl" onclick="stepTime(-5)" title="Rewind 5s">« -5s</button>
+            <button class="btn-ctl" onclick="stepFrame(-1)" title="Back 1 Frame (Arrow Left)">‹ Frame</button>
+            <button class="btn-ctl play" id="btn-play-pause" onclick="togglePlay()" title="Play / Pause (Space)">▶ Play</button>
+            <button class="btn-ctl" onclick="stepFrame(1)" title="Forward 1 Frame (Arrow Right)">Frame ›</button>
+            <button class="btn-ctl" onclick="stepTime(5)" title="Forward 5s">+5s »</button>
+            
+            <div style="width:1px;height:22px;background:rgba(255,255,255,0.1);margin:0 4px;"></div>
+
+            <!-- In / Out Setters -->
+            <button class="btn-ctl in-btn" onclick="setInPoint()" title="Set Cut Start Point (Shortcut: [ or I)">
+              <span>[ Mark In</span>
+            </button>
+            <button class="btn-ctl out-btn" onclick="setOutPoint()" title="Set Cut End Point (Shortcut: ] or O)">
+              <span>] Mark Out</span>
+            </button>
+            <button class="btn-ctl" onclick="previewSelectedCut()" title="Preview Loop between In &amp; Out">
+              <span>🔁 Preview Cut</span>
+            </button>
+          </div>
+
+          <!-- Cut & Download Actions -->
+          <div class="cut-actions-cluster">
+            <button class="btn-action-cut save-queue" onclick="saveCurrentCutToQueue()" title="Add this segment to clip playlist">
+              <span>➕ Add to Playlist</span>
+            </button>
+            <button class="btn-action-cut download" onclick="downloadCurrentCutDirectly()" title="Extract and download this clip to your computer">
+              <span>⬇️ Download Clip</span>
+            </button>
+            <button class="btn-action-cut send-analyzer" onclick="sendCutDirectlyToAnalyzer()" title="Transfer clip straight to Video Analyzer">
+              <span>🚀 Send to Analyzer</span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Sidebar: Clips Playlist -->
+    <div class="clipper-sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-title">
+          <span>📋 Extracted Clips</span>
+          <span class="clip-badge-count" id="clips-count-badge">0 Clips</span>
+        </div>
+        <button class="btn-header" onclick="clearAllClips()" style="padding:4px 8px;font-size:11px;">Clear All</button>
+      </div>
+
+      <div class="clips-scroll-list" id="clips-list-container">
+        <div class="empty-clips-card" id="empty-clips-msg">
+          <div style="font-size:32px;">✂️</div>
+          <div>No clips cut yet.</div>
+          <div style="font-size:11px;color:#64748b;">Mark [In] and [Out] timestamps on the video, then click <b>"Add to Playlist"</b> or <b>"Download Clip"</b>.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Export Progress Modal -->
+  <div class="modal-backdrop" id="export-progress-modal" style="display:none;">
+    <div class="export-modal-box">
+      <div class="modal-title" id="export-modal-title">Slicing &amp; Exporting Clip...</div>
+      <div class="export-progress-bar">
+        <div class="export-progress-fill" id="export-progress-fill"></div>
+      </div>
+      <div class="export-status-text" id="export-status-text">Processing frame 0 / 100...</div>
+      <button class="btn-header" onclick="cancelClipExport()" style="align-self:center;margin-top:8px;">Cancel</button>
+    </div>
+  </div>
+
+  <script>
+    /* ==========================================================================
+       TACTICAL VIDEO CLIPPER ENGINE
+    ========================================================================== */
+    const video = document.getElementById('match-video-player');
+    const emptyPlaceholder = document.getElementById('empty-placeholder');
+    const hudTimecode = document.getElementById('hud-timecode');
+    const tcCurrent = document.getElementById('tc-current');
+    const tcIn = document.getElementById('tc-in');
+    const tcOut = document.getElementById('tc-out');
+    const tcDur = document.getElementById('tc-dur');
+    const scrubberTrack = document.getElementById('scrubber-track');
+    const scrubberProgress = document.getElementById('scrubber-progress');
+    const scrubberPlayhead = document.getElementById('scrubber-playhead');
+    const scrubberHighlight = document.getElementById('scrubber-in-out-highlight');
+    const btnPlayPause = document.getElementById('btn-play-pause');
+
+    let videoFile = null;
+    let inPoint = 0;
+    let outPoint = 0;
+    let isPreviewingCut = false;
+    let clipsQueue = [];
+    let isExporting = false;
+    let exportCancelled = false;
+
+    // Format helper: seconds -> HH:MM:SS.mmm
+    function formatTimecode(secs) {
+      if (isNaN(secs) || secs < 0) secs = 0;
+      const hours = Math.floor(secs / 3600);
+      const mins = Math.floor((secs % 3600) / 60);
+      const s = Math.floor(secs % 60);
+      const ms = Math.floor((secs % 1) * 100);
+      const hhStr = String(hours).padStart(2, '0');
+      const mmStr = String(mins).padStart(2, '0');
+      const ssStr = String(s).padStart(2, '0');
+      const msStr = String(ms).padStart(2, '0');
+      return `${hhStr}:${mmStr}:${ssStr}.${msStr}`;
+    }
+
+    function formatDuration(secs) {
+      if (isNaN(secs) || secs < 0) secs = 0;
+      const mins = Math.floor(secs / 60);
+      const s = Math.floor(secs % 60);
+      const ms = Math.floor((secs % 1) * 100);
+      return `${String(mins).padStart(2, '0')}:${String(s).padStart(2, '0')}.${String(ms).padStart(2, '0')}`;
+    }
+
+    // Load Local Video File
+    function handleMatchFileSelect(input) {
+      const file = input.files && input.files[0];
+      if (!file) return;
+      loadVideoFile(file);
+    }
+
+    function loadVideoFile(file) {
+      videoFile = file;
+      const url = URL.createObjectURL(file);
+      video.src = url;
+      emptyPlaceholder.classList.add('hidden');
+
+      video.onloadedmetadata = () => {
+        inPoint = 0;
+        outPoint = Math.min(video.duration, 15); // Default 15s clip
+        updateTimeDisplays();
+        video.currentTime = 0;
+      };
+    }
+
+    function loadSampleMatchVideo() {
+      // High speed professional match sample
+      const sampleUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4';
+      video.src = sampleUrl;
+      videoFile = { name: 'sample-breakout-match.mp4' };
+      emptyPlaceholder.classList.add('hidden');
+
+      video.onloadedmetadata = () => {
+        inPoint = 0;
+        outPoint = Math.min(video.duration, 12);
+        updateTimeDisplays();
+        video.currentTime = 0;
+      };
+    }
+
+    // Drag & Drop Setup
+    const dropzone = document.getElementById('dropzone-area');
+    ['dragenter', 'dragover'].forEach(name => {
+      dropzone.addEventListener(name, (e) => {
+        e.preventDefault();
+        dropzone.classList.add('dragover');
+      });
+    });
+    ['dragleave', 'drop'].forEach(name => {
+      dropzone.addEventListener(name, (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+      });
+    });
+    dropzone.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      const file = dt.files && dt.files[0];
+      if (file && file.type.startsWith('video/')) {
+        loadVideoFile(file);
+      }
+    });
+
+    // Play / Pause
+    function togglePlay() {
+      if (!video.src) return;
+      if (video.paused || video.ended) {
+        video.play();
+        btnPlayPause.textContent = '⏸ Pause';
+      } else {
+        video.pause();
+        btnPlayPause.textContent = '▶ Play';
+        isPreviewingCut = false;
+      }
+    }
+
+    video.addEventListener('play', () => {
+      btnPlayPause.textContent = '⏸ Pause';
+    });
+    video.addEventListener('pause', () => {
+      btnPlayPause.textContent = '▶ Play';
+    });
+
+    // Time update & scrubber sync
+    video.addEventListener('timeupdate', () => {
+      const cur = video.currentTime;
+      const dur = video.duration || 1;
+      
+      hudTimecode.textContent = formatTimecode(cur);
+      tcCurrent.textContent = formatTimecode(cur);
+
+      const pct = (cur / dur) * 100;
+      scrubberProgress.style.width = pct + '%';
+      scrubberPlayhead.style.left = pct + '%';
+
+      // Preview Loop Handling
+      if (isPreviewingCut && cur >= outPoint) {
+        video.currentTime = inPoint;
+      }
+    });
+
+    function updateTimeDisplays() {
+      const dur = video.duration || 1;
+      tcIn.textContent = formatTimecode(inPoint);
+      tcOut.textContent = formatTimecode(outPoint);
+      tcDur.textContent = formatDuration(Math.max(0, outPoint - inPoint));
+
+      // Update highlight bar on scrubber
+      const inPct = (inPoint / dur) * 100;
+      const outPct = (outPoint / dur) * 100;
+      const widthPct = Math.max(0, outPct - inPct);
+
+      scrubberHighlight.style.left = inPct + '%';
+      scrubberHighlight.style.width = widthPct + '%';
+    }
+
+    // Step controls
+    function stepTime(seconds) {
+      if (!video.duration) return;
+      video.currentTime = Math.max(0, Math.min(video.duration, video.currentTime + seconds));
+    }
+
+    function stepFrame(frames) {
+      if (!video.duration) return;
+      // Assume approx 30fps
+      const frameDuration = 1 / 30;
+      video.currentTime = Math.max(0, Math.min(video.duration, video.currentTime + (frames * frameDuration)));
+    }
+
+    // Mark In & Out
+    function setInPoint() {
+      if (!video.duration) return;
+      inPoint = video.currentTime;
+      if (outPoint <= inPoint) {
+        outPoint = Math.min(video.duration, inPoint + 5.0);
+      }
+      updateTimeDisplays();
+    }
+
+    function setOutPoint() {
+      if (!video.duration) return;
+      outPoint = video.currentTime;
+      if (inPoint >= outPoint) {
+        inPoint = Math.max(0, outPoint - 5.0);
+      }
+      updateTimeDisplays();
+    }
+
+    function previewSelectedCut() {
+      if (!video.duration) return;
+      isPreviewingCut = true;
+      video.currentTime = inPoint;
+      video.play();
+    }
+
+    function handleScrubberClick(e) {
+      if (!video.duration) return;
+      const rect = scrubberTrack.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const pct = Math.max(0, Math.min(1, clickX / rect.width));
+      video.currentTime = pct * video.duration;
+    }
+
+    // Keyboard Shortcuts
+    window.addEventListener('keydown', (e) => {
+      // Ignore if typing in text inputs
+      if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+
+      if (e.code === 'Space') {
+        e.preventDefault();
+        togglePlay();
+      } else if (e.key === '[' || e.key.toLowerCase() === 'i') {
+        e.preventDefault();
+        setInPoint();
+      } else if (e.key === ']' || e.key.toLowerCase() === 'o') {
+        e.preventDefault();
+        setOutPoint();
+      } else if (e.code === 'ArrowLeft') {
+        e.preventDefault();
+        stepFrame(-1);
+      } else if (e.code === 'ArrowRight') {
+        e.preventDefault();
+        stepFrame(1);
+      }
+    });
+
+    /* ==========================================================================
+       CLIP QUEUE & PLAYLIST MANAGEMENT
+    ========================================================================== */
+    function saveCurrentCutToQueue() {
+      if (!video.duration) {
+        alert('Please open or load a video first.');
+        return;
+      }
+
+      const durSecs = Math.max(0, outPoint - inPoint);
+      if (durSecs < 0.2) {
+        alert('Clip duration must be at least 0.2 seconds.');
+        return;
+      }
+
+      const clip = {
+        id: 'clip_' + Date.now(),
+        title: `Tactical Cut #${clipsQueue.length + 1}`,
+        inPoint: inPoint,
+        outPoint: outPoint,
+        duration: durSecs,
+        tag: 'TRANSITION'
+      };
+
+      clipsQueue.push(clip);
+      renderClipsQueue();
+    }
+
+    function renderClipsQueue() {
+      const container = document.getElementById('clips-list-container');
+      const badge = document.getElementById('clips-count-badge');
+      badge.textContent = `${clipsQueue.length} Clip${clipsQueue.length === 1 ? '' : 's'}`;
+
+      if (clipsQueue.length === 0) {
+        container.innerHTML = `
+          <div class="empty-clips-card" id="empty-clips-msg">
+            <div style="font-size:32px;">✂️</div>
+            <div>No clips cut yet.</div>
+            <div style="font-size:11px;color:#64748b;">Mark [In] and [Out] timestamps on the video, then click <b>"Add to Playlist"</b> or <b>"Download Clip"</b>.</div>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = clipsQueue.map((c, idx) => `
+        <div class="clip-card" id="${c.id}">
+          <div class="clip-card-header">
+            <input type="text" class="clip-title-input" value="${escapeHtml(c.title)}" onchange="updateClipTitle('${c.id}', this.value)">
+            <span class="clip-tag-pill">${c.tag}</span>
+          </div>
+          <div class="clip-meta-row">
+            <span>⏱ ${formatTimecode(c.inPoint).slice(3, 11)} → ${formatTimecode(c.outPoint).slice(3, 11)}</span>
+            <span style="color:var(--accent-amber);font-weight:700;">${formatDuration(c.duration)}</span>
+          </div>
+          <div class="clip-btn-row">
+            <button class="btn-clip-sub" onclick="loadClipIntoStage('${c.id}')" title="Seek to this clip">▶ Play</button>
+            <button class="btn-clip-sub" onclick="downloadSpecificClip('${c.id}')" title="Download to PC">⬇ Save</button>
+            <button class="btn-clip-sub" onclick="sendSpecificClipToAnalyzer('${c.id}')" title="Send to Video Analyzer" style="color:var(--accent-blue);">🚀 Analyzer</button>
+            <button class="btn-clip-sub del" onclick="deleteClip('${c.id}')" title="Delete Clip">✕</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function updateClipTitle(id, newTitle) {
+      const c = clipsQueue.find(item => item.id === id);
+      if (c) c.title = newTitle.trim() || 'Untitled Clip';
+    }
+
+    function loadClipIntoStage(id) {
+      const c = clipsQueue.find(item => item.id === id);
+      if (!c) return;
+      inPoint = c.inPoint;
+      outPoint = c.outPoint;
+      updateTimeDisplays();
+      previewSelectedCut();
+    }
+
+    function deleteClip(id) {
+      clipsQueue = clipsQueue.filter(item => item.id !== id);
+      renderClipsQueue();
+    }
+
+    function clearAllClips() {
+      if (clipsQueue.length === 0) return;
+      if (confirm('Clear all clips from the playlist?')) {
+        clipsQueue = [];
+        renderClipsQueue();
+      }
+    }
+
+    /* ==========================================================================
+       DIRECT SLICING & EXPORT ENGINE (Offline / Real-Time Composite)
+    ========================================================================== */
+    function createSafeMediaRecorder(stream, preferredBitrate = 10000000) {
+      const hasAudio = stream && stream.getAudioTracks && stream.getAudioTracks().length > 0;
+      const candidates = hasAudio ? [
+        'video/mp4;codecs=avc1,mp4a.40.2',
+        'video/mp4;codecs=avc1',
+        'video/mp4;codecs=h264,aac',
+        'video/mp4',
+        'video/webm;codecs=h264,opus',
+        'video/webm;codecs=vp9,opus',
+        'video/webm;codecs=vp8,opus',
+        'video/webm'
+      ] : [
+        'video/mp4;codecs=avc1',
+        'video/mp4;codecs=h264',
+        'video/mp4',
+        'video/webm;codecs=h264',
+        'video/webm;codecs=vp9',
+        'video/webm;codecs=vp8',
+        'video/webm'
+      ];
+
+      for (const mime of candidates) {
+        try {
+          if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(mime)) {
+            const rec = new MediaRecorder(stream, {
+              mimeType: mime,
+              videoBitsPerSecond: preferredBitrate
+            });
+            return { recorder: rec, mimeType: mime };
+          }
+        } catch(e) {
+          console.warn('MediaRecorder candidate skipped:', mime, e);
+        }
+      }
+
+      try {
+        const rec = new MediaRecorder(stream);
+        return { recorder: rec, mimeType: rec.mimeType || 'video/webm' };
+      } catch(e) {
+        console.error('All MediaRecorder attempts failed:', e);
+        throw e;
+      }
+    }
+
+    async function extractClipBlob(startTime, endTime, onProgress) {
+      return new Promise(async (resolve, reject) => {
+        try {
+          const stream = (video.captureStream || video.mozCaptureStream).call(video);
+          if (!stream) {
+            throw new Error('Video stream capture not supported in this browser.');
+          }
+
+          const recData = createSafeMediaRecorder(stream, 10000000);
+          const recorder = recData.recorder;
+          const mime = recData.mimeType;
+
+          const chunks = [];
+          recorder.ondataavailable = (e) => {
+            if (e.data && e.data.size > 0) chunks.push(e.data);
+          };
+
+          recorder.onstop = () => {
+            if (chunks.length === 0) {
+              reject(new Error('Export received 0 frames. Please verify video is playable and try again.'));
+              return;
+            }
+            const isMp4 = mime.includes('mp4');
+            const blob = new Blob(chunks, { type: isMp4 ? 'video/mp4' : 'video/webm' });
+            resolve({ blob, isMp4 });
+          };
+
+          // Prepare playback
+          video.pause();
+          video.currentTime = startTime;
+
+          await new Promise(r => {
+            let done = false;
+            const onSeek = () => {
+              if (done) return;
+              done = true;
+              video.removeEventListener('seeked', onSeek);
+              r();
+            };
+            video.addEventListener('seeked', onSeek);
+            setTimeout(onSeek, 600);
+          });
+
+          recorder.start(100);
+          video.play();
+
+          const totalDuration = Math.max(0.3, endTime - startTime);
+          const startWall = performance.now();
+          let hasPlaybackStarted = false;
+          let playbackStartWall = startWall;
+
+          const checkInterval = setInterval(() => {
+            if (exportCancelled) {
+              clearInterval(checkInterval);
+              try { recorder.stop(); } catch(e){}
+              video.pause();
+              reject(new Error('Export cancelled by user.'));
+              return;
+            }
+
+            const cur = video.currentTime;
+            const wallElapsed = (performance.now() - startWall) / 1000;
+
+            if (!hasPlaybackStarted) {
+              if (Math.abs(cur - startTime) <= 0.5 || wallElapsed >= 0.5) {
+                hasPlaybackStarted = true;
+                playbackStartWall = performance.now();
+              }
+            }
+
+            const activeWallElapsed = hasPlaybackStarted ? ((performance.now() - playbackStartWall) / 1000) : wallElapsed;
+            const elapsed = Math.max(0, Math.min(totalDuration, hasPlaybackStarted ? (cur - startTime) : 0));
+            const pct = Math.min(100, Math.max(0, Math.round((Math.max(elapsed, activeWallElapsed) / totalDuration) * 100)));
+            if (onProgress) onProgress(pct);
+
+            const isDone = (hasPlaybackStarted && activeWallElapsed >= (totalDuration * 0.85) && (cur >= endTime || video.ended)) ||
+                           (activeWallElapsed >= totalDuration + 2.5);
+
+            if (isDone) {
+              clearInterval(checkInterval);
+              video.pause();
+              try {
+                if (recorder.state !== 'inactive') {
+                  recorder.requestData();
+                  setTimeout(() => {
+                    try { if (recorder.state !== 'inactive') recorder.stop(); } catch(e){}
+                  }, 120);
+                }
+              } catch(e){}
+            }
+          }, 50);
+
+        } catch (err) {
+          reject(err);
+        }
+      });
+    }
+
+    async function downloadCurrentCutDirectly() {
+      if (!video.duration) {
+        alert('Please open or load a video first.');
+        return;
+      }
+      const dur = outPoint - inPoint;
+      if (dur < 0.2) {
+        alert('Please set valid In and Out points.');
+        return;
+      }
+
+      showExportModal('Extracting & Downloading Clip...');
+
+      try {
+        const { blob, isMp4 } = await extractClipBlob(inPoint, outPoint, (pct) => {
+          updateExportModal(pct, `Recording segment: ${pct}%`);
+        });
+
+        const ext = isMp4 ? 'mp4' : 'webm';
+        const filename = `tactical-cut-${Math.round(inPoint)}s-to-${Math.round(outPoint)}s.${ext}`;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+
+        closeExportModal();
+      } catch (err) {
+        closeExportModal();
+        if (err.message !== 'Export cancelled by user.') {
+          alert('Error extracting clip: ' + err.message);
+        }
+      }
+    }
+
+    async function downloadSpecificClip(id) {
+      const c = clipsQueue.find(item => item.id === id);
+      if (!c) return;
+      inPoint = c.inPoint;
+      outPoint = c.outPoint;
+      updateTimeDisplays();
+      await downloadCurrentCutDirectly();
+    }
+
+    // 1-Click Send to Video Analyzer
+    async function sendCutDirectlyToAnalyzer() {
+      if (!video.duration) {
+        alert('Please open or load a video first.');
+        return;
+      }
+
+      showExportModal('Preparing Clip for Video Analyzer...');
+
+      try {
+        const { blob, isMp4 } = await extractClipBlob(inPoint, outPoint, (pct) => {
+          updateExportModal(pct, `Transferring clip: ${pct}%`);
+        });
+
+        // Store into IndexedDB for Video Analyzer pickup
+        await storeClipInIndexedDB(blob, isMp4 ? 'mp4' : 'webm');
+        closeExportModal();
+
+        // Open or focus Video Analyzer with query flag
+        window.open('video-analyzer.html?source=clipper_handoff', '_blank');
+
+      } catch (err) {
+        closeExportModal();
+        if (err.message !== 'Export cancelled by user.') {
+          alert('Transfer note: ' + err.message);
+        }
+      }
+    }
+
+    function sendSpecificClipToAnalyzer(id) {
+      const c = clipsQueue.find(item => item.id === id);
+      if (!c) return;
+      inPoint = c.inPoint;
+      outPoint = c.outPoint;
+      updateTimeDisplays();
+      sendCutDirectlyToAnalyzer();
+    }
+
+    // IndexedDB Transfer Store
+    function storeClipInIndexedDB(blob, format) {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open('TacticalClipperDB', 1);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains('handoffClips')) {
+            db.createObjectStore('handoffClips', { keyPath: 'id' });
+          }
+        };
+        req.onsuccess = (e) => {
+          const db = e.target.result;
+          const tx = db.transaction('handoffClips', 'readwrite');
+          const store = tx.objectStore('handoffClips');
+          store.put({
+            id: 'latest_handoff',
+            blob: blob,
+            format: format,
+            timestamp: Date.now(),
+            name: `Match_Cut_${Math.round(inPoint)}s_${Math.round(outPoint)}s`
+          });
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+        };
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    // Modal helpers
+    function showExportModal(title) {
+      exportCancelled = false;
+      isExporting = true;
+      document.getElementById('export-modal-title').textContent = title;
+      document.getElementById('export-progress-fill').style.width = '0%';
+      document.getElementById('export-status-text').textContent = 'Starting render...';
+      document.getElementById('export-progress-modal').style.display = 'flex';
+    }
+
+    function updateExportModal(pct, text) {
+      document.getElementById('export-progress-fill').style.width = pct + '%';
+      document.getElementById('export-status-text').textContent = text;
+    }
+
+    function closeExportModal() {
+      isExporting = false;
+      document.getElementById('export-progress-modal').style.display = 'none';
+    }
+
+    function cancelClipExport() {
+      exportCancelled = true;
+      closeExportModal();
+    }
+  </script>
+</body>
+</html>

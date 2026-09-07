@@ -334,6 +334,109 @@
       transform: translateY(-50%) scale(1);
     }
 
+    /* Sub-Tool Flyout Menus (Circle styles & Line styles) */
+    .tool-popover-wrapper {
+      position: relative;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      overflow: visible;
+    }
+
+    .tool-btn.has-sub {
+      position: relative;
+    }
+
+    .tool-caret-dot {
+      position: absolute;
+      bottom: 1px;
+      right: 3px;
+      font-size: 8px;
+      line-height: 1;
+      color: rgba(255, 255, 255, 0.45);
+      pointer-events: none;
+      transition: color 0.15s ease, transform 0.15s ease;
+    }
+
+    .tool-btn:hover .tool-caret-dot,
+    .tool-btn.active .tool-caret-dot {
+      color: var(--accent-green);
+    }
+
+    .tool-popover-wrapper.open .tool-btn::after {
+      display: none !important;
+    }
+
+    .tool-popover-wrapper.open .tool-caret-dot {
+      transform: rotate(180deg);
+      color: #00e676;
+    }
+
+    .tool-sub-popover {
+      display: none;
+      position: fixed;
+      left: 64px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #0b1220;
+      border: 1.5px solid rgba(0, 230, 118, 0.6);
+      border-radius: 12px;
+      padding: 8px 10px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.98), 0 0 24px rgba(0, 230, 118, 0.18);
+      z-index: 99999999;
+      flex-direction: column;
+      gap: 5px;
+      min-width: 190px;
+      backdrop-filter: blur(24px);
+    }
+
+    .tool-popover-wrapper.open .tool-sub-popover {
+      display: flex;
+      animation: popoverFadeIn 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .tool-popover-header {
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      color: #94a3b8;
+      text-transform: uppercase;
+      padding: 3px 6px 4px 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 2px;
+    }
+
+    .sub-tool-opt {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 7px 10px;
+      color: var(--text-main);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s ease;
+      width: 100%;
+    }
+
+    .sub-tool-opt:hover {
+      background: rgba(0, 230, 118, 0.12);
+      border-color: rgba(0, 230, 118, 0.4);
+      color: #ffffff;
+      transform: translateX(2px);
+    }
+
+    .sub-tool-opt.active {
+      background: rgba(0, 230, 118, 0.18);
+      border-color: var(--accent-green);
+      color: var(--accent-green);
+      box-shadow: 0 0 10px rgba(0, 230, 118, 0.25);
+    }
+
     /* Single Compact Color Dropdown Tool with Popover */
     .color-dropdown-wrapper {
       position: relative;
@@ -993,13 +1096,14 @@
       letter-spacing: 0.5px;
     }
 
-    /* Focus-reclaim overlay shown after screen-share dialog closes */
+    /* Focus-reclaim overlay disabled so it never traps clicks */
     #focus-reclaim-overlay {
-      display: none;
+      display: none !important;
+      pointer-events: none !important;
       position: fixed;
       inset: 0;
-      z-index: 99999;
-      cursor: pointer;
+      z-index: -1;
+      cursor: default;
       background: transparent;
     }
 
@@ -1835,6 +1939,9 @@
         <button class="preset-pill" id="preset-canvas" onclick="loadSyntheticPitchDemo('preset-canvas')" title="UEFA Regulation Tactic Board">
           <span>🟢 Tactical Pitch Board</span>
         </button>
+        <a href="video-clipper.html" target="_blank" class="preset-pill" id="preset-clipper" title="Open Video Match Clipper in new tab to cut and extract clips" style="text-decoration:none;display:inline-flex;align-items:center;border-color:rgba(0,176,255,0.4);color:#00b0ff;">
+          <span>✂️ Match Clipper ↗</span>
+        </a>
       </div>
     </div>
 
@@ -1858,32 +1965,17 @@
         ☁️ Google Drive
       </button>
 
-      <div class="record-menu-wrapper" id="record-menu-wrapper" style="position:relative;display:inline-block;">
-        <button class="btn-record-clip" id="btn-record-video" onclick="handleRecordButtonClick(event)" title="Record tactical video clip (Shortcut: K or Shift+R)">
-          <span id="rec-dot" style="font-size:13px;">🔴</span>
-          <span id="rec-btn-label">Record Clip</span>
-        </button>
-        
-        <div class="record-dropdown-menu" id="record-dropdown-menu" style="display:none;position:absolute;top:calc(100% + 8px);right:0;width:250px;background:#090e18;border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:8px;box-shadow:0 12px 36px rgba(0,0,0,0.85);z-index:999;backdrop-filter:blur(16px);flex-direction:column;gap:6px;">
-          <div style="font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;padding:4px 8px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:2px;">
-            Choose Recording
-          </div>
-          <button type="button" class="rec-opt-btn" onclick="startRecordingTarget('stage')" style="display:flex;align-items:center;gap:10px;width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:#fff;padding:9px 12px;border-radius:6px;cursor:pointer;text-align:left;font-size:12px;font-weight:700;transition:all 0.15s ease;">
-            <span style="font-size:20px;">📺</span>
-            <div>
-              <div style="color:#ffffff;font-weight:700;">Record Video Window</div>
-              <div style="font-size:10px;color:#94a3b8;font-weight:500;">Capture video, audio &amp; drawings</div>
-            </div>
-          </button>
-          <button type="button" class="rec-opt-btn" onclick="startRecordingTarget('screen')" style="display:flex;align-items:center;gap:10px;width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:#fff;padding:9px 12px;border-radius:6px;cursor:pointer;text-align:left;font-size:12px;font-weight:700;transition:all 0.15s ease;">
-            <span style="font-size:20px;">🖥️</span>
-            <div>
-              <div style="color:#ffffff;font-weight:700;">Entire Window</div>
-              <div style="font-size:10px;color:#94a3b8;font-weight:500;">Record entire browser or screen</div>
-            </div>
-          </button>
-        </div>
-      </div>
+      <!-- Dedicated Video Export Button -->
+      <button class="btn-action" id="btn-open-export-modal" onclick="openExportVideoModal()" title="Export video clip with drawings (MP4 / WebM)" style="background:linear-gradient(135deg,#00e676,#00b0ff);color:#05080e;font-weight:800;padding:7px 14px;border-radius:8px;font-size:12px;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 2px 10px rgba(0,230,118,0.25);">
+        <span style="font-size:13px;">⬇️</span>
+        <span id="export-btn-header-label">Export Video</span>
+      </button>
+
+      <!-- Dedicated Screen Recording Button (Shortcut: K) -->
+      <button class="btn-record-clip" id="btn-record-video" onclick="toggleTacticalVideoRecording()" title="Live Screen Record tactical clip with voice (Shortcut: K or Shift+R)">
+        <span id="rec-dot" style="font-size:12px;">🔴</span>
+        <span id="rec-btn-label">Record Clip (K)</span>
+      </button>
 
       <button class="btn-secondary" onclick="exportTacticalSnapshot()" title="Export current frame with drawings as PNG">
         📷 Snapshot
@@ -1924,24 +2016,106 @@
             <circle cx="12" cy="12" r="2.2" fill="currentColor"/>
           </svg>
         </button>
-        <button class="tool-btn" id="tool-arrow-curved-right" data-tooltip="Right Arc&#10;(A)" onclick="toggleOrSetActiveTool('arrow-curved-right')">
-          <svg class="svg-icon" viewBox="0 0 24 24">
-            <path d="M5 19C5 11 11 7 20 6"/>
-            <polyline points="14 2 20 6 15 11"/>
-          </svg>
-        </button>
-        <button class="tool-btn" id="tool-arrow-curved-left" data-tooltip="Left Arc&#10;(Q)" onclick="toggleOrSetActiveTool('arrow-curved-left')">
-          <svg class="svg-icon" viewBox="0 0 24 24">
-            <path d="M19 19C19 11 13 7 4 6"/>
-            <polyline points="10 2 4 6 9 11"/>
-          </svg>
-        </button>
-        <button class="tool-btn" id="tool-arrow-straight" data-tooltip="Straight Pass&#10;(D)" onclick="toggleOrSetActiveTool('arrow-straight')">
-          <svg class="svg-icon" viewBox="0 0 24 24">
-            <line x1="5" y1="19" x2="19" y2="5"/>
-            <polyline points="10 5 19 5 19 14"/>
-          </svg>
-        </button>
+
+        <!-- Circle Tool with Sub-Menu (Solid, Dashed, Dotted) -->
+        <div class="tool-popover-wrapper" id="tool-circle-wrapper">
+          <button class="tool-btn has-sub" id="tool-circle" data-tooltip="Circle / Zone&#10;(C)" onclick="handleCircleToolButtonClick(event)" oncontextmenu="event.preventDefault(); toggleToolSubmenu('tool-circle-wrapper', 'circle-sub-popover', 'tool-circle', event);">
+            <svg class="svg-icon" id="tool-circle-icon" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.2"/>
+            </svg>
+            <span class="tool-caret-dot">▾</span>
+          </button>
+          
+          <div class="tool-sub-popover" id="circle-sub-popover">
+            <div class="tool-popover-header">CIRCLE STYLE</div>
+            <button type="button" class="sub-tool-opt active" id="sub-circle-solid" onclick="selectCircleSubStyle('solid', event)">
+              <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;"><circle cx="12" cy="12" r="8"/></svg>
+              <div>
+                <div style="font-weight:700;">Solid Circle</div>
+                <div style="font-size:9px;color:var(--text-muted);">Continuous outline</div>
+              </div>
+            </button>
+            <button type="button" class="sub-tool-opt" id="sub-circle-dashed" onclick="selectCircleSubStyle('dashed', event)">
+              <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-dasharray:6 6;"><circle cx="12" cy="12" r="8"/></svg>
+              <div>
+                <div style="font-weight:700;">Dashed Circle</div>
+                <div style="font-size:9px;color:var(--text-muted);">Segmented border</div>
+              </div>
+            </button>
+            <button type="button" class="sub-tool-opt" id="sub-circle-dotted" onclick="selectCircleSubStyle('dotted', event)">
+              <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-dasharray:1 6;stroke-linecap:round;"><circle cx="12" cy="12" r="8"/></svg>
+              <div>
+                <div style="font-weight:700;">Dotted Circle</div>
+                <div style="font-size:9px;color:var(--text-muted);">Round dotted border</div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Line & Movement Tool with Sub-Menu (Pass, Run, Dribble, Arcs) -->
+        <div class="tool-popover-wrapper" id="tool-line-wrapper">
+          <button class="tool-btn has-sub" id="tool-line" data-tooltip="Pass Line&#10;(D)" onclick="handleLineToolButtonClick(event)" oncontextmenu="event.preventDefault(); toggleToolSubmenu('tool-line-wrapper', 'line-sub-popover', 'tool-line', event);">
+            <svg class="svg-icon" id="tool-line-icon" viewBox="0 0 24 24">
+              <line x1="5" y1="19" x2="19" y2="5" stroke-dasharray="5 5"/>
+              <polyline points="10 5 19 5 19 14"/>
+            </svg>
+            <span class="tool-caret-dot">▾</span>
+          </button>
+          
+          <div class="tool-sub-popover" id="line-sub-popover">
+            <div class="tool-popover-header">LINE &amp; MOVEMENT</div>
+            
+            <button type="button" class="sub-tool-opt active" id="sub-line-pass" onclick="selectLineSubStyle('arrow-straight', event)">
+              <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.2;"><line x1="4" y1="20" x2="18" y2="6" stroke-dasharray="5 5"/><polyline points="11 6 18 6 18 13"/></svg>
+              <div>
+                <div style="font-weight:700;">Pass Line (Dashed)</div>
+                <div style="font-size:9px;color:var(--text-muted);">Ball pass movement</div>
+              </div>
+            </button>
+
+            <button type="button" class="sub-tool-opt" id="sub-line-dotted" onclick="selectLineSubStyle('arrow-dotted', event)">
+              <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="4" y1="20" x2="18" y2="6" stroke-dasharray="1 5"/><polyline points="11 6 18 6 18 13"/></svg>
+              <div>
+                <div style="font-weight:700;">Pass Line (Dotted)</div>
+                <div style="font-size:9px;color:var(--text-muted);">Ball pass with round dots</div>
+              </div>
+            </button>
+
+            <button type="button" class="sub-tool-opt" id="sub-line-run" onclick="selectLineSubStyle('arrow-run', event)">
+              <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.2;"><line x1="4" y1="20" x2="18" y2="6"/><polyline points="11 6 18 6 18 13"/></svg>
+              <div>
+                <div style="font-weight:700;">Player Run (Solid)</div>
+                <div style="font-size:9px;color:var(--text-muted);">Off-the-ball straight run</div>
+              </div>
+            </button>
+
+            <button type="button" class="sub-tool-opt" id="sub-line-dribble" onclick="selectLineSubStyle('arrow-dribble', event)">
+              <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.2;"><path d="M4 20 L8 15 L12 17 L16 11 L19 5"/><polyline points="13 5 19 5 19 11"/></svg>
+              <div>
+                <div style="font-weight:700;">Ball Carry / Dribble</div>
+                <div style="font-size:9px;color:var(--text-muted);">Zigzag line (Player with ball)</div>
+              </div>
+            </button>
+
+            <div style="height:1px;background:rgba(255,255,255,0.08);margin:2px 0;"></div>
+
+            <button type="button" class="sub-tool-opt" id="sub-line-arc-right" onclick="selectLineSubStyle('arrow-curved-right', event)">
+              <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.2;"><path d="M5 19C5 11 11 7 20 6"/><polyline points="14 2 20 6 15 11"/></svg>
+              <div>
+                <div style="font-weight:700;">Right Arc Pass (A)</div>
+                <div style="font-size:9px;color:var(--text-muted);">Curved outward arc</div>
+              </div>
+            </button>
+
+            <button type="button" class="sub-tool-opt" id="sub-line-arc-left" onclick="selectLineSubStyle('arrow-curved-left', event)">
+              <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.2;"><path d="M19 19C19 11 13 7 4 6"/><polyline points="10 2 4 6 9 11"/></svg>
+              <div>
+                <div style="font-weight:700;">Left Arc Pass (Q)</div>
+                <div style="font-size:9px;color:var(--text-muted);">Curved inward arc</div>
+              </div>
+            </button>
+          </div>
+        </div>
         <button class="tool-btn" id="tool-ruler" data-tooltip="Pitch Ruler&#10;(R)" onclick="toggleOrSetActiveTool('ruler')">
           <svg class="svg-icon" viewBox="0 0 24 24">
             <path d="M21.3 15.3l-6.6 6.6c-.4.4-1 .4-1.4 0l-11-11c-.4-.4-.4-1 0-1.4l6.6-6.6c.4-.4 1-.4 1.4 0l11 11c.4.4.4 1 0 1.4z"/>
@@ -1954,22 +2128,43 @@
             <text x="12" y="16" text-anchor="middle" font-size="10" font-weight="bold" fill="currentColor" stroke="none">10</text>
           </svg>
         </button>
-        <button class="tool-btn" id="tool-polygon" data-tooltip="Polygon Zone&#10;(P)" onclick="toggleOrSetActiveTool('polygon')">
-          <svg class="svg-icon" viewBox="0 0 24 24">
-            <polygon points="12 2 22 8.5 18 20 6 20 2 8.5 12 2"/>
-          </svg>
-        </button>
-        <button class="tool-btn" id="tool-polyline" data-tooltip="Line Chain / Triangle&#10;(L)" onclick="toggleOrSetActiveTool('polyline')">
-          <svg class="svg-icon" viewBox="0 0 24 24">
-            <circle cx="4" cy="19" r="2.5"/><circle cx="12" cy="5" r="2.5"/><circle cx="20" cy="19" r="2.5"/>
-            <line x1="6.5" y1="17.5" x2="10" y2="7.5"/><line x1="14" y1="7.5" x2="17.5" y2="17.5"/>
-          </svg>
-        </button>
-        <button class="tool-btn" id="tool-pen" data-tooltip="Tactical Pen&#10;(N)" onclick="toggleOrSetActiveTool('pen')">
-          <svg class="svg-icon" viewBox="0 0 24 24">
-            <path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/>
-          </svg>
-        </button>
+        <!-- Polygon Zone, Triangle & Pen Combined Tool with Sub-Menu -->
+        <div class="tool-popover-wrapper" id="tool-drawzone-wrapper">
+          <button class="tool-btn has-sub" id="tool-drawzone" data-tooltip="Polygon Zone&#10;(P)" onclick="handleDrawZoneToolButtonClick(event)" oncontextmenu="event.preventDefault(); toggleToolSubmenu('tool-drawzone-wrapper', 'drawzone-sub-popover', 'tool-drawzone', event);">
+            <svg class="svg-icon" id="tool-drawzone-icon" viewBox="0 0 24 24">
+              <polygon points="12 2 22 8.5 18 20 6 20 2 8.5 12 2"/>
+            </svg>
+            <span class="tool-caret-dot">▾</span>
+          </button>
+          
+          <div class="tool-sub-popover" id="drawzone-sub-popover">
+            <div class="tool-popover-header">ZONES &amp; DRAWING</div>
+            
+            <button type="button" class="sub-tool-opt active" id="sub-drawzone-polygon" onclick="selectDrawZoneSubTool('polygon', event)">
+              <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;"><polygon points="12 2 22 8.5 18 20 6 20 2 8.5 12 2"/></svg>
+              <div>
+                <div style="font-weight:700;">Polygon Zone (P)</div>
+                <div style="font-size:9px;color:var(--text-muted);">Multi-point custom area</div>
+              </div>
+            </button>
+
+            <button type="button" class="sub-tool-opt" id="sub-drawzone-polyline" onclick="selectDrawZoneSubTool('polyline', event)">
+              <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;"><circle cx="4" cy="19" r="2.5" fill="currentColor"/><circle cx="12" cy="5" r="2.5" fill="currentColor"/><circle cx="20" cy="19" r="2.5" fill="currentColor"/><line x1="6.5" y1="17.5" x2="10" y2="7.5"/><line x1="14" y1="7.5" x2="17.5" y2="17.5"/></svg>
+              <div>
+                <div style="font-weight:700;">Three Line Triangle (L)</div>
+                <div style="font-size:9px;color:var(--text-muted);">Line chain &amp; triangle links</div>
+              </div>
+            </button>
+
+            <button type="button" class="sub-tool-opt" id="sub-drawzone-pen" onclick="selectDrawZoneSubTool('pen', event)">
+              <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+              <div>
+                <div style="font-weight:700;">Tactical Pen (N)</div>
+                <div style="font-size:9px;color:var(--text-muted);">Freehand telestration &amp; sketch</div>
+              </div>
+            </button>
+          </div>
+        </div>
         <button class="tool-btn" id="tool-text" data-tooltip="Text Note&#10;(T)" onclick="toggleOrSetActiveTool('text')">
           <svg class="svg-icon" viewBox="0 0 24 24">
             <polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/>
@@ -2059,14 +2254,45 @@
           <span class="ctx-hint">💡 Click or drag on player to place 4-dash rotating tactical ring.</span>
         </div>
 
-        <!-- LINE & ARROW OPTIONS -->
-        <div id="ctx-arc-group" class="ctx-group" style="display:none;">
-          <span class="ctx-label" id="ctx-line-label">LINE / ARROW OPTIONS:</span>
+        <!-- CIRCLE & ZONE CONTEXTUAL CONTROLS -->
+        <div id="ctx-circle-group" class="ctx-group" style="display:none;align-items:center;gap:8px;">
+          <span class="ctx-label">CIRCLE STYLE:</span>
+          <button type="button" class="ctx-btn" id="ctx-circle-btn-solid" onclick="setSelectedCircleStyle('solid')" title="Solid Outline">
+            <span>🔘 Solid</span>
+          </button>
+          <button type="button" class="ctx-btn" id="ctx-circle-btn-dashed" onclick="setSelectedCircleStyle('dashed')" title="Dashed Outline">
+            <span>⭕ Dashed</span>
+          </button>
+          <button type="button" class="ctx-btn" id="ctx-circle-btn-dotted" onclick="setSelectedCircleStyle('dotted')" title="Dotted Outline">
+            <span>⚪ Dotted</span>
+          </button>
+          <button type="button" class="ctx-btn" id="ctx-circle-btn-fill" onclick="toggleSelectedCircleFill()" title="Toggle Zone Fill / Transparency">
+            <span>🎨 <span id="ctx-circle-fill-label">Fill / Shading</span></span>
+          </button>
+          <span class="ctx-hint">💡 Drag diagonally on pitch to draw custom tactical circle or ellipse.</span>
+        </div>
+
+        <!-- LINE & MOVEMENT CONTEXTUAL CONTROLS -->
+        <div id="ctx-arc-group" class="ctx-group" style="display:none;align-items:center;gap:6px;">
+          <span class="ctx-label" id="ctx-line-label">LINE / ARROW:</span>
+          <button type="button" class="ctx-btn" id="ctx-line-btn-pass" onclick="transformSelectedArrowType('straight-arrow')" title="Pass Line (Dashed)">
+            <span>⚽ Pass (Dash)</span>
+          </button>
+          <button type="button" class="ctx-btn" id="ctx-line-btn-dotted" onclick="transformSelectedArrowType('dotted-arrow')" title="Pass Line (Dotted)">
+            <span>⚪ Pass (Dots)</span>
+          </button>
+          <button type="button" class="ctx-btn" id="ctx-line-btn-run" onclick="transformSelectedArrowType('run-arrow')" title="Player Run (Solid)">
+            <span>🏃 Run (Solid)</span>
+          </button>
+          <button type="button" class="ctx-btn" id="ctx-line-btn-dribble" onclick="transformSelectedArrowType('dribble-arrow')" title="Ball Carry / Dribble (Zigzag)">
+            <span>⚡ Carry (Zigzag)</span>
+          </button>
+          <div style="width:1px;height:18px;background:rgba(255,255,255,0.15);margin:0 2px;"></div>
           <button class="ctx-btn" onclick="rotateSelectedObject(45)" title="Rotate by 45°">
             <span>↻ Rotate 45°</span>
           </button>
-          <button class="ctx-btn" onclick="flipSelectedArrowCurve()" title="Flip Direction / Arc Curve">
-            <span>⇄ Flip Direction</span>
+          <button class="ctx-btn" onclick="flipSelectedArrowCurve()" title="Flip Direction">
+            <span>⇄ Flip</span>
           </button>
         </div>
 
@@ -2520,6 +2746,100 @@
             📥 Export Local Breakdown
           </button>
         </div>
+      </div>
+  <!-- Direct Video Export & Download Modal -->
+  <div class="modal-overlay" id="export-video-modal" style="display:none;" onclick="if(event.target===this)closeExportVideoModal()">
+    <div class="modal-card" style="max-width: 560px;">
+      <div class="modal-header">
+        <h3 style="font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+          <span style="color:var(--accent-green);">⬇️</span> Export Video Clip (Direct Download)
+        </h3>
+        <button onclick="closeExportVideoModal()" style="background:none;border:none;color:var(--text-muted);font-size:24px;cursor:pointer;">✕</button>
+      </div>
+      <div class="modal-body" style="padding:20px;display:flex;flex-direction:column;gap:16px;">
+        
+        <!-- Source Notice Badge -->
+        <div id="export-source-notice" style="background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.3);border-radius:10px;padding:12px 14px;font-size:12px;line-height:1.5;">
+          <!-- Dynamically populated based on active video type -->
+        </div>
+
+        <!-- Range Selection -->
+        <div style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:12px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text-main);display:flex;justify-content:space-between;align-items:center;">
+            <span>⏱ Clip Export Range</span>
+            <span id="export-calc-duration" style="color:var(--accent-amber);font-family:var(--font-mono);font-size:11px;">Duration: 00:00.00</span>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+              <label style="font-size:10px;font-weight:700;color:var(--text-dim);text-transform:uppercase;display:block;margin-bottom:4px;">Start Time (MM:SS)</label>
+              <div style="display:flex;gap:4px;">
+                <input type="text" id="export-in-input" value="00:00" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:6px 10px;color:#fff;font-family:var(--font-mono);font-size:12px;" oninput="recalcExportDuration()">
+                <button type="button" class="btn-secondary" onclick="setExportInFromCurrent()" style="padding:4px 8px;font-size:10px;" title="Set Start to current playhead">🎯 Here</button>
+              </div>
+            </div>
+
+            <div>
+              <label style="font-size:10px;font-weight:700;color:var(--text-dim);text-transform:uppercase;display:block;margin-bottom:4px;">End Time (MM:SS)</label>
+              <div style="display:flex;gap:4px;">
+                <input type="text" id="export-out-input" value="00:15" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:6px 10px;color:#fff;font-family:var(--font-mono);font-size:12px;" oninput="recalcExportDuration()">
+                <button type="button" class="btn-secondary" onclick="setExportOutFromCurrent()" style="padding:4px 8px;font-size:10px;" title="Set End to current playhead">🎯 Here</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick presets row -->
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding-top:4px;">
+            <button type="button" class="btn-secondary" onclick="setExportFullVideo()" style="padding:4px 8px;font-size:11px;">Full Video</button>
+            <button type="button" class="btn-secondary" onclick="setExportKeyframeRange()" style="padding:4px 8px;font-size:11px;" title="Fit to earliest and latest pinned drawing">📌 Pin Frame Range</button>
+            <button type="button" class="btn-secondary" onclick="setExportCurrent10s()" style="padding:4px 8px;font-size:11px;">10s Around Playhead</button>
+          </div>
+        </div>
+
+        <!-- Render Specifications -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:0 4px;font-size:11px;color:var(--text-muted);">
+          <span>📺 Quality: <b>1080p Full HD (1920×1080)</b></span>
+          <span>⚡ Direct Canvas Composite</span>
+        </div>
+
+        <!-- Progress Box (Hidden until export starts) -->
+        <div id="export-progress-container" style="display:none;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:14px;flex-direction:column;gap:10px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;">
+            <span id="export-progress-label">Exporting video with drawings...</span>
+            <span id="export-progress-pct" style="color:var(--accent-green);font-family:var(--font-mono);">0%</span>
+          </div>
+          <div style="width:100%;height:10px;background:rgba(255,255,255,0.08);border-radius:5px;overflow:hidden;">
+            <div id="export-progress-bar-fill" style="width:0%;height:100%;background:linear-gradient(90deg, #00b0ff, #00e676);transition:width 0.1s ease;"></div>
+          </div>
+          <div id="export-progress-helper-row" style="font-size:11px;color:var(--text-dim);display:flex;justify-content:space-between;align-items:center;">
+            <span>Please keep this tab open while compositing</span>
+            <button type="button" class="btn-secondary" onclick="cancelDirectVideoExport()" style="padding:3px 8px;font-size:10px;color:#ff5252;">Cancel Export</button>
+          </div>
+
+          <!-- Success Download Box (shown upon completion) -->
+          <div id="export-success-box" style="display:none;flex-direction:column;gap:10px;background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.3);border-radius:8px;padding:12px 14px;margin-top:4px;">
+            <div style="font-size:13px;font-weight:800;color:var(--accent-green);display:flex;align-items:center;gap:8px;">
+              <span>🎉</span> <span id="export-success-title">Video Export Ready!</span>
+            </div>
+            <div id="export-success-detail" style="font-size:11px;color:var(--text-muted);word-break:break-all;"></div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <a id="export-success-download-btn" href="#" download="" class="btn-action" style="background:linear-gradient(135deg,#00e676,#00b0ff);color:#05080e;font-weight:800;text-decoration:none;padding:8px 16px;border-radius:6px;font-size:12px;display:inline-flex;align-items:center;gap:6px;">
+                💾 Click to Save Video
+              </a>
+              <button type="button" class="btn-secondary" onclick="closeExportVideoModal()" style="font-size:11px;padding:8px 12px;">Close</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Action Footer -->
+        <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-top:4px;" id="export-modal-footer">
+          <button type="button" class="btn-secondary" onclick="closeExportVideoModal()">Close</button>
+          <button type="button" class="btn-secondary" id="btn-export-direct-pitch" onclick="startDirectTacticalBoardExport()" style="display:none;font-weight:800;border:1px solid rgba(0,230,118,0.5);color:var(--accent-green);background:rgba(0,230,118,0.1);padding:9px 15px;border-radius:8px;font-size:12px;cursor:pointer;" title="Instant 1080p download of tactical play on UEFA pitch board - Zero screen share required!">🟢 Direct Tactical Video</button>
+          <button type="button" class="btn-action" id="btn-start-direct-export" onclick="triggerStartDirectExport()" style="background:linear-gradient(135deg,#00e676,#00b0ff);color:#05080e;font-weight:800;padding:10px 20px;font-size:13px;">
+            <span id="btn-start-export-label">⬇️ Start Direct Export</span>
+          </button>
+        </div>
+
       </div>
     </div>
   </div>
@@ -3478,10 +3798,7 @@
       if (isRecordingVideo) {
         stopTacticalVideoRecording();
       } else {
-        const menu = document.getElementById('record-dropdown-menu');
-        if (menu) {
-          menu.style.display = (menu.style.display === 'flex') ? 'none' : 'flex';
-        }
+        startRecordingTarget('stage');
       }
       // Ensure focus is restored to window so Spacebar triggers play/pause immediately
       if (document.activeElement && document.activeElement.blur) {
@@ -3505,28 +3822,170 @@
       handleRecordButtonClick();
     }
 
-    // Simple, Lightweight Video Recording State
+    // Robust, Stream-Aware Video Recording & Export Engine
     let _recordSourceStream = null;
+    let _isStoppingRecording = false;
 
-    function getSupportedRecorderMimeType() {
-      const candidates = [
-        'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
-        'video/mp4;codecs=avc1',
-        'video/mp4;codecs=h264,aac',
-        'video/mp4;codecs=h264',
-        'video/mp4',
-        'video/webm;codecs=h264',
-        'video/webm;codecs=vp9,opus',
-        'video/webm;codecs=vp8,opus',
-        'video/webm;codecs=vp8',
-        'video/webm'
-      ];
+    function cleanupRecordingStream() {
+      if (_recordSourceStream) {
+        try {
+          _recordSourceStream.getTracks().forEach(t => {
+            t.onended = null;
+            t.stop();
+          });
+        } catch(e) {}
+        _recordSourceStream = null;
+      }
+    }
+
+    function getBestSupportedVideoMimeType(hasAudio = false) {
+      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+      let candidates = [];
+
+      if (isSafari) {
+        // Safari natively supports MP4 H.264
+        candidates = hasAudio ? [
+          'video/mp4;codecs=avc1,mp4a.40.2',
+          'video/mp4;codecs=h264,aac',
+          'video/mp4',
+          'video/webm;codecs=vp9,opus',
+          'video/webm'
+        ] : [
+          'video/mp4;codecs=avc1',
+          'video/mp4;codecs=h264',
+          'video/mp4',
+          'video/webm;codecs=vp9',
+          'video/webm'
+        ];
+      } else {
+        // Chromium / Edge / Firefox: WebM is rock solid and guaranteed to encode
+        candidates = hasAudio ? [
+          'video/webm;codecs=vp9,opus',
+          'video/webm;codecs=vp8,opus',
+          'video/webm',
+          'video/mp4;codecs=avc1,mp4a.40.2',
+          'video/mp4'
+        ] : [
+          'video/webm;codecs=vp9',
+          'video/webm;codecs=vp8',
+          'video/webm',
+          'video/mp4;codecs=avc1',
+          'video/mp4'
+        ];
+      }
+
       for (const mime of candidates) {
-        if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(mime)) {
-          return mime;
-        }
+        try {
+          if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(mime)) {
+            return mime;
+          }
+        } catch(e) {}
       }
       return '';
+    }
+
+    function createSafeMediaRecorder(stream, preferredBitrate = 8000000) {
+      const hasAudio = stream && stream.getAudioTracks && stream.getAudioTracks().length > 0;
+      const mime = getBestSupportedVideoMimeType(hasAudio);
+
+      const options = { videoBitsPerSecond: preferredBitrate };
+      if (mime) options.mimeType = mime;
+
+      try {
+        const rec = new MediaRecorder(stream, options);
+        return { recorder: rec, mimeType: mime || rec.mimeType || 'video/webm' };
+      } catch(e) {
+        console.warn('MediaRecorder constructor with options failed, falling back:', e);
+        try {
+          const rec = new MediaRecorder(stream);
+          return { recorder: rec, mimeType: rec.mimeType || 'video/webm' };
+        } catch(e2) {
+          console.error('All MediaRecorder constructors failed:', e2);
+          throw e2;
+        }
+      }
+    }
+
+    function showDownloadCompleteToast(url, filename, sizeMB) {
+      let toast = document.getElementById('download-complete-toast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'download-complete-toast';
+        toast.style.cssText = `
+          position: fixed;
+          top: 24px;
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 999999;
+          background: #090e18;
+          border: 1px solid rgba(0, 230, 118, 0.4);
+          border-radius: 12px;
+          padding: 14px 18px;
+          box-shadow: 0 16px 40px rgba(0,0,0,0.85), 0 0 20px rgba(0,230,118,0.15);
+          backdrop-filter: blur(16px);
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          max-width: 440px;
+          width: 90%;
+          transition: opacity 0.2s ease, transform 0.2s ease;
+        `;
+        document.body.appendChild(toast);
+      }
+
+      toast.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-size:13px;font-weight:800;color:#00e676;display:flex;align-items:center;gap:6px;">
+            <span>✅</span> <span>Video Ready (${sizeMB} MB)</span>
+          </div>
+          <button type="button" onclick="this.closest('#download-complete-toast').remove()" style="background:none;border:none;color:#94a3b8;font-size:16px;cursor:pointer;line-height:1;">✕</button>
+        </div>
+        <div style="font-size:11px;color:#cbd5e1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${filename}">
+          ${filename}
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:2px;">
+          <a href="${url}" download="${filename}" class="btn-toast-download" style="background:linear-gradient(135deg,#00e676,#00b0ff);color:#05080e;font-weight:800;text-decoration:none;padding:7px 16px;border-radius:6px;font-size:12px;display:inline-flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(0,230,118,0.3);">
+            💾 Click to Save Video
+          </a>
+          <span style="font-size:10px;color:#94a3b8;">Click if download didn't auto-start</span>
+        </div>
+      `;
+
+      clearTimeout(toast._timeout);
+      toast._timeout = setTimeout(() => {
+        if (toast && toast.parentNode) toast.remove();
+      }, 25000);
+    }
+
+    function triggerFileDownload(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const sizeMB = (blob.size / (1024 * 1024)).toFixed(1);
+
+      // 1. Programmatic click download attempt
+      try {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.style.position = 'fixed';
+        a.style.left = '-9999px';
+        a.style.top = '-9999px';
+        a.style.opacity = '0';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          try { document.body.removeChild(a); } catch(e){}
+        }, 2000);
+      } catch(e) {
+        console.warn('Programmatic download trigger note:', e);
+      }
+
+      // 2. Guaranteed visual notification with direct save button
+      showDownloadCompleteToast(url, filename, sizeMB);
+
+      // 3. Keep blob active for 20 minutes so user can download
+      setTimeout(() => URL.revokeObjectURL(url), 20 * 60 * 1000);
+
+      return { url, sizeMB };
     }
 
     async function startRecordingTarget(target = 'stage') {
@@ -3565,9 +4024,13 @@
               audio: true
             });
           } catch (e2) {
-            console.log('Capture cancelled by user:', e2);
-            resetRecordingUI();
-            return;
+            try {
+              stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+            } catch (e3) {
+              console.log('Capture cancelled by user:', e3);
+              resetRecordingUI();
+              return;
+            }
           }
         }
 
@@ -3576,11 +4039,14 @@
           return;
         }
 
+        _isStoppingRecording = false;
         _recordSourceStream = stream;
         const videoTrack = stream.getVideoTracks()[0];
         if (videoTrack) {
           videoTrack.onended = () => {
-            if (isRecordingVideo) stopTacticalVideoRecording();
+            if (isRecordingVideo && !_isStoppingRecording) {
+              stopTacticalVideoRecording();
+            }
           };
 
           if (isStage) {
@@ -3599,17 +4065,18 @@
         }
 
         recordedChunks = [];
-        const chosenMime = getSupportedRecorderMimeType();
-        const options = {
-          videoBitsPerSecond: 8000000 // 8.0 Mbps high-fidelity profile: crisp, broadcast-quality 1080p recording
-        };
-        if (chosenMime) options.mimeType = chosenMime;
-
+        let recData;
         try {
-          mediaRecorder = new MediaRecorder(stream, options);
-        } catch (mErr) {
-          mediaRecorder = new MediaRecorder(stream);
+          recData = createSafeMediaRecorder(stream, 8000000);
+        } catch(err) {
+          cleanupRecordingStream();
+          alert('MediaRecorder initialization failed: ' + (err.message || err));
+          resetRecordingUI();
+          return;
         }
+
+        mediaRecorder = recData.recorder;
+        const chosenMime = recData.mimeType;
 
         mediaRecorder.ondataavailable = (event) => {
           if (event.data && event.data.size > 0) {
@@ -3618,30 +4085,22 @@
         };
 
         mediaRecorder.onstop = () => {
-          if (_recordSourceStream) {
-            try { _recordSourceStream.getTracks().forEach(t => t.stop()); } catch(e) {}
-            _recordSourceStream = null;
-          }
+          cleanupRecordingStream();
+          resetRecordingUI();
+          _isStoppingRecording = false;
 
           if (recordedChunks.length > 0) {
             const isMp4 = (chosenMime && chosenMime.includes('mp4'));
-            const blob = new Blob(recordedChunks, { type: isMp4 ? 'video/mp4' : 'video/webm' });
             const ext = isMp4 ? 'mp4' : 'webm';
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `tactical-recording-${Date.now()}.${ext}`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            setTimeout(() => URL.revokeObjectURL(url), 10000);
+            const blob = new Blob(recordedChunks, { type: isMp4 ? 'video/mp4' : 'video/webm' });
+            const filename = `tactical-recording-${Date.now()}.${ext}`;
+            triggerFileDownload(blob, filename);
+          } else {
+            alert('Recording finished with 0 captured frames. Please verify browser permissions and try again.');
           }
-
-          try { stream.getTracks().forEach(t => t.stop()); } catch(e) {}
-          resetRecordingUI();
         };
 
-        mediaRecorder.start(1000);
+        mediaRecorder.start(250); // 250ms chunks ensure smooth data collection
         isRecordingVideo = true;
         recordingStartTime = Date.now();
 
@@ -3672,10 +4131,7 @@
         showFocusOverlay();
 
       } catch (err) {
-        if (_recordSourceStream) {
-          try { _recordSourceStream.getTracks().forEach(t => t.stop()); } catch(e) {}
-          _recordSourceStream = null;
-        }
+        cleanupRecordingStream();
         alert('Recording error: ' + (err.message || err));
         resetRecordingUI();
       }
@@ -3683,13 +4139,13 @@
 
     function showFocusOverlay() {
       const overlay = document.getElementById('focus-reclaim-overlay');
+      if (overlay) overlay.style.display = 'none';
       const toast = document.getElementById('focus-reclaim-toast');
-      if (overlay) overlay.style.display = 'block';
       if (toast) {
         toast.classList.remove('visible');
-        toast.style.display = 'block';
-        requestAnimationFrame(() => toast.classList.add('visible'));
+        toast.style.display = 'none';
       }
+      window.focus();
     }
 
     function dismissFocusOverlay() {
@@ -3706,15 +4162,30 @@
     }
 
     function stopTacticalVideoRecording() {
+      if (_isStoppingRecording) return;
+      _isStoppingRecording = true;
       isRecordingVideo = false;
+
+      const timerEl = document.getElementById('recording-timer-text');
+      if (timerEl) timerEl.textContent = 'Saving...';
+      const btnLabel = document.getElementById('rec-btn-label');
+      if (btnLabel) btnLabel.textContent = 'Saving...';
+
       if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-        try { mediaRecorder.stop(); } catch(e) {}
+        try {
+          // Standard W3C stop(): flushes remaining frames to ondataavailable, then fires onstop
+          mediaRecorder.stop();
+        } catch(err) {
+          console.warn('Error invoking mediaRecorder.stop():', err);
+          cleanupRecordingStream();
+          resetRecordingUI();
+          _isStoppingRecording = false;
+        }
+      } else {
+        cleanupRecordingStream();
+        resetRecordingUI();
+        _isStoppingRecording = false;
       }
-      if (_recordSourceStream) {
-        try { _recordSourceStream.getTracks().forEach(t => t.stop()); } catch(e) {}
-        _recordSourceStream = null;
-      }
-      resetRecordingUI();
 
       if (document.activeElement && document.activeElement.blur) {
         document.activeElement.blur();
@@ -3723,22 +4194,874 @@
     }
 
     function resetRecordingUI() {
-      if (_recordSourceStream) {
-        try { _recordSourceStream.getTracks().forEach(t => t.stop()); } catch(e) {}
-        _recordSourceStream = null;
-      }
       isRecordingVideo = false;
+      _isStoppingRecording = false;
       clearInterval(recordingTimerInterval);
       const menu = document.getElementById('record-dropdown-menu');
       if (menu) menu.style.display = 'none';
       const btn = document.getElementById('btn-record-video');
       if (btn) {
         btn.classList.remove('recording');
-        document.getElementById('rec-dot').textContent = '🔴';
-        document.getElementById('rec-btn-label').textContent = 'Record Clip';
+        const dot = document.getElementById('rec-dot');
+        if (dot) dot.textContent = '🔴';
+        const label = document.getElementById('rec-btn-label');
+        if (label) label.textContent = 'Record Clip (K)';
       }
       const hud = document.getElementById('recording-hud-badge');
       if (hud) hud.style.display = 'none';
+    }
+
+    /* ==========================================================================
+       FEATURE 1B: ⬇️ DIRECT VIDEO & TELESTRATION EXPORT (Canvas Composite)
+    ========================================================================== */
+    let isExportingDirectVideo = false;
+    let exportDirectCancelled = false;
+    let _origAutoPauseState = false;
+
+    function parseTimeInput(val) {
+      if (typeof val === 'number') return val;
+      if (!val) return 0;
+      const str = String(val).trim();
+      const parts = str.split(':').map(Number);
+      if (parts.some(isNaN)) return 0;
+      if (parts.length === 3) {
+        return parts[0] * 3600 + parts[1] * 60 + parts[2];
+      } else if (parts.length === 2) {
+        return parts[0] * 60 + parts[1];
+      } else if (parts.length === 1) {
+        return parts[0];
+      }
+      return 0;
+    }
+
+    function formatSecondsToMMSS(secs) {
+      if (isNaN(secs) || secs < 0) secs = 0;
+      const m = Math.floor(secs / 60);
+      const s = Math.floor(secs % 60);
+      const ms = Math.floor((secs % 1) * 10);
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${ms}`;
+    }
+
+    function showExportToast(msg) {
+      const toast = document.getElementById('focus-reclaim-toast');
+      if (toast) {
+        toast.textContent = msg;
+        toast.style.display = 'block';
+        toast.classList.add('visible');
+        setTimeout(() => {
+          toast.classList.remove('visible');
+          toast.style.display = 'none';
+          toast.textContent = '👆 Click anywhere to activate controls';
+        }, 5000);
+      }
+    }
+
+    function showExportModalSuccess(url, filename, sizeMB) {
+      const progressContainer = document.getElementById('export-progress-container');
+      const modalFooter = document.getElementById('export-modal-footer');
+      const barFill = document.getElementById('export-progress-bar-fill');
+      const pctEl = document.getElementById('export-progress-pct');
+      const lblEl = document.getElementById('export-progress-label');
+      const helperRow = document.getElementById('export-progress-helper-row');
+      const successBox = document.getElementById('export-success-box');
+      const successDetail = document.getElementById('export-success-detail');
+      const successBtn = document.getElementById('export-success-download-btn');
+
+      if (barFill) {
+        barFill.style.width = '100%';
+        barFill.style.background = 'var(--accent-green)';
+      }
+      if (pctEl) {
+        pctEl.textContent = '100%';
+        pctEl.style.color = 'var(--accent-green)';
+      }
+      if (lblEl) lblEl.textContent = 'Export completed!';
+      if (helperRow) helperRow.style.display = 'none';
+
+      if (successBox) {
+        successBox.style.display = 'flex';
+        if (successDetail) {
+          successDetail.textContent = `${filename} (${sizeMB} MB)`;
+        }
+        if (successBtn) {
+          successBtn.href = url;
+          successBtn.download = filename;
+        }
+      }
+      if (progressContainer) progressContainer.style.display = 'flex';
+      if (modalFooter) modalFooter.style.display = 'none';
+    }
+
+    function openExportVideoModal() {
+      const menu = document.getElementById('record-dropdown-menu');
+      if (menu) menu.style.display = 'none';
+
+      pauseVideo();
+
+      const modal = document.getElementById('export-video-modal');
+      const noticeEl = document.getElementById('export-source-notice');
+      const directPitchBtn = document.getElementById('btn-export-direct-pitch');
+
+      if (isUsingLocalVideo) {
+        if (directPitchBtn) directPitchBtn.style.display = 'none';
+        noticeEl.innerHTML = `
+          <div style="display:flex;align-items:center;gap:8px;color:var(--accent-green);font-weight:700;">
+            <span>✅</span> <span>Local Match Video Active</span>
+          </div>
+          <div style="color:var(--text-muted);font-size:11px;margin-top:4px;">
+            Direct 1080p canvas composite active. Video frames, player tracking rings, and drawings will be baked directly into a downloadable video file.
+          </div>
+        `;
+      } else if (isSyntheticDemo) {
+        if (directPitchBtn) directPitchBtn.style.display = 'none';
+        noticeEl.innerHTML = `
+          <div style="display:flex;align-items:center;gap:8px;color:var(--accent-green);font-weight:700;">
+            <span>✅</span> <span>Tactical Pitch Board Active</span>
+          </div>
+          <div style="color:var(--text-muted);font-size:11px;margin-top:4px;">
+            Pitch tactical animations, zones, player runs, and telestration will be exported into a clean 1080p video file.
+          </div>
+        `;
+      } else {
+        if (directPitchBtn) directPitchBtn.style.display = 'inline-flex';
+        noticeEl.innerHTML = `
+          <div style="display:flex;align-items:center;gap:8px;color:#00b0ff;font-weight:700;font-size:13px;">
+            <span>🎬</span> <span>YouTube Online Video Active</span>
+          </div>
+          <div style="color:var(--text-muted);font-size:11px;margin-top:6px;line-height:1.5;">
+            Choose an export option below:
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;">
+              <div style="background:rgba(0,176,255,0.08);border:1px solid rgba(0,176,255,0.3);border-radius:8px;padding:9px 12px;">
+                <div style="font-weight:700;color:#00b0ff;font-size:12px;display:flex;align-items:center;gap:6px;">
+                  <span>🎬</span> <span>Record Match Clip</span>
+                </div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:4px;line-height:1.35;">
+                  Captures broadcast match footage with drawings. Select "This Tab" in prompt. Dialog hides automatically while playing.
+                </div>
+              </div>
+              <div style="background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.3);border-radius:8px;padding:9px 12px;">
+                <div style="font-weight:700;color:var(--accent-green);font-size:12px;display:flex;align-items:center;gap:6px;">
+                  <span>🟢</span> <span>Direct Tactical Video</span>
+                </div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:4px;line-height:1.35;">
+                  Instant 1080p download of tactical play &amp; drawings on UEFA pitch board. 100% direct, no screen share required.
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+            <button type="button" class="btn-secondary" onclick="document.getElementById('local-video-file-input').click(); closeExportVideoModal();" style="font-size:11px;padding:3px 9px;">📁 Upload Match Video (100% Direct)</button>
+            <button type="button" class="btn-secondary" onclick="loadSyntheticPitchDemo('preset-canvas'); closeExportVideoModal();" style="font-size:11px;padding:3px 9px;">🟢 Switch to Pitch Board</button>
+          </div>
+        `;
+      }
+
+      const exportBtnLabel = document.getElementById('btn-start-export-label');
+      if (exportBtnLabel) {
+        exportBtnLabel.textContent = (!isUsingLocalVideo && !isSyntheticDemo) ? '🎬 Record Match Clip' : '⬇️ Start Direct Export';
+      }
+
+      // Populate Start and End range
+      let inVal = 0;
+      let outVal = 15;
+      if (tacticalKeyframes && tacticalKeyframes.length > 0) {
+        const sortedKfs = [...tacticalKeyframes].sort((a,b) => a.timestamp - b.timestamp);
+        inVal = Math.max(0, sortedKfs[0].timestamp - 1.0);
+        outVal = Math.min(videoDuration || 60, sortedKfs[sortedKfs.length - 1].timestamp + 3.0);
+      } else {
+        inVal = Math.max(0, currentVideoTime - 5.0);
+        outVal = Math.min(videoDuration || 60, inVal + 15.0);
+      }
+
+      document.getElementById('export-in-input').value = formatSecondsToMMSS(inVal);
+      document.getElementById('export-out-input').value = formatSecondsToMMSS(outVal);
+      recalcExportDuration();
+
+      // Reset progress and success state
+      const successBox = document.getElementById('export-success-box');
+      if (successBox) successBox.style.display = 'none';
+      const helperRow = document.getElementById('export-progress-helper-row');
+      if (helperRow) helperRow.style.display = 'flex';
+      document.getElementById('export-progress-container').style.display = 'none';
+      document.getElementById('export-modal-footer').style.display = 'flex';
+
+      if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.add('open');
+      }
+    }
+
+    function closeExportVideoModal() {
+      if (isExportingDirectVideo) {
+        if (!confirm('Video export is currently in progress. Cancel export?')) return;
+        cancelDirectVideoExport();
+      }
+      hideFloatingExportHUD();
+      const modal = document.getElementById('export-video-modal');
+      if (modal) {
+        modal.classList.remove('open');
+        modal.style.display = 'none';
+      }
+      const successBox = document.getElementById('export-success-box');
+      if (successBox) successBox.style.display = 'none';
+      const progressContainer = document.getElementById('export-progress-container');
+      if (progressContainer) progressContainer.style.display = 'none';
+      const modalFooter = document.getElementById('export-modal-footer');
+      if (modalFooter) modalFooter.style.display = 'flex';
+      const helperRow = document.getElementById('export-progress-helper-row');
+      if (helperRow) helperRow.style.display = 'flex';
+    }
+
+    function recalcExportDuration() {
+      const inSec = parseTimeInput(document.getElementById('export-in-input').value);
+      const outSec = parseTimeInput(document.getElementById('export-out-input').value);
+      const dur = Math.max(0, outSec - inSec);
+      const durEl = document.getElementById('export-calc-duration');
+      if (durEl) {
+        durEl.textContent = `Duration: ${formatSecondsToMMSS(dur)}`;
+      }
+    }
+
+    function setExportInFromCurrent() {
+      document.getElementById('export-in-input').value = formatSecondsToMMSS(currentVideoTime);
+      recalcExportDuration();
+    }
+
+    function setExportOutFromCurrent() {
+      document.getElementById('export-out-input').value = formatSecondsToMMSS(currentVideoTime);
+      recalcExportDuration();
+    }
+
+    function setExportFullVideo() {
+      document.getElementById('export-in-input').value = '00:00';
+      document.getElementById('export-out-input').value = formatSecondsToMMSS(videoDuration || 60);
+      recalcExportDuration();
+    }
+
+    function setExportKeyframeRange() {
+      if (tacticalKeyframes && tacticalKeyframes.length > 0) {
+        const sortedKfs = [...tacticalKeyframes].sort((a,b) => a.timestamp - b.timestamp);
+        const inSec = Math.max(0, sortedKfs[0].timestamp - 1.0);
+        const outSec = Math.min(videoDuration || 60, sortedKfs[sortedKfs.length - 1].timestamp + 3.0);
+        document.getElementById('export-in-input').value = formatSecondsToMMSS(inSec);
+        document.getElementById('export-out-input').value = formatSecondsToMMSS(outSec);
+        recalcExportDuration();
+      } else {
+        alert('No tactical pin frames on timeline yet. Place drawings at key moments first!');
+      }
+    }
+
+    function setExportCurrent10s() {
+      const inSec = Math.max(0, currentVideoTime - 5.0);
+      const outSec = Math.min(videoDuration || 60, inSec + 10.0);
+      document.getElementById('export-in-input').value = formatSecondsToMMSS(inSec);
+      document.getElementById('export-out-input').value = formatSecondsToMMSS(outSec);
+      recalcExportDuration();
+    }
+
+    async function triggerStartDirectExport() {
+      const inSec = parseTimeInput(document.getElementById('export-in-input').value);
+      const outSec = parseTimeInput(document.getElementById('export-out-input').value);
+
+      if (outSec <= inSec) {
+        alert('End time must be greater than Start time.');
+        return;
+      }
+      if (outSec - inSec < 0.5) {
+        alert('Clip duration must be at least 0.5 seconds.');
+        return;
+      }
+
+      if (!isUsingLocalVideo && !isSyntheticDemo) {
+        startAutomatedScreenExport(inSec, outSec);
+        return;
+      }
+
+      startDirectVideoExport(inSec, outSec);
+    }
+
+    function startDirectTacticalBoardExport() {
+      const inSec = parseTimeInput(document.getElementById('export-in-input').value);
+      const outSec = parseTimeInput(document.getElementById('export-out-input').value);
+
+      if (outSec <= inSec) {
+        alert('End time must be greater than Start time.');
+        return;
+      }
+      if (outSec - inSec < 0.5) {
+        alert('Clip duration must be at least 0.5 seconds.');
+        return;
+      }
+
+      startDirectVideoExport(inSec, outSec);
+    }
+
+    async function startDirectVideoExport(startTime, endTime) {
+      pauseVideo();
+
+      const localVid = document.getElementById('local-video-element');
+      const pitchCanvas = document.getElementById('synthetic-pitch-canvas');
+      const isLocal = isUsingLocalVideo && localVid;
+      const isPitch = isSyntheticDemo && pitchCanvas;
+
+      const progressContainer = document.getElementById('export-progress-container');
+      const modalFooter = document.getElementById('export-modal-footer');
+      const barFill = document.getElementById('export-progress-bar-fill');
+      const pctEl = document.getElementById('export-progress-pct');
+      const lblEl = document.getElementById('export-progress-label');
+      const successBox = document.getElementById('export-success-box');
+      const helperRow = document.getElementById('export-progress-helper-row');
+
+      if (successBox) successBox.style.display = 'none';
+      if (helperRow) helperRow.style.display = 'flex';
+      if (progressContainer) progressContainer.style.display = 'flex';
+      if (modalFooter) modalFooter.style.display = 'none';
+      if (barFill) {
+        barFill.style.width = '0%';
+        barFill.style.background = 'linear-gradient(90deg, #00b0ff, #00e676)';
+      }
+      if (pctEl) {
+        pctEl.textContent = '0%';
+        pctEl.style.color = 'var(--accent-green)';
+      }
+      if (lblEl) lblEl.textContent = 'Preparing video frames...';
+
+      const compCanvas = document.createElement('canvas');
+      compCanvas.width = 1920;
+      compCanvas.height = 1080;
+      const compCtx = compCanvas.getContext('2d');
+
+      compCtx.fillStyle = '#080c14';
+      compCtx.fillRect(0, 0, 1920, 1080);
+      if (isLocal && localVid && localVid.readyState >= 2) {
+        try { compCtx.drawImage(localVid, 0, 0, 1920, 1080); } catch(e){}
+      } else if (isPitch && pitchCanvas) {
+        try { compCtx.drawImage(pitchCanvas, 0, 0, 1920, 1080); } catch(e){}
+      } else {
+        try { drawTacticalPitchGeometry(compCtx, 1920, 1080); } catch(e){}
+      }
+      if (canvas && canvas.lowerCanvasEl) {
+        try { compCtx.drawImage(canvas.lowerCanvasEl, 0, 0, 1920, 1080); } catch(e){}
+      }
+
+      const stream = (compCanvas.captureStream || compCanvas.mozCaptureStream).call(compCanvas, 30);
+
+      if (isLocal) {
+        try {
+          const vStream = localVid.captureStream ? localVid.captureStream() : (localVid.mozCaptureStream ? localVid.mozCaptureStream() : null);
+          if (vStream) {
+            const aTracks = vStream.getAudioTracks();
+            if (aTracks && aTracks.length > 0) stream.addTrack(aTracks[0]);
+          }
+        } catch(e) {
+          console.warn('Audio capture note:', e);
+        }
+      }
+
+      let recData;
+      try {
+        recData = createSafeMediaRecorder(stream, 10000000);
+      } catch(err) {
+        alert('MediaRecorder is not supported in this browser: ' + (err.message || err));
+        if (progressContainer) progressContainer.style.display = 'none';
+        if (modalFooter) modalFooter.style.display = 'flex';
+        return;
+      }
+
+      const recorder = recData.recorder;
+      const mime = recData.mimeType;
+      const chunks = [];
+
+      recorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) chunks.push(e.data);
+      };
+
+      recorder.onstop = () => {
+        autoPauseOnKeyframes = _origAutoPauseState;
+        isExportingDirectVideo = false;
+        pauseVideo();
+
+        if (chunks.length > 0 && !exportDirectCancelled) {
+          const isMp4 = mime.includes('mp4');
+          const ext = isMp4 ? 'mp4' : 'webm';
+          const filename = `tactical-analysis-${Date.now()}.${ext}`;
+          const blob = new Blob(chunks, { type: isMp4 ? 'video/mp4' : 'video/webm' });
+          const { url, sizeMB } = triggerFileDownload(blob, filename);
+
+          showExportModalSuccess(url, filename, sizeMB);
+          showExportToast(`✅ Video exported: ${filename}`);
+        } else if (!exportDirectCancelled) {
+          alert('Export completed with 0 frames. Please ensure video is playable and try again.');
+          if (progressContainer) progressContainer.style.display = 'none';
+          if (modalFooter) modalFooter.style.display = 'flex';
+          closeExportVideoModal();
+        }
+      };
+
+      _origAutoPauseState = autoPauseOnKeyframes;
+      autoPauseOnKeyframes = false;
+      isExportingDirectVideo = true;
+      exportDirectCancelled = false;
+
+      if (lblEl) lblEl.textContent = `Seeking to ${formatSecondsToMMSS(startTime)}...`;
+      if (isLocal && localVid) {
+        localVid.pause();
+        localVid.currentTime = startTime;
+        await new Promise(res => {
+          let resolved = false;
+          const onSeek = () => {
+            if (resolved) return;
+            resolved = true;
+            localVid.removeEventListener('seeked', onSeek);
+            res();
+          };
+          localVid.addEventListener('seeked', onSeek);
+          setTimeout(onSeek, 800);
+        });
+      } else if (isPitch) {
+        currentVideoTime = startTime;
+        demoLastTime = performance.now();
+        renderSyntheticPitch(startTime);
+        await new Promise(r => setTimeout(r, 100));
+      } else {
+        seekToTime(startTime);
+        await new Promise(r => setTimeout(r, 400));
+      }
+
+      if (exportDirectCancelled) return;
+
+      recorder.start(250);
+      playVideo();
+
+      const totalDuration = Math.max(0.5, endTime - startTime);
+      const startWall = performance.now();
+      let hasPlaybackStarted = false;
+      let playbackStartWall = startWall;
+
+      const renderLoop = () => {
+        if (!isExportingDirectVideo || exportDirectCancelled) {
+          try {
+            if (recorder.state !== 'inactive') {
+              recorder.stop();
+            }
+          } catch(e){}
+          return;
+        }
+
+        const wallElapsed = (performance.now() - startWall) / 1000;
+        const cur = isLocal ? (localVid.currentTime || currentVideoTime) : currentVideoTime;
+
+        if (!hasPlaybackStarted) {
+          if (Math.abs(cur - startTime) <= 0.6 || wallElapsed >= 0.6 || isPitch) {
+            hasPlaybackStarted = true;
+            playbackStartWall = performance.now();
+          }
+        }
+
+        const activeWallElapsed = hasPlaybackStarted ? ((performance.now() - playbackStartWall) / 1000) : wallElapsed;
+
+        compCtx.fillStyle = '#080c14';
+        compCtx.fillRect(0, 0, 1920, 1080);
+
+        if (isLocal && localVid && localVid.readyState >= 2) {
+          try { compCtx.drawImage(localVid, 0, 0, 1920, 1080); } catch(e){}
+        } else if (isPitch && pitchCanvas) {
+          try { compCtx.drawImage(pitchCanvas, 0, 0, 1920, 1080); } catch(e){}
+        } else {
+          try { drawTacticalPitchGeometry(compCtx, 1920, 1080); } catch(e){}
+        }
+
+        if (canvas && canvas.lowerCanvasEl) {
+          try { compCtx.drawImage(canvas.lowerCanvasEl, 0, 0, 1920, 1080); } catch(e){}
+        }
+
+        const elapsed = Math.max(0, Math.min(totalDuration, hasPlaybackStarted ? (cur - startTime) : 0));
+        const pct = Math.min(100, Math.max(0, Math.round((Math.max(elapsed, activeWallElapsed) / totalDuration) * 100)));
+        if (barFill) barFill.style.width = pct + '%';
+        if (pctEl) pctEl.textContent = pct + '%';
+        if (lblEl) lblEl.textContent = `Rendering: ${pct}% (${elapsed.toFixed(1)}s / ${totalDuration.toFixed(1)}s)`;
+
+        const isPastEnd = (hasPlaybackStarted && activeWallElapsed >= (totalDuration * 0.85) && (cur >= endTime || (isLocal && localVid.ended))) ||
+                          (activeWallElapsed >= totalDuration + 2.5);
+
+        if (isPastEnd) {
+          isExportingDirectVideo = false;
+          pauseVideo();
+          if (lblEl) lblEl.textContent = 'Finalizing video file...';
+          try {
+            if (recorder.state !== 'inactive') {
+              recorder.stop();
+            }
+          } catch(e){}
+          return;
+        }
+
+        requestAnimationFrame(renderLoop);
+      };
+
+      requestAnimationFrame(renderLoop);
+    }
+
+    /* ==========================================================================
+       AUTOMATED SCREEN EXPORT FLOATING HUD
+    ========================================================================== */
+    function showFloatingExportHUD(startTime, endTime, onFinish) {
+      let hud = document.getElementById('automated-export-hud');
+      if (!hud) {
+        hud = document.createElement('div');
+        hud.id = 'automated-export-hud';
+        hud.style.cssText = `
+          position: fixed;
+          top: 16px;
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 999999;
+          background: rgba(8, 12, 20, 0.94);
+          border: 1px solid rgba(0, 230, 118, 0.5);
+          border-radius: 40px;
+          padding: 8px 18px;
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.85), 0 0 18px rgba(0,230,118,0.25);
+          backdrop-filter: blur(14px);
+          font-family: var(--font-ui, sans-serif);
+          color: #ffffff;
+          font-size: 12px;
+          font-weight: 700;
+        `;
+        document.body.appendChild(hud);
+      }
+      const dur = Math.max(0.5, endTime - startTime);
+      hud.innerHTML = `
+        <span style="display:inline-flex;align-items:center;gap:6px;color:#ff1744;">
+          <span style="display:inline-block;width:8px;height:8px;background:#ff1744;border-radius:50%;box-shadow:0 0 8px #ff1744;"></span>
+          <span style="text-transform:uppercase;letter-spacing:0.5px;font-size:11px;">Recording Clip</span>
+        </span>
+        <span id="auto-export-hud-time" style="font-family:var(--font-mono, monospace);color:var(--accent-green);">00:00.0 / ${formatSecondsToMMSS(dur)}</span>
+        <div style="width:75px;height:6px;background:rgba(255,255,255,0.15);border-radius:3px;overflow:hidden;">
+          <div id="auto-export-hud-bar" style="width:0%;height:100%;background:linear-gradient(90deg, #00b0ff, #00e676);transition:width 0.1s linear;"></div>
+        </div>
+        <button type="button" id="btn-finish-export-now" style="background:linear-gradient(135deg,#00e676,#00b0ff);color:#05080e;font-weight:800;border:none;padding:5px 12px;border-radius:20px;cursor:pointer;font-size:11px;display:inline-flex;align-items:center;gap:4px;">
+          ⏹ Finish & Save
+        </button>
+        <button type="button" id="btn-cancel-export-now" title="Cancel export" style="background:transparent;border:1px solid rgba(255,255,255,0.2);color:#94a3b8;border-radius:20px;padding:4px 10px;cursor:pointer;font-size:11px;">
+          ✕
+        </button>
+      `;
+      hud.style.display = 'flex';
+      const finishBtn = document.getElementById('btn-finish-export-now');
+      if (finishBtn) finishBtn.onclick = onFinish;
+      const cancelBtn = document.getElementById('btn-cancel-export-now');
+      if (cancelBtn) cancelBtn.onclick = () => cancelDirectVideoExport();
+    }
+
+    function updateFloatingExportHUD(elapsed, totalDuration, pct) {
+      const timeEl = document.getElementById('auto-export-hud-time');
+      const barEl = document.getElementById('auto-export-hud-bar');
+      if (timeEl) timeEl.textContent = `${formatSecondsToMMSS(elapsed)} / ${formatSecondsToMMSS(totalDuration)} (${pct}%)`;
+      if (barEl) barEl.style.width = pct + '%';
+    }
+
+    function hideFloatingExportHUD() {
+      const hud = document.getElementById('automated-export-hud');
+      if (hud) hud.style.display = 'none';
+    }
+
+    async function startAutomatedScreenExport(startTime, endTime) {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+        alert('Screen recording is not supported in this browser. Please use Chrome, Edge, or Safari.');
+        return;
+      }
+
+      pauseVideo();
+
+      const modal = document.getElementById('export-video-modal');
+      const progressContainer = document.getElementById('export-progress-container');
+      const modalFooter = document.getElementById('export-modal-footer');
+      const barFill = document.getElementById('export-progress-bar-fill');
+      const pctEl = document.getElementById('export-progress-pct');
+      const lblEl = document.getElementById('export-progress-label');
+      const successBox = document.getElementById('export-success-box');
+      const helperRow = document.getElementById('export-progress-helper-row');
+
+      let stream = null;
+      try {
+        stream = await navigator.mediaDevices.getDisplayMedia({
+          preferCurrentTab: true,
+          video: {
+            displaySurface: 'browser',
+            frameRate: { ideal: 30, max: 30 },
+            width: { max: 1920 },
+            height: { max: 1080 }
+          },
+          audio: true
+        });
+      } catch(e1) {
+        try {
+          stream = await navigator.mediaDevices.getDisplayMedia({
+            video: {
+              frameRate: { ideal: 30, max: 30 },
+              width: { max: 1920 },
+              height: { max: 1080 }
+            },
+            audio: true
+          });
+        } catch(e2) {
+          try {
+            stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+          } catch(e3) {
+            console.log('Capture prompt dismissed or unavailable:', e3);
+            if (e3.name !== 'AbortError' && e3.name !== 'NotAllowedError') {
+              alert('Could not start screen capture: ' + (e3.message || e3.name));
+            }
+            if (progressContainer) progressContainer.style.display = 'none';
+            if (modalFooter) modalFooter.style.display = 'flex';
+            return;
+          }
+        }
+      }
+
+      if (!stream) {
+        if (progressContainer) progressContainer.style.display = 'none';
+        if (modalFooter) modalFooter.style.display = 'flex';
+        return;
+      }
+
+      // CRITICAL: Hide modal during recording so video and drawings are 100% visible!
+      if (modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('open');
+      }
+
+      showFloatingExportHUD(startTime, endTime, () => finishScreenExport());
+
+      if (successBox) successBox.style.display = 'none';
+      if (helperRow) helperRow.style.display = 'flex';
+      if (progressContainer) progressContainer.style.display = 'flex';
+      if (modalFooter) modalFooter.style.display = 'none';
+      if (barFill) {
+        barFill.style.width = '0%';
+        barFill.style.background = 'linear-gradient(90deg, #00b0ff, #00e676)';
+      }
+      if (pctEl) {
+        pctEl.textContent = '0%';
+        pctEl.style.color = 'var(--accent-green)';
+      }
+      if (lblEl) lblEl.textContent = 'Seeking to clip start...';
+
+      let recData;
+      try {
+        recData = createSafeMediaRecorder(stream, 8000000);
+      } catch(err) {
+        alert('MediaRecorder initialization failed: ' + (err.message || err));
+        try { stream.getTracks().forEach(t => t.stop()); } catch(e){}
+        hideFloatingExportHUD();
+        if (modal) {
+          modal.style.display = 'flex';
+          modal.classList.add('open');
+        }
+        if (progressContainer) progressContainer.style.display = 'none';
+        if (modalFooter) modalFooter.style.display = 'flex';
+        return;
+      }
+
+      const recorder = recData.recorder;
+      const mime = recData.mimeType;
+      const chunks = [];
+
+      recorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) chunks.push(e.data);
+      };
+
+      recorder.onstop = () => {
+        try {
+          stream.getTracks().forEach(t => {
+            t.onended = null;
+            t.stop();
+          });
+        } catch(e){}
+        autoPauseOnKeyframes = _origAutoPauseState;
+        isExportingDirectVideo = false;
+        hideFloatingExportHUD();
+        pauseVideo();
+
+        // Restore modal to show download button and status
+        if (modal) {
+          modal.style.display = 'flex';
+          modal.classList.add('open');
+        }
+
+        if (chunks.length > 0 && !exportDirectCancelled) {
+          const isMp4 = mime.includes('mp4');
+          const ext = isMp4 ? 'mp4' : 'webm';
+          const filename = `tactical-recording-${Date.now()}.${ext}`;
+          const blob = new Blob(chunks, { type: isMp4 ? 'video/mp4' : 'video/webm' });
+          const { url, sizeMB } = triggerFileDownload(blob, filename);
+
+          showExportModalSuccess(url, filename, sizeMB);
+          showExportToast(`✅ Video exported: ${filename}`);
+        } else if (!exportDirectCancelled) {
+          alert('Recording completed with 0 frames. Please ensure permissions are granted and try again.');
+          if (progressContainer) progressContainer.style.display = 'none';
+          if (modalFooter) modalFooter.style.display = 'flex';
+          closeExportVideoModal();
+        }
+      };
+
+      const vTrack = stream.getVideoTracks()[0];
+      if (vTrack) {
+        vTrack.onended = () => {
+          if (isExportingDirectVideo && !exportDirectCancelled) {
+            finishScreenExport();
+          }
+        };
+      }
+
+      _origAutoPauseState = autoPauseOnKeyframes;
+      autoPauseOnKeyframes = false;
+      isExportingDirectVideo = true;
+      exportDirectCancelled = false;
+
+      seekToTime(startTime);
+      let seekCheckCount = 0;
+      while (seekCheckCount < 12 && Math.abs(currentVideoTime - startTime) > 1.0) {
+        await new Promise(r => setTimeout(r, 100));
+        seekCheckCount++;
+      }
+      await new Promise(r => setTimeout(r, 200));
+
+      if (exportDirectCancelled) {
+        try { stream.getTracks().forEach(t => t.stop()); } catch(e){}
+        hideFloatingExportHUD();
+        return;
+      }
+
+      recorder.start(250);
+      playVideo();
+
+      const totalDuration = Math.max(0.5, endTime - startTime);
+      const startWall = performance.now();
+      let hasPlaybackStarted = false;
+      let playbackStartWall = startWall;
+
+      function finishScreenExport() {
+        if (!isExportingDirectVideo) return;
+        isExportingDirectVideo = false;
+        clearInterval(monitorInterval);
+        hideFloatingExportHUD();
+        pauseVideo();
+        if (modal) {
+          modal.style.display = 'flex';
+          modal.classList.add('open');
+        }
+        if (lblEl) lblEl.textContent = 'Finalizing video file...';
+        try {
+          if (recorder && recorder.state !== 'inactive') {
+            recorder.stop();
+          }
+        } catch(e){}
+      }
+
+      const monitorInterval = setInterval(() => {
+        if (!isExportingDirectVideo || exportDirectCancelled) {
+          clearInterval(monitorInterval);
+          hideFloatingExportHUD();
+          try {
+            if (recorder && recorder.state !== 'inactive') {
+              recorder.stop();
+            }
+          } catch(e){}
+          return;
+        }
+
+        const wallElapsed = (performance.now() - startWall) / 1000;
+        const cur = currentVideoTime;
+
+        if (!hasPlaybackStarted) {
+          if (Math.abs(cur - startTime) <= 0.8 || wallElapsed >= 0.8) {
+            hasPlaybackStarted = true;
+            playbackStartWall = performance.now();
+          }
+        }
+
+        const activeWallElapsed = hasPlaybackStarted ? ((performance.now() - playbackStartWall) / 1000) : wallElapsed;
+        const elapsed = Math.max(0, Math.min(totalDuration, hasPlaybackStarted ? (cur - startTime) : 0));
+        const pct = Math.min(100, Math.max(0, Math.round((Math.max(elapsed, activeWallElapsed) / totalDuration) * 100)));
+
+        if (barFill) barFill.style.width = pct + '%';
+        if (pctEl) pctEl.textContent = pct + '%';
+        if (lblEl) lblEl.textContent = `Recording clip: ${pct}% (${elapsed.toFixed(1)}s / ${totalDuration.toFixed(1)}s)`;
+
+        updateFloatingExportHUD(elapsed, totalDuration, pct);
+
+        const isFinished = (hasPlaybackStarted && activeWallElapsed >= (totalDuration * 0.85) && cur >= endTime) ||
+                           (activeWallElapsed >= totalDuration + 2.5);
+
+        if (isFinished) {
+          finishScreenExport();
+        }
+      }, 100);
+    }
+
+    function cancelDirectVideoExport() {
+      exportDirectCancelled = true;
+      isExportingDirectVideo = false;
+      autoPauseOnKeyframes = _origAutoPauseState;
+      hideFloatingExportHUD();
+      pauseVideo();
+      const modal = document.getElementById('export-video-modal');
+      if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.add('open');
+      }
+      const progressContainer = document.getElementById('export-progress-container');
+      const modalFooter = document.getElementById('export-modal-footer');
+      const successBox = document.getElementById('export-success-box');
+      if (successBox) successBox.style.display = 'none';
+      if (progressContainer) progressContainer.style.display = 'none';
+      if (modalFooter) modalFooter.style.display = 'flex';
+    }
+
+    /* ==========================================================================
+       FEATURE 1C: 📥 CLIPPER HANDOFF AUTO-IMPORT
+    ========================================================================== */
+    function checkClipperHandoff() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('source') === 'clipper_handoff') {
+        try {
+          const req = indexedDB.open('TacticalClipperDB', 1);
+          req.onsuccess = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains('handoffClips')) return;
+            const tx = db.transaction('handoffClips', 'readonly');
+            const store = tx.objectStore('handoffClips');
+            const getReq = store.get('latest_handoff');
+            getReq.onsuccess = () => {
+              const res = getReq.result;
+              if (res && res.blob) {
+                const file = new File([res.blob], `${res.name || 'clipped_match'}.${res.format || 'mp4'}`, { type: res.blob.type || 'video/mp4' });
+                loadLocalVideoFile({ files: [file] });
+                
+                // Show notification badge
+                const toast = document.getElementById('focus-reclaim-toast');
+                if (toast) {
+                  toast.textContent = '🎬 Match cut loaded from Tactical Video Clipper!';
+                  toast.style.display = 'block';
+                  toast.classList.add('visible');
+                  setTimeout(() => {
+                    toast.classList.remove('visible');
+                    toast.style.display = 'none';
+                    toast.textContent = '👆 Click anywhere to activate controls';
+                  }, 4000);
+                }
+              }
+            };
+          };
+        } catch(err) {
+          console.warn('Clipper handoff note:', err);
+        }
+      }
     }
 
     /* ==========================================================================
@@ -3878,6 +5201,292 @@
     /* ==========================================================================
        4. TELESTRATION 3D TACTICAL TOOLS & SHAPE BUILDERS
     ========================================================================== */
+    let activeCircleStyle = 'solid'; // 'solid' | 'dashed' | 'dotted'
+    let activeLineStyle = 'arrow-straight'; // 'arrow-straight' (Pass) | 'arrow-run' (Run) | 'arrow-dribble' (Carry) | 'arrow-curved-right' | 'arrow-curved-left'
+    let activeDrawZoneTool = 'polygon'; // 'polygon' | 'polyline' | 'pen'
+
+    function toggleToolSubmenu(wrapperId, popoverId, triggerId, e) {
+      if (e) e.stopPropagation();
+      document.querySelectorAll('.tool-popover-wrapper.open, .color-dropdown-wrapper.open').forEach(w => {
+        if (w.id !== wrapperId) w.classList.remove('open');
+      });
+
+      const wrapper = document.getElementById(wrapperId);
+      const popover = document.getElementById(popoverId);
+      const trigger = document.getElementById(triggerId);
+      if (!wrapper || !popover || !trigger) return;
+
+      const willOpen = !wrapper.classList.contains('open');
+      if (willOpen) {
+        const rect = trigger.getBoundingClientRect();
+        popover.style.left = (rect.right + 10) + 'px';
+        const targetTop = Math.max(20, Math.min(window.innerHeight - 250, rect.top + (rect.height / 2)));
+        popover.style.top = `${targetTop}px`;
+        popover.style.transform = 'translateY(-50%)';
+      }
+      wrapper.classList.toggle('open');
+    }
+
+    function handleCircleToolButtonClick(e) {
+      if (e) e.stopPropagation();
+      if (activeTool === 'circle') {
+        toggleToolSubmenu('tool-circle-wrapper', 'circle-sub-popover', 'tool-circle', e);
+      } else {
+        setActiveTool('circle');
+      }
+    }
+
+    function selectCircleSubStyle(style, e) {
+      if (e) e.stopPropagation();
+      activeCircleStyle = style;
+      setActiveTool('circle');
+      updateCircleToolUI();
+      const wrapper = document.getElementById('tool-circle-wrapper');
+      if (wrapper) wrapper.classList.remove('open');
+    }
+
+    function updateCircleToolUI() {
+      document.querySelectorAll('#circle-sub-popover .sub-tool-opt').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById(`sub-circle-${activeCircleStyle}`);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const circleIcon = document.getElementById('tool-circle-icon');
+      if (circleIcon) {
+        if (activeCircleStyle === 'dashed') {
+          circleIcon.innerHTML = `<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="6 6"/>`;
+        } else if (activeCircleStyle === 'dotted') {
+          circleIcon.innerHTML = `<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="1 6" stroke-linecap="round"/>`;
+        } else {
+          circleIcon.innerHTML = `<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.2"/>`;
+        }
+      }
+
+      const btn = document.getElementById('tool-circle');
+      if (btn) btn.setAttribute('data-tooltip', `Circle (${activeCircleStyle.toUpperCase()})\n(C)`);
+    }
+
+    function handleLineToolButtonClick(e) {
+      if (e) e.stopPropagation();
+      const isAnyLine = ['arrow-straight', 'arrow-dotted', 'arrow-run', 'arrow-dribble', 'arrow-curved-right', 'arrow-curved-left'].includes(activeTool);
+      if (isAnyLine) {
+        toggleToolSubmenu('tool-line-wrapper', 'line-sub-popover', 'tool-line', e);
+      } else {
+        setActiveTool(activeLineStyle || 'arrow-straight');
+      }
+    }
+
+    function selectLineSubStyle(lineTool, e) {
+      if (e) e.stopPropagation();
+      activeLineStyle = lineTool;
+      setActiveTool(lineTool);
+      updateLineToolUI();
+      const wrapper = document.getElementById('tool-line-wrapper');
+      if (wrapper) wrapper.classList.remove('open');
+    }
+
+    function updateLineToolUI() {
+      document.querySelectorAll('#line-sub-popover .sub-tool-opt').forEach(btn => btn.classList.remove('active'));
+      let subId = 'sub-line-pass';
+      if (activeLineStyle === 'arrow-dotted') subId = 'sub-line-dotted';
+      else if (activeLineStyle === 'arrow-run') subId = 'sub-line-run';
+      else if (activeLineStyle === 'arrow-dribble') subId = 'sub-line-dribble';
+      else if (activeLineStyle === 'arrow-curved-right') subId = 'sub-line-arc-right';
+      else if (activeLineStyle === 'arrow-curved-left') subId = 'sub-line-arc-left';
+
+      const activeBtn = document.getElementById(subId);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const lineIcon = document.getElementById('tool-line-icon');
+      if (lineIcon) {
+        if (activeLineStyle === 'arrow-dotted') {
+          lineIcon.innerHTML = `<line x1="5" y1="19" x2="19" y2="5" stroke-dasharray="1 5" stroke-linecap="round"/><polyline points="10 5 19 5 19 14"/>`;
+        } else if (activeLineStyle === 'arrow-run') {
+          lineIcon.innerHTML = `<line x1="5" y1="19" x2="19" y2="5"/><polyline points="10 5 19 5 19 14"/>`;
+        } else if (activeLineStyle === 'arrow-dribble') {
+          lineIcon.innerHTML = `<path d="M4 20 L8 15 L12 17 L16 11 L19 5"/><polyline points="13 5 19 5 19 11"/>`;
+        } else if (activeLineStyle === 'arrow-curved-right') {
+          lineIcon.innerHTML = `<path d="M5 19C5 11 11 7 20 6"/><polyline points="14 2 20 6 15 11"/>`;
+        } else if (activeLineStyle === 'arrow-curved-left') {
+          lineIcon.innerHTML = `<path d="M19 19C19 11 13 7 4 6"/><polyline points="10 2 4 6 9 11"/>`;
+        } else {
+          lineIcon.innerHTML = `<line x1="5" y1="19" x2="19" y2="5" stroke-dasharray="5 5"/><polyline points="10 5 19 5 19 14"/>`;
+        }
+      }
+
+      let label = 'Pass (Dashed)\n(D)';
+      if (activeLineStyle === 'arrow-dotted') label = 'Pass (Dotted)\n(D)';
+      else if (activeLineStyle === 'arrow-run') label = 'Player Run\n(D)';
+      else if (activeLineStyle === 'arrow-dribble') label = 'Ball Carry\n(D)';
+      else if (activeLineStyle === 'arrow-curved-right') label = 'Right Arc\n(A)';
+      else if (activeLineStyle === 'arrow-curved-left') label = 'Left Arc\n(Q)';
+
+      const btn = document.getElementById('tool-line');
+      if (btn) btn.setAttribute('data-tooltip', label);
+    }
+
+    function handleDrawZoneToolButtonClick(e) {
+      if (e) e.stopPropagation();
+      const isAnyDrawZone = ['polygon', 'polyline', 'pen'].includes(activeTool);
+      if (isAnyDrawZone) {
+        toggleToolSubmenu('tool-drawzone-wrapper', 'drawzone-sub-popover', 'tool-drawzone', e);
+      } else {
+        setActiveTool(activeDrawZoneTool || 'polygon');
+      }
+    }
+
+    function selectDrawZoneSubTool(tool, e) {
+      if (e) e.stopPropagation();
+      activeDrawZoneTool = tool;
+      setActiveTool(tool);
+      updateDrawZoneToolUI();
+      const wrapper = document.getElementById('tool-drawzone-wrapper');
+      if (wrapper) wrapper.classList.remove('open');
+    }
+
+    function updateDrawZoneToolUI() {
+      document.querySelectorAll('#drawzone-sub-popover .sub-tool-opt').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById(`sub-drawzone-${activeDrawZoneTool}`);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const icon = document.getElementById('tool-drawzone-icon');
+      if (icon) {
+        if (activeDrawZoneTool === 'polyline') {
+          icon.innerHTML = `<circle cx="4" cy="19" r="2.5"/><circle cx="12" cy="5" r="2.5"/><circle cx="20" cy="19" r="2.5"/><line x1="6.5" y1="17.5" x2="10" y2="7.5"/><line x1="14" y1="7.5" x2="17.5" y2="17.5"/>`;
+        } else if (activeDrawZoneTool === 'pen') {
+          icon.innerHTML = `<path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/>`;
+        } else {
+          icon.innerHTML = `<polygon points="12 2 22 8.5 18 20 6 20 2 8.5 12 2"/>`;
+        }
+      }
+
+      let label = 'Polygon Zone\n(P)';
+      if (activeDrawZoneTool === 'polyline') label = 'Three Line Triangle\n(L)';
+      else if (activeDrawZoneTool === 'pen') label = 'Tactical Pen\n(N)';
+
+      const btn = document.getElementById('tool-drawzone');
+      if (btn) btn.setAttribute('data-tooltip', label);
+    }
+
+    function setSelectedCircleStyle(style) {
+      activeCircleStyle = style;
+      updateCircleToolUI();
+
+      if (!canvas) return;
+      let activeObj = canvas.getActiveObject();
+      if (!activeObj) {
+        const objs = canvas.getObjects();
+        for (let i = objs.length - 1; i >= 0; i--) {
+          if (objs[i].tacticalType === 'circle-zone') {
+            activeObj = objs[i];
+            break;
+          }
+        }
+      }
+
+      if (activeObj && activeObj.tacticalType === 'circle-zone') {
+        activeObj.circleStyle = style;
+        let dash = null;
+        let cap = 'butt';
+        if (style === 'dashed') {
+          dash = [16, 16];
+          cap = 'butt';
+        } else if (style === 'dotted') {
+          const sw = (activeObj && activeObj.strokeWidth) || strokeWidth || 4;
+          dash = [1, Math.max(14, sw * 2.2)];
+          cap = 'round';
+        }
+        activeObj.set({
+          strokeDashArray: dash,
+          strokeLineCap: cap
+        });
+        canvas.renderAll();
+        saveCurrentCanvasToActiveKeyframe();
+        updateContextualControls(activeObj);
+      }
+    }
+
+    let activeCircleFillEnabled = false;
+
+    function toggleSelectedCircleFill() {
+      if (!canvas) return;
+      let activeObj = canvas.getActiveObject();
+      if (!activeObj || activeObj.tacticalType !== 'circle-zone') {
+        const objs = canvas.getObjects();
+        for (let i = objs.length - 1; i >= 0; i--) {
+          if (objs[i].tacticalType === 'circle-zone') {
+            activeObj = objs[i];
+            break;
+          }
+        }
+      }
+
+      if (activeObj && activeObj.tacticalType === 'circle-zone') {
+        const currentFill = activeObj.fill;
+        const isFilled = currentFill && currentFill !== 'transparent' && currentFill !== 'rgba(0,0,0,0)' && currentFill !== 'none';
+        if (!isFilled) {
+          let fColor = hexToRgba(activeObj.stroke || drawColor, 0.16);
+          activeObj.set('fill', fColor);
+          activeCircleFillEnabled = true;
+        } else {
+          activeObj.set('fill', 'transparent');
+          activeCircleFillEnabled = false;
+        }
+        canvas.renderAll();
+        saveCurrentCanvasToActiveKeyframe();
+        updateContextualControls(activeObj);
+      } else {
+        activeCircleFillEnabled = !activeCircleFillEnabled;
+        updateContextualControls(null);
+      }
+    }
+
+    function transformSelectedArrowType(newType) {
+      if (!canvas) return;
+      let activeObj = canvas.getActiveObject();
+      if (!activeObj) {
+        const objs = canvas.getObjects();
+        for (let i = objs.length - 1; i >= 0; i--) {
+          if (['curved-arrow', 'straight-arrow', 'dotted-arrow', 'run-arrow', 'dribble-arrow'].includes(objs[i].tacticalType)) {
+            activeObj = objs[i];
+            break;
+          }
+        }
+      }
+      if (!activeObj) return;
+
+      let p1 = activeObj._arrowStart;
+      let p2 = activeObj._arrowEnd;
+      if (!p1 || !p2) {
+        p1 = { x: activeObj.left, y: activeObj.top };
+        p2 = { x: activeObj.left + (activeObj.width || 100), y: activeObj.top + (activeObj.height || 50) };
+      }
+      const color = (activeObj._objects && activeObj._objects[0] && activeObj._objects[0].stroke) || drawColor;
+      const width = (activeObj._objects && activeObj._objects[0] && activeObj._objects[0].strokeWidth) || strokeWidth;
+
+      let newArrow = null;
+      if (newType === 'straight-arrow') {
+        newArrow = createStraightTacticalArrow(p1.x, p1.y, p2.x, p2.y, color, width);
+      } else if (newType === 'dotted-arrow') {
+        newArrow = createDottedTacticalArrow(p1.x, p1.y, p2.x, p2.y, color, width);
+      } else if (newType === 'run-arrow') {
+        newArrow = createSolidPlayerRunArrow(p1.x, p1.y, p2.x, p2.y, color, width);
+      } else if (newType === 'dribble-arrow') {
+        newArrow = createZigzagDribbleArrow(p1.x, p1.y, p2.x, p2.y, color, width);
+      }
+
+      if (newArrow) {
+        newArrow.keyframeId = activeObj.keyframeId;
+        newArrow.selectable = (activeTool === 'select');
+        newArrow.evented = (activeTool === 'select');
+        canvas.remove(activeObj);
+        canvas.add(newArrow);
+        if (activeTool === 'select') canvas.setActiveObject(newArrow);
+        canvas.renderAll();
+        saveCurrentCanvasToActiveKeyframe();
+        updateContextualControls(newArrow);
+      }
+    }
+
     function toggleOrSetActiveTool(tool) {
       if (activeTool === tool) {
         setActiveTool('none');
@@ -3893,6 +5502,25 @@
       document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
       const activeBtn = document.getElementById(`tool-${tool}`);
       if (activeBtn) activeBtn.classList.add('active');
+
+      if (tool === 'circle') {
+        const circleBtn = document.getElementById('tool-circle');
+        if (circleBtn) circleBtn.classList.add('active');
+        updateCircleToolUI();
+      }
+      if (['arrow-straight', 'arrow-dotted', 'arrow-run', 'arrow-dribble', 'arrow-curved-right', 'arrow-curved-left'].includes(tool)) {
+        const lineBtn = document.getElementById('tool-line');
+        if (lineBtn) lineBtn.classList.add('active');
+        activeLineStyle = tool;
+        updateLineToolUI();
+      }
+
+      if (['polygon', 'polyline', 'pen'].includes(tool)) {
+        const drawZoneBtn = document.getElementById('tool-drawzone');
+        if (drawZoneBtn) drawZoneBtn.classList.add('active');
+        activeDrawZoneTool = tool;
+        updateDrawZoneToolUI();
+      }
 
       if (tool !== 'polygon') {
         if (polygonLines && polygonLines.length > 0) {
@@ -4006,6 +5634,7 @@
       const defaultGroup = document.getElementById('ctx-default-group');
       const spotlightGroup = document.getElementById('ctx-spotlight-group');
       const trackerGroup = document.getElementById('ctx-tracker-group');
+      const circleGroup = document.getElementById('ctx-circle-group');
       const arcGroup = document.getElementById('ctx-arc-group');
       const rulerGroup = document.getElementById('ctx-ruler-group');
       const playerGroup = document.getElementById('ctx-player-group');
@@ -4018,12 +5647,13 @@
       const isZoom = (activeTool === 'zoom');
       const isPolygon = (activeTool === 'polygon') || (activeObj && activeObj.tacticalType === 'polygon-zone');
       const isPolyline = (activeTool === 'polyline') || (activeObj && activeObj.tacticalType === 'polyline-chain');
+      const isCircle = (activeTool === 'circle') || (activeObj && activeObj.tacticalType === 'circle-zone');
 
       const isRuler = (activeTool === 'ruler') ||
                       (activeObj && activeObj.tacticalType === 'ruler');
 
-      const isLineOrArrow = (activeTool === 'arrow-curved-right' || activeTool === 'arrow-curved-left' || activeTool === 'arrow-curved' || activeTool === 'arrow-straight') ||
-                            (activeObj && (activeObj.tacticalType === 'curved-arrow' || activeObj.tacticalType === 'straight-arrow'));
+      const isLineOrArrow = (['arrow-curved-right', 'arrow-curved-left', 'arrow-curved', 'arrow-straight', 'arrow-dotted', 'arrow-run', 'arrow-dribble'].includes(activeTool)) ||
+                            (activeObj && ['curved-arrow', 'straight-arrow', 'dotted-arrow', 'run-arrow', 'dribble-arrow'].includes(activeObj.tacticalType));
 
       const isPlayer = (activeTool === 'player') ||
                        (activeObj && activeObj.tacticalType === 'player-token');
@@ -4032,6 +5662,7 @@
       if (defaultGroup) defaultGroup.style.display = 'none';
       if (spotlightGroup) spotlightGroup.style.display = 'none';
       if (trackerGroup) trackerGroup.style.display = 'none';
+      if (circleGroup) circleGroup.style.display = 'none';
       if (arcGroup) arcGroup.style.display = 'none';
       if (rulerGroup) rulerGroup.style.display = 'none';
       if (playerGroup) playerGroup.style.display = 'none';
@@ -4063,6 +5694,62 @@
           updatePolylineBadgeUI();
           updatePolylineRulerButtonUI();
         }
+      } else if (isCircle) {
+        if (circleGroup) {
+          circleGroup.style.display = 'flex';
+          const currStyle = (activeObj && activeObj.circleStyle) || activeCircleStyle || 'solid';
+          ['solid', 'dashed', 'dotted'].forEach(s => {
+            const btn = document.getElementById(`ctx-circle-btn-${s}`);
+            if (btn) {
+              if (s === currStyle) {
+                btn.style.background = 'rgba(0,230,118,0.25)';
+                btn.style.borderColor = '#00e676';
+                btn.style.color = '#00e676';
+              } else {
+                btn.style.background = 'rgba(255,255,255,0.08)';
+                btn.style.borderColor = 'rgba(255,255,255,0.15)';
+                btn.style.color = '#cbd5e1';
+              }
+            }
+          });
+
+          const fillBtn = document.getElementById('ctx-circle-btn-fill');
+          const fillLabel = document.getElementById('ctx-circle-fill-label');
+          let isFilled = false;
+          if (activeObj && activeObj.tacticalType === 'circle-zone') {
+            const f = activeObj.fill;
+            isFilled = f && f !== 'transparent' && f !== 'rgba(0,0,0,0)' && f !== 'none';
+          } else {
+            const objs = canvas ? canvas.getObjects() : [];
+            let lastCircle = null;
+            for (let i = objs.length - 1; i >= 0; i--) {
+              if (objs[i].tacticalType === 'circle-zone') {
+                lastCircle = objs[i];
+                break;
+              }
+            }
+            if (lastCircle) {
+              const f = lastCircle.fill;
+              isFilled = f && f !== 'transparent' && f !== 'rgba(0,0,0,0)' && f !== 'none';
+            } else {
+              isFilled = activeCircleFillEnabled;
+            }
+          }
+
+          if (fillBtn) {
+            if (isFilled) {
+              fillBtn.style.background = 'rgba(0,230,118,0.25)';
+              fillBtn.style.borderColor = '#00e676';
+              fillBtn.style.color = '#00e676';
+              if (fillLabel) fillLabel.textContent = 'Fill: ON';
+            } else {
+              fillBtn.style.background = 'rgba(255,255,255,0.08)';
+              fillBtn.style.borderColor = 'rgba(255,255,255,0.15)';
+              fillBtn.style.color = '#cbd5e1';
+              if (fillLabel) fillLabel.textContent = 'Fill: OFF';
+            }
+          }
+        }
       } else if (isRuler) {
         if (rulerGroup) {
           rulerGroup.style.display = 'flex';
@@ -4086,12 +5773,33 @@
           arcGroup.style.display = 'flex';
           const lineLabel = document.getElementById('ctx-line-label');
           if (lineLabel) {
-            if (activeTool === 'arrow-straight' || (activeObj && activeObj.tacticalType === 'straight-arrow')) {
+            if (['arrow-straight', 'arrow-dotted', 'arrow-run', 'arrow-dribble'].includes(activeTool) || (activeObj && ['straight-arrow', 'dotted-arrow', 'run-arrow', 'dribble-arrow'].includes(activeObj.tacticalType))) {
               lineLabel.textContent = 'LINE OPTIONS:';
             } else {
               lineLabel.textContent = 'ARC OPTIONS:';
             }
           }
+          const currType = (activeObj && activeObj.tacticalType) || (activeTool === 'arrow-run' ? 'run-arrow' : (activeTool === 'arrow-dribble' ? 'dribble-arrow' : (activeTool === 'arrow-dotted' ? 'dotted-arrow' : 'straight-arrow')));
+          const passBtn = document.getElementById('ctx-line-btn-pass');
+          const dottedBtn = document.getElementById('ctx-line-btn-dotted');
+          const runBtn = document.getElementById('ctx-line-btn-run');
+          const dribbleBtn = document.getElementById('ctx-line-btn-dribble');
+          const highlightBtn = (btn, match) => {
+            if (!btn) return;
+            if (match) {
+              btn.style.background = 'rgba(0,230,118,0.25)';
+              btn.style.borderColor = '#00e676';
+              btn.style.color = '#00e676';
+            } else {
+              btn.style.background = 'rgba(255,255,255,0.08)';
+              btn.style.borderColor = 'rgba(255,255,255,0.15)';
+              btn.style.color = '#cbd5e1';
+            }
+          };
+          highlightBtn(passBtn, currType === 'straight-arrow' || activeTool === 'arrow-straight');
+          highlightBtn(dottedBtn, currType === 'dotted-arrow' || activeTool === 'arrow-dotted');
+          highlightBtn(runBtn, currType === 'run-arrow' || activeTool === 'arrow-run');
+          highlightBtn(dribbleBtn, currType === 'dribble-arrow' || activeTool === 'arrow-dribble');
         }
       } else {
         if (defaultGroup) {
@@ -4128,6 +5836,16 @@
         } else {
           modeBadge.textContent = 'SELECT & MOVE';
         }
+      } else if (activeTool === 'circle') {
+        modeBadge.textContent = `DRAWING: CIRCLE (${(activeCircleStyle || 'solid').toUpperCase()})`;
+      } else if (activeTool === 'arrow-run') {
+        modeBadge.textContent = 'DRAWING: PLAYER RUN (SOLID)';
+      } else if (activeTool === 'arrow-dribble') {
+        modeBadge.textContent = 'DRAWING: BALL CARRY (ZIGZAG)';
+      } else if (activeTool === 'arrow-straight') {
+        modeBadge.textContent = 'DRAWING: PASS LINE (DASHED)';
+      } else if (activeTool === 'arrow-dotted') {
+        modeBadge.textContent = 'DRAWING: PASS LINE (DOTTED)';
       } else if (activeTool === 'arrow-curved-right') {
         modeBadge.textContent = 'DRAWING: RIGHT ARC';
       } else if (activeTool === 'arrow-curved-left' || activeTool === 'arrow-curved') {
@@ -4247,6 +5965,13 @@
         canvas.add(tempShape);
         canvas.renderAll();
       }
+      else if (activeTool === 'circle') {
+        tempShape = createTacticalCircleZone(p.x, p.y, 4, 4, drawColor, strokeWidth, activeCircleStyle);
+        tempShape.selectable = false;
+        tempShape.evented = false;
+        canvas.add(tempShape);
+        canvas.renderAll();
+      }
       else if (activeTool === 'arrow-curved-right') {
         arrowCurveDirection = 1;
         tempShape = createCurvedTacticalArrow(p.x, p.y, p.x + 1, p.y + 1, drawColor, strokeWidth, 1);
@@ -4265,6 +5990,27 @@
       }
       else if (activeTool === 'arrow-straight') {
         tempShape = createStraightTacticalArrow(p.x, p.y, p.x + 1, p.y, drawColor, strokeWidth);
+        tempShape.selectable = false;
+        tempShape.evented = false;
+        canvas.add(tempShape);
+        canvas.renderAll();
+      }
+      else if (activeTool === 'arrow-dotted') {
+        tempShape = createDottedTacticalArrow(p.x, p.y, p.x + 1, p.y, drawColor, strokeWidth);
+        tempShape.selectable = false;
+        tempShape.evented = false;
+        canvas.add(tempShape);
+        canvas.renderAll();
+      }
+      else if (activeTool === 'arrow-run') {
+        tempShape = createSolidPlayerRunArrow(p.x, p.y, p.x + 1, p.y, drawColor, strokeWidth);
+        tempShape.selectable = false;
+        tempShape.evented = false;
+        canvas.add(tempShape);
+        canvas.renderAll();
+      }
+      else if (activeTool === 'arrow-dribble') {
+        tempShape = createZigzagDribbleArrow(p.x, p.y, p.x + 1, p.y, drawColor, strokeWidth);
         tempShape.selectable = false;
         tempShape.evented = false;
         canvas.add(tempShape);
@@ -4354,6 +6100,22 @@
         tempShape.setCoords();
         canvas.requestRenderAll();
       }
+      else if (activeTool === 'circle' && tempShape) {
+        const minX = Math.min(shapeStartPoint.x, p.x);
+        const minY = Math.min(shapeStartPoint.y, p.y);
+        const rx = Math.max(6, Math.abs(p.x - shapeStartPoint.x) / 2);
+        const ry = Math.max(6, Math.abs(p.y - shapeStartPoint.y) / 2);
+        tempShape.set({
+          left: minX,
+          top: minY,
+          rx: rx,
+          ry: ry,
+          width: rx * 2,
+          height: ry * 2
+        });
+        tempShape.setCoords();
+        canvas.renderAll();
+      }
       else if (activeTool === 'arrow-curved-right' && tempShape) {
         canvas.remove(tempShape);
         tempShape = createCurvedTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, p.x, p.y, drawColor, strokeWidth, 1);
@@ -4373,6 +6135,30 @@
       else if (activeTool === 'arrow-straight' && tempShape) {
         canvas.remove(tempShape);
         tempShape = createStraightTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, p.x, p.y, drawColor, strokeWidth);
+        tempShape.selectable = false;
+        tempShape.evented = false;
+        canvas.add(tempShape);
+        canvas.renderAll();
+      }
+      else if (activeTool === 'arrow-dotted' && tempShape) {
+        canvas.remove(tempShape);
+        tempShape = createDottedTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, p.x, p.y, drawColor, strokeWidth);
+        tempShape.selectable = false;
+        tempShape.evented = false;
+        canvas.add(tempShape);
+        canvas.renderAll();
+      }
+      else if (activeTool === 'arrow-run' && tempShape) {
+        canvas.remove(tempShape);
+        tempShape = createSolidPlayerRunArrow(shapeStartPoint.x, shapeStartPoint.y, p.x, p.y, drawColor, strokeWidth);
+        tempShape.selectable = false;
+        tempShape.evented = false;
+        canvas.add(tempShape);
+        canvas.renderAll();
+      }
+      else if (activeTool === 'arrow-dribble' && tempShape) {
+        canvas.remove(tempShape);
+        tempShape = createZigzagDribbleArrow(shapeStartPoint.x, shapeStartPoint.y, p.x, p.y, drawColor, strokeWidth);
         tempShape.selectable = false;
         tempShape.evented = false;
         canvas.add(tempShape);
@@ -4398,7 +6184,17 @@
         const dist = Math.hypot(p.x - shapeStartPoint.x, p.y - shapeStartPoint.y);
 
         if (dist < 6) {
-          if (activeTool === 'tracker-ring') {
+          if (activeTool === 'circle') {
+            tempShape.set({
+              left: shapeStartPoint.x - 45,
+              top: shapeStartPoint.y - 45,
+              rx: 45,
+              ry: 45,
+              width: 90,
+              height: 90
+            });
+            tempShape.setCoords();
+          } else if (activeTool === 'tracker-ring') {
             tempShape.rx = 46;
             tempShape.ry = 22;
             tempShape.width = 92;
@@ -4414,6 +6210,18 @@
           } else if (activeTool === 'arrow-straight') {
             canvas.remove(tempShape);
             tempShape = createStraightTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, shapeStartPoint.x + 90, shapeStartPoint.y, drawColor, strokeWidth);
+            canvas.add(tempShape);
+          } else if (activeTool === 'arrow-dotted') {
+            canvas.remove(tempShape);
+            tempShape = createDottedTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, shapeStartPoint.x + 90, shapeStartPoint.y, drawColor, strokeWidth);
+            canvas.add(tempShape);
+          } else if (activeTool === 'arrow-run') {
+            canvas.remove(tempShape);
+            tempShape = createSolidPlayerRunArrow(shapeStartPoint.x, shapeStartPoint.y, shapeStartPoint.x + 90, shapeStartPoint.y, drawColor, strokeWidth);
+            canvas.add(tempShape);
+          } else if (activeTool === 'arrow-dribble') {
+            canvas.remove(tempShape);
+            tempShape = createZigzagDribbleArrow(shapeStartPoint.x, shapeStartPoint.y, shapeStartPoint.x + 90, shapeStartPoint.y, drawColor, strokeWidth);
             canvas.add(tempShape);
           } else if (activeTool === 'ruler') {
             canvas.remove(tempShape);
@@ -4481,7 +6289,7 @@
       if (!activeObj) {
         const objs = canvas.getObjects();
         for (let i = objs.length - 1; i >= 0; i--) {
-          if (['curved-arrow', 'straight-arrow', 'ruler'].includes(objs[i].tacticalType)) {
+          if (['curved-arrow', 'straight-arrow', 'run-arrow', 'dribble-arrow', 'ruler'].includes(objs[i].tacticalType)) {
             activeObj = objs[i];
             break;
           }
@@ -4523,6 +6331,60 @@
         const color = (activeObj._objects && activeObj._objects[0] && activeObj._objects[0].stroke) || drawColor;
         const width = (activeObj._objects && activeObj._objects[0] && activeObj._objects[0].strokeWidth) || strokeWidth;
         const updatedArrow = createStraightTacticalArrow(p2.x, p2.y, p1.x, p1.y, color, width);
+        updatedArrow.selectable = (activeTool === 'select');
+        updatedArrow.evented = (activeTool === 'select');
+        canvas.remove(activeObj);
+        canvas.add(updatedArrow);
+        if (activeTool === 'select') canvas.setActiveObject(updatedArrow);
+        canvas.renderAll();
+        saveCurrentCanvasToActiveKeyframe();
+      }
+      else if (activeObj.tacticalType === 'dotted-arrow') {
+        let p1 = activeObj._arrowStart;
+        let p2 = activeObj._arrowEnd;
+        if (!p1 || !p2) {
+          p1 = { x: activeObj.left, y: activeObj.top };
+          p2 = { x: activeObj.left + (activeObj.width || 100), y: activeObj.top + (activeObj.height || 50) };
+        }
+        const color = (activeObj._objects && activeObj._objects[0] && activeObj._objects[0].stroke) || drawColor;
+        const width = (activeObj._objects && activeObj._objects[0] && activeObj._objects[0].strokeWidth) || strokeWidth;
+        const updatedArrow = createDottedTacticalArrow(p2.x, p2.y, p1.x, p1.y, color, width);
+        updatedArrow.selectable = (activeTool === 'select');
+        updatedArrow.evented = (activeTool === 'select');
+        canvas.remove(activeObj);
+        canvas.add(updatedArrow);
+        if (activeTool === 'select') canvas.setActiveObject(updatedArrow);
+        canvas.renderAll();
+        saveCurrentCanvasToActiveKeyframe();
+      }
+      else if (activeObj.tacticalType === 'run-arrow') {
+        let p1 = activeObj._arrowStart;
+        let p2 = activeObj._arrowEnd;
+        if (!p1 || !p2) {
+          p1 = { x: activeObj.left, y: activeObj.top };
+          p2 = { x: activeObj.left + (activeObj.width || 100), y: activeObj.top + (activeObj.height || 50) };
+        }
+        const color = (activeObj._objects && activeObj._objects[0] && activeObj._objects[0].stroke) || drawColor;
+        const width = (activeObj._objects && activeObj._objects[0] && activeObj._objects[0].strokeWidth) || strokeWidth;
+        const updatedArrow = createSolidPlayerRunArrow(p2.x, p2.y, p1.x, p1.y, color, width);
+        updatedArrow.selectable = (activeTool === 'select');
+        updatedArrow.evented = (activeTool === 'select');
+        canvas.remove(activeObj);
+        canvas.add(updatedArrow);
+        if (activeTool === 'select') canvas.setActiveObject(updatedArrow);
+        canvas.renderAll();
+        saveCurrentCanvasToActiveKeyframe();
+      }
+      else if (activeObj.tacticalType === 'dribble-arrow') {
+        let p1 = activeObj._arrowStart;
+        let p2 = activeObj._arrowEnd;
+        if (!p1 || !p2) {
+          p1 = { x: activeObj.left, y: activeObj.top };
+          p2 = { x: activeObj.left + (activeObj.width || 100), y: activeObj.top + (activeObj.height || 50) };
+        }
+        const color = (activeObj._objects && activeObj._objects[0] && activeObj._objects[0].stroke) || drawColor;
+        const width = (activeObj._objects && activeObj._objects[0] && activeObj._objects[0].strokeWidth) || strokeWidth;
+        const updatedArrow = createZigzagDribbleArrow(p2.x, p2.y, p1.x, p1.y, color, width);
         updatedArrow.selectable = (activeTool === 'select');
         updatedArrow.evented = (activeTool === 'select');
         canvas.remove(activeObj);
@@ -4601,9 +6463,9 @@
           const bottomRx = rx;
 
           const beamGrad = ctx.createLinearGradient(0, 0, 0, -beamH);
-          beamGrad.addColorStop(0, hexToRgba(color, 0.70));
-          beamGrad.addColorStop(0.35, hexToRgba(color, 0.42));
-          beamGrad.addColorStop(0.75, hexToRgba(color, 0.16));
+          beamGrad.addColorStop(0, hexToRgba(color, 0.22));
+          beamGrad.addColorStop(0.35, hexToRgba(color, 0.13));
+          beamGrad.addColorStop(0.75, hexToRgba(color, 0.04));
           beamGrad.addColorStop(1, hexToRgba(color, 0.0));
 
           ctx.fillStyle = beamGrad;
@@ -4616,19 +6478,20 @@
           ctx.closePath();
           ctx.fill();
 
-          // Top floodlight head
-          ctx.fillStyle = '#ffffff';
+          // Top floodlight head (soft subtle glow)
+          ctx.save();
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
           ctx.shadowColor = color;
-          ctx.shadowBlur = 18;
+          ctx.shadowBlur = 12;
           ctx.beginPath();
-          ctx.ellipse(0, -beamH, topRx, 4.5, 0, 0, Math.PI * 2);
+          ctx.ellipse(0, -beamH, topRx, 4, 0, 0, Math.PI * 2);
           ctx.fill();
-          ctx.shadowBlur = 0;
+          ctx.restore();
 
-          // Outer Glowing Floor Disc
+          // Outer Glowing Floor Disc (Soft ambient ground glow)
           const groundGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, rx * 1.35);
-          groundGrad.addColorStop(0, hexToRgba(color, 0.65));
-          groundGrad.addColorStop(0.5, hexToRgba(color, 0.28));
+          groundGrad.addColorStop(0, hexToRgba(color, 0.14));
+          groundGrad.addColorStop(0.5, hexToRgba(color, 0.06));
           groundGrad.addColorStop(1, hexToRgba(color, 0.0));
 
           ctx.fillStyle = groundGrad;
@@ -4637,19 +6500,19 @@
           ctx.fill();
         }
 
-        // 2. Base Ground Disc Underlay
-        ctx.fillStyle = hexToRgba(color, 0.26);
+        // 2. Base Ground Disc Underlay (ultra-translucent so player boots and grass are crystal clear)
+        ctx.fillStyle = hexToRgba(color, 0.08);
         ctx.beginPath();
         ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        // 3. Concentric Inner Dashed Tactical Ring (White)
+        // 3. Concentric Inner Dashed Tactical Ring (White, equal dash & space)
         ctx.save();
         ctx.beginPath();
         ctx.ellipse(0, 0, rx * 0.64, ry * 0.64, 0, 0, Math.PI * 2);
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
         ctx.lineWidth = 1.8;
-        ctx.setLineDash([4, 3]);
+        ctx.setLineDash([6, 6]);
         ctx.lineDashOffset = -timeSec * 15;
         ctx.stroke();
         ctx.restore();
@@ -4716,13 +6579,12 @@
       const items = [];
       rx = Math.max(45, rx || 52);
       ry = Math.max(20, ry || (rx * 0.46));
-      opacity = opacity || 0.8;
 
       if (withBeam) {
         const beamHeight = Math.max(180, ry * 5.0);
         const topRx = Math.max(16, rx * 0.42);
 
-        // Light Beam Cone (3D Stadium Light Beam) with local coordinate gradient
+        // Light Beam Cone (3D Stadium Light Beam) with transparent luminous gradient
         const lightBeam = new fabric.Polygon([
           { x: -rx, y: 0 },
           { x: -topRx, y: -beamHeight },
@@ -4738,9 +6600,9 @@
             gradientUnits: 'pixels',
             coords: { x1: 0, y1: beamHeight, x2: 0, y2: 0 },
             colorStops: [
-              { offset: 0, color: hexToRgba(color, Math.max(0.65, opacity * 0.85)) },
-              { offset: 0.35, color: hexToRgba(color, Math.max(0.4, opacity * 0.5)) },
-              { offset: 0.75, color: hexToRgba(color, Math.max(0.18, opacity * 0.22)) },
+              { offset: 0, color: hexToRgba(color, 0.22) },
+              { offset: 0.35, color: hexToRgba(color, 0.13) },
+              { offset: 0.75, color: hexToRgba(color, 0.05) },
               { offset: 1, color: hexToRgba(color, 0) }
             ]
           }),
@@ -4751,7 +6613,7 @@
         items.push(lightBeam);
       }
 
-      // Outer Glowing Floor Disc (Illuminated Grass on Pitch)
+      // Outer Glowing Floor Disc (Illuminated Grass on Pitch - gentle glow so player is clear)
       const outerRing = new fabric.Ellipse({
         left: cx,
         top: cy,
@@ -4759,19 +6621,19 @@
         originY: 'center',
         rx: rx,
         ry: ry,
-        fill: hexToRgba(color, Math.max(0.45, opacity * 0.65)),
+        fill: hexToRgba(color, 0.10),
         stroke: color,
-        strokeWidth: 4,
+        strokeWidth: 3,
         shadow: new fabric.Shadow({
           color: color,
-          blur: Math.max(18, rx * 0.4),
+          blur: 14,
           offsetX: 0,
           offsetY: 0
         })
       });
       items.push(outerRing);
 
-      // Concentric Inner Dashed Tactical Ring (Crisp High-Contrast White)
+      // Concentric Inner Dashed Tactical Ring (Crisp High-Contrast White, equal dash & space)
       const innerRing = new fabric.Ellipse({
         left: cx,
         top: cy,
@@ -4780,25 +6642,25 @@
         rx: rx * 0.6,
         ry: ry * 0.6,
         fill: 'transparent',
-        stroke: '#ffffff',
-        strokeWidth: 2.5,
-        strokeDashArray: [6, 4]
+        stroke: 'rgba(255, 255, 255, 0.85)',
+        strokeWidth: 1.8,
+        strokeDashArray: [6, 6]
       });
       items.push(innerRing);
 
-      // Center Bright Target Beacon Dot
+      // Center Subtle Target Beacon Ring (hollow, non-blocking for player visibility)
       const centerDot = new fabric.Circle({
         left: cx,
         top: cy,
         originX: 'center',
         originY: 'center',
-        radius: 5,
-        fill: '#ffffff',
-        stroke: color,
-        strokeWidth: 2,
+        radius: 3.5,
+        fill: 'transparent',
+        stroke: '#ffffff',
+        strokeWidth: 1.6,
         shadow: new fabric.Shadow({
-          color: '#ffffff',
-          blur: 10,
+          color: color,
+          blur: 6,
           offsetX: 0,
           offsetY: 0
         })
@@ -4925,8 +6787,8 @@
         fill: 'transparent',
         stroke: color,
         strokeWidth: Math.max(6, width),
-        strokeLineCap: 'round',
-        strokeDashArray: [12, 8],
+        strokeLineCap: 'butt',
+        strokeDashArray: [16, 16],
         shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.6)', blur: 8, offsetY: 2 })
       });
 
@@ -4953,6 +6815,254 @@
       group._arrowStart = { x: x1, y: y1 };
       group._arrowEnd = { x: x2, y: y2 };
       return group;
+    }
+
+    // 3b. Pass Line Arrow (Dotted with round dots and equal spacing)
+    function createDottedTacticalArrow(x1, y1, x2, y2, color, width) {
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 4) {
+        return new fabric.Path(`M ${x1} ${y1} L ${x2} ${y2}`, {
+          stroke: color, strokeWidth: width, fill: 'transparent', tacticalType: 'dotted-arrow'
+        });
+      }
+
+      const ux = dx / dist;
+      const uy = dy / dist;
+      const vx = -uy;
+      const vy = ux;
+
+      const headLen = Math.max(26, width * 3.2);
+      const headWidth = Math.max(16, width * 2.0);
+
+      const bx = x2 - ux * (headLen * 0.7);
+      const by = y2 - uy * (headLen * 0.7);
+      const lx = x2 - ux * headLen + vx * headWidth;
+      const ly = y2 - uy * headLen + vy * headWidth;
+      const rx = x2 - ux * headLen - vx * headWidth;
+      const ry = y2 - uy * headLen - vy * headWidth;
+
+      const linePath = `M ${x1} ${y1} L ${bx} ${by}`;
+      const headPath = `M ${x2} ${y2} L ${lx} ${ly} L ${bx} ${by} L ${rx} ${ry} Z`;
+
+      const shaftObj = new fabric.Path(linePath, {
+        fill: 'transparent',
+        stroke: color,
+        strokeWidth: Math.max(5, width * 0.9),
+        strokeLineCap: 'round',
+        strokeDashArray: [1, Math.max(14, (width || 8) * 2.2)],
+        shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.6)', blur: 8, offsetY: 2 })
+      });
+
+      const headObj = new fabric.Path(headPath, {
+        fill: color,
+        stroke: '#000000',
+        strokeWidth: 1.5,
+        shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.6)', blur: 8, offsetY: 2 })
+      });
+
+      const dotObj = new fabric.Circle({
+        left: x1 - width * 1.1,
+        top: y1 - width * 1.1,
+        radius: width * 1.1,
+        fill: color,
+        stroke: '#ffffff',
+        strokeWidth: 2
+      });
+
+      const group = new fabric.Group([shaftObj, headObj, dotObj], {
+        tacticalType: 'dotted-arrow',
+        stroke: color,
+        strokeWidth: width
+      });
+
+      group._arrowStart = { x: x1, y: y1 };
+      group._arrowEnd = { x: x2, y: y2 };
+      return group;
+    }
+
+    // 3b. Player Run Arrow (Solid straight line indicating off-the-ball runs)
+    function createSolidPlayerRunArrow(x1, y1, x2, y2, color, width) {
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 4) {
+        return new fabric.Path(`M ${x1} ${y1} L ${x2} ${y2}`, {
+          stroke: color, strokeWidth: width, fill: 'transparent', tacticalType: 'run-arrow'
+        });
+      }
+
+      const ux = dx / dist;
+      const uy = dy / dist;
+      const vx = -uy;
+      const vy = ux;
+
+      const headLen = Math.max(26, width * 3.2);
+      const headWidth = Math.max(16, width * 2.0);
+
+      const bx = x2 - ux * (headLen * 0.7);
+      const by = y2 - uy * (headLen * 0.7);
+      const lx = x2 - ux * headLen + vx * headWidth;
+      const ly = y2 - uy * headLen + vy * headWidth;
+      const rx = x2 - ux * headLen - vx * headWidth;
+      const ry = y2 - uy * headLen - vy * headWidth;
+
+      const linePath = `M ${x1} ${y1} L ${bx} ${by}`;
+      const headPath = `M ${x2} ${y2} L ${lx} ${ly} L ${bx} ${by} L ${rx} ${ry} Z`;
+
+      const shaftObj = new fabric.Path(linePath, {
+        fill: 'transparent',
+        stroke: color,
+        strokeWidth: Math.max(6, width),
+        strokeLineCap: 'round',
+        strokeLineJoin: 'round',
+        shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.6)', blur: 8, offsetY: 2 })
+      });
+
+      const headObj = new fabric.Path(headPath, {
+        fill: color,
+        stroke: '#000000',
+        strokeWidth: 1.5,
+        shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.6)', blur: 8, offsetY: 2 })
+      });
+
+      const dotObj = new fabric.Circle({
+        left: x1 - width * 1.1,
+        top: y1 - width * 1.1,
+        radius: width * 1.1,
+        fill: color,
+        stroke: '#ffffff',
+        strokeWidth: 2
+      });
+
+      const group = new fabric.Group([shaftObj, headObj, dotObj], {
+        tacticalType: 'run-arrow'
+      });
+
+      group._arrowStart = { x: x1, y: y1 };
+      group._arrowEnd = { x: x2, y: y2 };
+      return group;
+    }
+
+    // 3c. Ball Carry / Dribble Arrow (Zigzag line indicating player with the ball)
+    function createZigzagDribbleArrow(x1, y1, x2, y2, color, width) {
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 4) {
+        return new fabric.Path(`M ${x1} ${y1} L ${x2} ${y2}`, {
+          stroke: color, strokeWidth: width, fill: 'transparent', tacticalType: 'dribble-arrow'
+        });
+      }
+
+      const ux = dx / dist;
+      const uy = dy / dist;
+      const vx = -uy;
+      const vy = ux;
+
+      const headLen = Math.max(26, width * 3.2);
+      const headWidth = Math.max(16, width * 2.0);
+
+      const bx = x2 - ux * (headLen * 0.7);
+      const by = y2 - uy * (headLen * 0.7);
+      const lx = x2 - ux * headLen + vx * headWidth;
+      const ly = y2 - uy * headLen + vy * headWidth;
+      const rx = x2 - ux * headLen - vx * headWidth;
+      const ry = y2 - uy * headLen - vy * headWidth;
+
+      const shaftDist = Math.hypot(bx - x1, by - y1);
+      let shaftPath = `M ${x1} ${y1}`;
+
+      if (shaftDist < 12) {
+        shaftPath += ` L ${bx} ${by}`;
+      } else {
+        const numSegments = Math.max(2, Math.round(shaftDist / 22));
+        const segStep = shaftDist / numSegments;
+        const amplitude = Math.max(7, Math.min(16, width * 1.8));
+
+        for (let i = 1; i < numSegments; i++) {
+          const d = i * segStep;
+          const side = (i % 2 === 1) ? 1 : -1;
+          const px = x1 + ux * d + vx * (side * amplitude);
+          const py = y1 + uy * d + vy * (side * amplitude);
+          shaftPath += ` L ${px} ${py}`;
+        }
+        shaftPath += ` L ${bx} ${by}`;
+      }
+
+      const headPath = `M ${x2} ${y2} L ${lx} ${ly} L ${bx} ${by} L ${rx} ${ry} Z`;
+
+      const shaftObj = new fabric.Path(shaftPath, {
+        fill: 'transparent',
+        stroke: color,
+        strokeWidth: Math.max(6, width),
+        strokeLineCap: 'round',
+        strokeLineJoin: 'round',
+        shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.6)', blur: 8, offsetY: 2 })
+      });
+
+      const headObj = new fabric.Path(headPath, {
+        fill: color,
+        stroke: '#000000',
+        strokeWidth: 1.5,
+        shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.6)', blur: 8, offsetY: 2 })
+      });
+
+      const dotObj = new fabric.Circle({
+        left: x1 - width * 1.1,
+        top: y1 - width * 1.1,
+        radius: width * 1.1,
+        fill: color,
+        stroke: '#ffffff',
+        strokeWidth: 2
+      });
+
+      const group = new fabric.Group([shaftObj, headObj, dotObj], {
+        tacticalType: 'dribble-arrow'
+      });
+
+      group._arrowStart = { x: x1, y: y1 };
+      group._arrowEnd = { x: x2, y: y2 };
+      return group;
+    }
+
+    // 3d. Tactical Circle & Zone Ellipse (Solid, Dashed, Dotted)
+    function createTacticalCircleZone(left, top, rx, ry, color, strokeWidth, style = 'solid') {
+      const actualRx = Math.max(8, rx || 20);
+      const actualRy = Math.max(8, ry || 20);
+      let dash = null;
+      let cap = 'butt';
+      if (style === 'dashed') {
+        dash = [16, 16];
+        cap = 'butt';
+      } else if (style === 'dotted') {
+        dash = [1, Math.max(14, (strokeWidth || 4) * 2.2)];
+        cap = 'round';
+      }
+
+      const initialFill = activeCircleFillEnabled ? hexToRgba(color, 0.16) : 'transparent';
+
+      const ellipse = new fabric.Ellipse({
+        left: left,
+        top: top,
+        rx: actualRx,
+        ry: actualRy,
+        stroke: color,
+        strokeWidth: Math.max(3, strokeWidth || 4),
+        strokeDashArray: dash,
+        strokeLineCap: cap,
+        fill: initialFill,
+        tacticalType: 'circle-zone',
+        circleStyle: style,
+        shadow: new fabric.Shadow({
+          color: 'rgba(0,0,0,0.5)',
+          blur: 8,
+          offsetY: 2
+        })
+      });
+
+      return ellipse;
     }
 
     // 4. Tactical Pitch Ruler & Distance Calculator in Yards
@@ -6147,7 +8257,7 @@
     function saveCurrentCanvasToActiveKeyframe() {
       if (!canvas) return;
       pushCanvasHistoryState();
-      const customProps = ['keyframeId', 'tacticalType', 'playerNumber', 'playerName', 'tokenColor', 'rulerDistance', 'rulerUnit', 'spotlightRadiusX', 'spotlightRadiusY', 'spotlightColor', 'rx', 'ry', 'trackerColor', 'showSpotlight', 'points', 'strokeDashArray', 'strokeLineCap', 'strokeLineJoin', '_showRulerDistance', '_chainPts', '_zonePts', '_chainColor', '_zoneColor', '_arrowStart', '_arrowEnd', '_rulerStart', '_rulerEnd'];
+      const customProps = ['keyframeId', 'tacticalType', 'circleStyle', 'playerNumber', 'playerName', 'tokenColor', 'rulerDistance', 'rulerUnit', 'spotlightRadiusX', 'spotlightRadiusY', 'spotlightColor', 'rx', 'ry', 'trackerColor', 'showSpotlight', 'points', 'strokeDashArray', 'strokeLineCap', 'strokeLineJoin', '_showRulerDistance', '_chainPts', '_zonePts', '_chainColor', '_zoneColor', '_arrowStart', '_arrowEnd', '_rulerStart', '_rulerEnd'];
       const isZoomed = (stageZoomLevel > 1.0);
       const currentFrameTime = Math.round(currentVideoTime * 100) / 100;
 
@@ -6249,7 +8359,7 @@
     function saveCurrentFrameAsKeyframe() {
       if (isPlaying) pauseVideo();
       
-      const customProps = ['keyframeId', 'tacticalType', 'playerNumber', 'playerName', 'tokenColor', 'rulerDistance', 'rulerUnit', 'spotlightRadiusX', 'spotlightRadiusY', 'spotlightColor', 'rx', 'ry', 'trackerColor', 'showSpotlight', 'points', 'strokeDashArray', 'strokeLineCap', 'strokeLineJoin', '_showRulerDistance', '_chainPts', '_zonePts', '_chainColor', '_zoneColor', '_arrowStart', '_arrowEnd', '_rulerStart', '_rulerEnd'];
+      const customProps = ['keyframeId', 'tacticalType', 'circleStyle', 'playerNumber', 'playerName', 'tokenColor', 'rulerDistance', 'rulerUnit', 'spotlightRadiusX', 'spotlightRadiusY', 'spotlightColor', 'rx', 'ry', 'trackerColor', 'showSpotlight', 'points', 'strokeDashArray', 'strokeLineCap', 'strokeLineJoin', '_showRulerDistance', '_chainPts', '_zonePts', '_chainColor', '_zoneColor', '_arrowStart', '_arrowEnd', '_rulerStart', '_rulerEnd'];
       const objectsJson = canvas ? (canvas.toJSON(customProps).objects || []) : [];
       const isZoomed = (stageZoomLevel > 1.0);
       const currentFrameTime = Math.round(currentVideoTime * 100) / 100;
@@ -7011,16 +9121,23 @@
       if (wrapper) wrapper.classList.remove('open');
     }
 
-    // Close color dropdown when clicking anywhere outside
+    // Close popovers and color dropdown when clicking anywhere outside
     document.addEventListener('click', (e) => {
       const wrapper = document.getElementById('color-dropdown-wrapper');
       const popover = document.getElementById('color-popover-menu');
       if (wrapper && !wrapper.contains(e.target) && (!popover || !popover.contains(e.target))) {
         wrapper.classList.remove('open');
       }
+
+      document.querySelectorAll('.tool-popover-wrapper.open').forEach(w => {
+        const pop = w.querySelector('.tool-sub-popover');
+        if (!w.contains(e.target) && (!pop || !pop.contains(e.target))) {
+          w.classList.remove('open');
+        }
+      });
     });
 
-    // Keep popover anchored if sidebar palette scrolls
+    // Keep popovers anchored if sidebar palette scrolls
     const paletteEl = document.getElementById('left-tool-palette');
     if (paletteEl) {
       paletteEl.addEventListener('scroll', () => {
@@ -7031,6 +9148,16 @@
           const rect = triggerBtn.getBoundingClientRect();
           popover.style.top = `${rect.top + (rect.height / 2)}px`;
         }
+
+        document.querySelectorAll('.tool-popover-wrapper.open').forEach(w => {
+          const pop = w.querySelector('.tool-sub-popover');
+          const trigger = w.querySelector('.tool-btn');
+          if (pop && trigger) {
+            const rect = trigger.getBoundingClientRect();
+            const targetTop = Math.max(20, Math.min(window.innerHeight - 250, rect.top + (rect.height / 2)));
+            pop.style.top = `${targetTop}px`;
+          }
+        });
       });
     }
 
@@ -7080,11 +9207,16 @@
             if (activeTool === 'select') canvas.setActiveObject(newToken);
             canvas.renderAll();
             saveCurrentCanvasToActiveKeyframe();
-          } else if (activeObj.tacticalType === 'curved-arrow' || activeObj.tacticalType === 'straight-arrow') {
+          } else if (['curved-arrow', 'straight-arrow', 'dotted-arrow', 'run-arrow', 'dribble-arrow'].includes(activeObj.tacticalType)) {
             if (activeObj._objects) {
               activeObj._objects.forEach(part => {
-                if (part.type === 'path' || part.type === 'line') part.set({ stroke: color });
-                if (part.type === 'polygon' || part.type === 'triangle') part.set({ fill: color });
+                if (part.type === 'path' || part.type === 'line') {
+                  part.set({ stroke: color });
+                  if (part.fill && part.fill !== 'transparent' && part.fill !== 'none') {
+                    part.set({ fill: color });
+                  }
+                }
+                if (part.type === 'polygon' || part.type === 'triangle' || part.type === 'circle') part.set({ fill: color });
               });
             }
             activeObj.set({ stroke: color });
@@ -7092,6 +9224,13 @@
             saveCurrentCanvasToActiveKeyframe();
           } else if (activeObj.tacticalType === 'pen') {
             activeObj.set({ stroke: color });
+            canvas.renderAll();
+            saveCurrentCanvasToActiveKeyframe();
+          } else if (activeObj.tacticalType === 'circle-zone') {
+            activeObj.set({ stroke: color });
+            if (activeObj.fill && activeObj.fill !== 'transparent' && activeObj.fill !== 'rgba(0,0,0,0)' && activeObj.fill !== 'none') {
+              activeObj.set({ fill: hexToRgba(color, 0.16) });
+            }
             canvas.renderAll();
             saveCurrentCanvasToActiveKeyframe();
           } else if (!['spotlight', 'ruler'].includes(activeObj.tacticalType)) {
@@ -7109,6 +9248,14 @@
       if (el) el.textContent = `${val}px`;
       if (canvas && canvas.freeDrawingBrush) {
         canvas.freeDrawingBrush.width = strokeWidth;
+      }
+      if (canvas) {
+        const activeObj = canvas.getActiveObject();
+        if (activeObj && activeObj.tacticalType === 'circle-zone') {
+          activeObj.set({ strokeWidth: strokeWidth });
+          canvas.renderAll();
+          saveCurrentCanvasToActiveKeyframe();
+        }
       }
     }
 
@@ -7151,7 +9298,7 @@
     function pushCanvasHistoryState() {
       if (isHistoryAction || !canvas) return;
       try {
-        const json = JSON.stringify(canvas.toJSON(['keyframeId', 'tacticalType', 'playerNumber', 'playerName', 'tokenColor', 'rulerDistance', 'rulerUnit', 'spotlightRadiusX', 'spotlightRadiusY', 'spotlightColor', 'rx', 'ry', 'trackerColor', 'showSpotlight', '_arrowStart', '_arrowEnd', '_rulerStart', '_rulerEnd']));
+        const json = JSON.stringify(canvas.toJSON(['keyframeId', 'tacticalType', 'circleStyle', 'playerNumber', 'playerName', 'tokenColor', 'rulerDistance', 'rulerUnit', 'spotlightRadiusX', 'spotlightRadiusY', 'spotlightColor', 'rx', 'ry', 'trackerColor', 'showSpotlight', 'points', 'strokeDashArray', 'strokeLineCap', 'strokeLineJoin', '_arrowStart', '_arrowEnd', '_rulerStart', '_rulerEnd']));
         if (canvasUndoHistory.length === 0 || canvasUndoHistory[canvasUndoHistory.length - 1] !== json) {
           canvasUndoHistory.push(json);
           if (canvasUndoHistory.length > 40) canvasUndoHistory.shift();
@@ -7167,7 +9314,7 @@
         if (objects.length > 0) {
           const removed = objects[objects.length - 1];
           try {
-            canvasRedoHistory.push(JSON.stringify(canvas.toJSON(['keyframeId', 'tacticalType', 'playerNumber', 'playerName', 'tokenColor', 'rulerDistance', 'rulerUnit', 'spotlightRadiusX', 'spotlightRadiusY', 'spotlightColor', 'rx', 'ry', 'trackerColor', 'showSpotlight', '_arrowStart', '_arrowEnd', '_rulerStart', '_rulerEnd'])));
+            canvasRedoHistory.push(JSON.stringify(canvas.toJSON(['keyframeId', 'tacticalType', 'circleStyle', 'playerNumber', 'playerName', 'tokenColor', 'rulerDistance', 'rulerUnit', 'spotlightRadiusX', 'spotlightRadiusY', 'spotlightColor', 'rx', 'ry', 'trackerColor', 'showSpotlight', 'points', 'strokeDashArray', 'strokeLineCap', 'strokeLineJoin', '_arrowStart', '_arrowEnd', '_rulerStart', '_rulerEnd'])));
           } catch(e) {}
           canvas.remove(removed);
           canvas.renderAll();
@@ -7912,9 +10059,13 @@
         case 'Q':
           toggleOrSetActiveTool('arrow-curved-left');
           break;
+        case 'c':
+        case 'C':
+          toggleOrSetActiveTool('circle');
+          break;
         case 'd':
         case 'D':
-          toggleOrSetActiveTool('arrow-straight');
+          toggleOrSetActiveTool(activeLineStyle || 'arrow-straight');
           break;
         case 'r':
         case 'R':
@@ -8001,6 +10152,7 @@
       initTimelineScrubber();
       const holdSelect = document.getElementById('global-hold-duration-select');
       if (holdSelect) holdSelect.value = String(defaultHoldDuration);
+      checkClipperHandoff();
     });
   </script>
 </body>
