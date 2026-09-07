@@ -1101,11 +1101,21 @@
 
     // Keyboard Shortcuts
     window.addEventListener('keydown', (e) => {
-      // Ignore if typing in text inputs
-      if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+      const isSpace = (e.code === 'Space' || e.key === ' ' || e.key === 'Spacebar' || e.keyCode === 32);
+      const activeEl = document.activeElement;
+      const isTextInput = activeEl && (
+        (activeEl.tagName === 'INPUT' && !['button', 'submit', 'range', 'checkbox', 'radio', 'file'].includes(activeEl.type)) ||
+        activeEl.tagName === 'TEXTAREA' ||
+        activeEl.isContentEditable
+      );
 
-      if (e.code === 'Space') {
+      // Ignore if typing in text inputs
+      if (isTextInput) return;
+
+      if (isSpace) {
         e.preventDefault();
+        e.stopPropagation();
+        if (activeEl && activeEl.blur && activeEl !== document.body) activeEl.blur();
         togglePlay();
       } else if (e.key === '[' || e.key.toLowerCase() === 'i') {
         e.preventDefault();
@@ -1120,7 +1130,16 @@
         e.preventDefault();
         stepFrame(1);
       }
-    });
+    }, { capture: true });
+
+    document.addEventListener('pointerup', (e) => {
+      const btn = e.target.closest('button');
+      if (btn) {
+        setTimeout(() => {
+          if (document.activeElement === btn) btn.blur();
+        }, 0);
+      }
+    }, true);
 
     /* ==========================================================================
        CLIP QUEUE & PLAYLIST MANAGEMENT

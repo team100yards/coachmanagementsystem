@@ -2988,6 +2988,7 @@
         ytPlayer.pauseVideo();
       } catch(e) {}
       updatePlaybackUIState(false);
+      window.focus();
     }
 
     function onPlayerStateChange(event) {
@@ -3000,6 +3001,7 @@
         }
         updatePlaybackUIState(false);
       }
+      window.focus();
     }
 
     function onPlayerError(event) {
@@ -3089,6 +3091,8 @@
         modal.classList.remove('open');
         modal.style.display = 'none';
       }
+      if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+      window.focus();
     }
 
     async function pasteClipboardToModalInput() {
@@ -3614,8 +3618,9 @@
           return;
         }
 
-        // 1-Click / 1-Tap Play/Pause ONLY in Free Playback Mode ('none')
-        if (activeTool === 'none') {
+        // 1-Click / 1-Tap Play/Pause in Free Playback Mode ('none') or Select Mode ('select' when no shape is clicked/active)
+        const canClickPlayPause = (activeTool === 'none') || (activeTool === 'select' && !canvas.getActiveObject() && (!e.target || e.target === canvas));
+        if (canClickPlayPause) {
           if (isQuickClick && dist < 25) {
             if (singleClickPlaybackTimer) {
               // Rapid 2nd click: Cancel single click play/pause and allow double-click fullscreen
@@ -4413,6 +4418,8 @@
       if (modalFooter) modalFooter.style.display = 'flex';
       const helperRow = document.getElementById('export-progress-helper-row');
       if (helperRow) helperRow.style.display = 'flex';
+      if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+      window.focus();
     }
 
     function recalcExportDuration() {
@@ -8648,7 +8655,19 @@
        6. TRANSPORT CONTROLS & FRAME STEPPER
     ========================================================================== */
     function togglePlayPause() {
-      if (isPlaying) {
+      let actuallyPlaying = isPlaying;
+      if (isUsingLocalVideo) {
+        const videoEl = document.getElementById('local-video-element');
+        if (videoEl) actuallyPlaying = (!videoEl.paused && !videoEl.ended);
+      } else if (isYtReady && ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
+        try {
+          const ytState = ytPlayer.getPlayerState();
+          if (ytState === 1) actuallyPlaying = true;
+          else if (ytState === 2 || ytState === 0) actuallyPlaying = false;
+        } catch(e) {}
+      }
+
+      if (actuallyPlaying) {
         pauseVideo();
       } else {
         playVideo();
@@ -8688,6 +8707,7 @@
 
     function playVideo() {
       _lastPlayActionTime = Date.now();
+      window.focus();
 
       // If we are currently sitting at a keyframe, mark it so auto-pause doesn't immediately re-pause on frame 0
       if (activeKeyframeId) {
@@ -8726,6 +8746,7 @@
     }
 
     function pauseVideo() {
+      window.focus();
       if (isSyntheticDemo) {
         updatePlaybackUIState(false);
       } else if (isUsingLocalVideo) {
@@ -10028,33 +10049,70 @@
     }
 
     /* ==========================================================================
-       10. GLOBAL KEYBOARD SHORTCUTS (Captured at Root Level)
+       10. GLOBAL KEYBOARD SHORTCUTS & FOCUS MANAGEMENT (Captured at Root Level)
     ========================================================================== */
-    // Auto-clear button focus on mouse movement so Spacebar is never trapped on buttons
+    // Ensure clicking any button or interactive element never traps keyboard focus
+    document.addEventListener('pointerup', (e) => {
+      const btn = e.target.closest('button');
+      if (btn) {
+        setTimeout(() => {
+          if (document.activeElement === btn) btn.blur();
+        }, 0);
+      }
+    }, true);
+
+    // Auto-clear button focus on mouse movement as extra safeguard
     window.addEventListener('pointermove', () => {
       if (document.activeElement && document.activeElement.tagName === 'BUTTON') {
         document.activeElement.blur();
       }
     }, { passive: true });
 
+    // Auto-reclaim window focus if focus drifts into an iframe or detached element
+    window.addEventListener('blur', () => {
+      setTimeout(() => {
+        if (document.activeElement && document.activeElement.tagName === 'IFRAME') {
+          document.activeElement.blur();
+          window.focus();
+        }
+      }, 50);
+    });
+
     function handleRootKeydown(e) {
-      // Spacebar: Always toggles play/pause irrespective of where the highlight or focus is (unless typing text inside canvas text box)
-      if (e.key === ' ' || e.code === 'Space') {
-        const activeEl = document.activeElement;
-        const isEditingCanvasText = canvas && canvas.getActiveObject() && canvas.getActiveObject().isEditing;
-        if (!isEditingCanvasText) {
+      if (e._cmsHandled) return;
+
+      const isSpace = (e.code === 'Space' || e.key === ' ' || e.key === 'Spacebar' || e.keyCode === 32);
+
+      const activeEl = document.activeElement;
+      const isTextInput = activeEl && (
+        (activeEl.tagName === 'INPUT' && !['button', 'submit', 'range', 'checkbox', 'radio', 'color', 'file'].includes(activeEl.type)) ||
+        activeEl.tagName === 'TEXTAREA' ||
+        activeEl.isContentEditable
+      );
+      const isEditingCanvasText = Boolean(canvas && canvas.getActiveObject() && canvas.getActiveObject().isEditing);
+
+      // Spacebar: Unconditionally toggles play/pause unless actively typing text in an input or canvas text box
+      if (isSpace) {
+        if (!isTextInput && !isEditingCanvasText) {
+          e._cmsHandled = true;
           e.preventDefault();
           e.stopPropagation();
-          if (activeEl && activeEl.blur) activeEl.blur();
+          if (activeEl && activeEl.blur && activeEl !== document.body) {
+            activeEl.blur();
+          }
+          window.focus();
           togglePlayPause();
           return;
         }
       }
 
-      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
+      // If user is actively typing in a text field, don't execute other single-key shortcuts
+      if (isTextInput || isEditingCanvasText) return;
+      if (activeEl && ['INPUT', 'TEXTAREA', 'SELECT'].includes(activeEl.tagName) && !isSpace) return;
 
       // Start / Stop Video Recording Shortcut: 'K' or 'Shift + R' or 'Alt + R'
       if (e.key === 'k' || e.key === 'K' || ((e.key === 'r' || e.key === 'R') && (e.shiftKey || e.altKey || e.ctrlKey || e.metaKey))) {
+        e._cmsHandled = true;
         e.preventDefault();
         e.stopPropagation();
         if (isRecordingVideo) {
@@ -10066,14 +10124,6 @@
       }
 
       switch (e.key) {
-        case ' ':
-          e.preventDefault();
-          e.stopPropagation();
-          if (document.activeElement && document.activeElement.blur) {
-            document.activeElement.blur();
-          }
-          togglePlayPause();
-          break;
         case '.':
         case 'ArrowRight':
           if (e.shiftKey) {
@@ -10191,8 +10241,9 @@
       }
     }
 
-    // Registered ONCE on document in capture phase — prevents any inner element from blocking keyboard events
-    document.addEventListener('keydown', handleRootKeydown, true);
+    // Registered on BOTH window and document in capture phase — guaranteed to intercept before any child element
+    window.addEventListener('keydown', handleRootKeydown, { capture: true });
+    document.addEventListener('keydown', handleRootKeydown, { capture: true });
 
     window.addEventListener('DOMContentLoaded', () => {
       initTelestrationCanvas();
@@ -10200,6 +10251,28 @@
       const holdSelect = document.getElementById('global-hold-duration-select');
       if (holdSelect) holdSelect.value = String(defaultHoldDuration);
       checkClipperHandoff();
+
+      // Local video media state event listeners for rock-solid sync with transport UI
+      const localVid = document.getElementById('local-video-element');
+      if (localVid) {
+        localVid.addEventListener('play', () => updatePlaybackUIState(true));
+        localVid.addEventListener('pause', () => updatePlaybackUIState(false));
+        localVid.addEventListener('ended', () => updatePlaybackUIState(false));
+      }
+
+      // Stage / Viewport click always returns window focus
+      const playerStage = document.getElementById('player-stage');
+      if (playerStage) {
+        playerStage.addEventListener('pointerdown', () => {
+          window.focus();
+        });
+      }
+      const videoViewport = document.querySelector('.video-viewport');
+      if (videoViewport) {
+        videoViewport.addEventListener('pointerdown', () => {
+          window.focus();
+        });
+      }
     });
   </script>
 </body>
