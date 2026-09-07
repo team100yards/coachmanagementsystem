@@ -1244,11 +1244,16 @@
       for (const mime of candidates) {
         try {
           if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(mime)) {
-            const rec = new MediaRecorder(stream, {
-              mimeType: mime,
-              videoBitsPerSecond: preferredBitrate
-            });
-            return { recorder: rec, mimeType: mime };
+            try {
+              const rec = new MediaRecorder(stream, {
+                mimeType: mime,
+                videoBitsPerSecond: preferredBitrate
+              });
+              return { recorder: rec, mimeType: mime };
+            } catch (errOptions) {
+              const rec = new MediaRecorder(stream, { mimeType: mime });
+              return { recorder: rec, mimeType: mime };
+            }
           }
         } catch(e) {
           console.warn('MediaRecorder candidate skipped:', mime, e);
@@ -1257,20 +1262,120 @@
 
       try {
         const rec = new MediaRecorder(stream);
-        return { recorder: rec, mimeType: rec.mimeType || 'video/webm' };
+        return { recorder: rec, mimeType: rec.mimeType || (candidates[0].includes('mp4') ? 'video/mp4' : 'video/webm') };
       } catch(e) {
+        if (hasAudio && stream && stream.getVideoTracks && stream.getVideoTracks().length > 0) {
+          console.warn('MediaRecorder with audio failed, retrying video only:', e);
+          const videoOnlyStream = new MediaStream(stream.getVideoTracks());
+          return createSafeMediaRecorder(videoOnlyStream, preferredBitrate);
+        }
         console.error('All MediaRecorder attempts failed:', e);
         throw e;
       }
     }
 
+    /* Web Audio Destination helper for audio track extraction in Safari */
+    let _clipperAudioCtx = null;
+    let _clipperAudioSource = null;
+    let _clipperAudioDest = null;
+
+    function getClipperAudioTrack(videoEl) {
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return null;
+        if (!_clipperAudioCtx) {
+          _clipperAudioCtx = new AudioContextClass();
+        }
+        if (_clipperAudioCtx.state === 'suspended') {
+          _clipperAudioCtx.resume();
+        }
+        if (!_clipperAudioSource) {
+          _clipperAudioSource = _clipperAudioCtx.createMediaElementSource(videoEl);
+          _clipperAudioDest = _clipperAudioCtx.createMediaStreamDestination();
+          _clipperAudioSource.connect(_clipperAudioDest);
+          _clipperAudioSource.connect(_clipperAudioCtx.destination);
+        }
+        const tracks = _clipperAudioDest ? _clipperAudioDest.stream.getAudioTracks() : [];
+        return (tracks && tracks.length > 0) ? tracks[0] : null;
+      } catch(e) {
+        console.warn('Web Audio capture note (falling back to video-only track):', e);
+        return null;
+      }
+    }
+
+    /* Cross-platform stream resolver: Native captureStream on Windows/Chrome, Canvas capture fallback on Mac/Safari */
+    function getVideoElementCaptureStream(videoEl) {
+      // 1. Direct native HTMLMediaElement.captureStream (Chrome, Edge, Firefox)
+      if (typeof videoEl.captureStream === 'function') {
+        try {
+          const s = videoEl.captureStream();
+          if (s && s.getVideoTracks().length > 0) {
+            return { stream: s, isCanvas: false };
+          }
+        } catch(e) {
+          console.warn('videoEl.captureStream() attempt failed, trying fallback:', e);
+        }
+      }
+      if (typeof videoEl.mozCaptureStream === 'function') {
+        try {
+          const s = videoEl.mozCaptureStream();
+          if (s && s.getVideoTracks().length > 0) {
+            return { stream: s, isCanvas: false };
+          }
+        } catch(e) {
+          console.warn('videoEl.mozCaptureStream() attempt failed, trying fallback:', e);
+        }
+      }
+
+      // 2. Universal Canvas Capture Fallback (Safari on macOS / iOS & unsupported environments)
+      const w = videoEl.videoWidth || 1920;
+      const h = videoEl.videoHeight || 1080;
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      if (ctx && videoEl.readyState >= 2) {
+        try { ctx.drawImage(videoEl, 0, 0, w, h); } catch(e){}
+      }
+
+      const streamFn = canvas.captureStream || canvas.mozCaptureStream || canvas.webkitCaptureStream;
+      if (typeof streamFn === 'function') {
+        let stream;
+        try {
+          stream = streamFn.call(canvas, 30);
+        } catch(e) {
+          stream = streamFn.call(canvas);
+        }
+        // Attempt to attach audio track if available via Web Audio
+        const aTrack = getClipperAudioTrack(videoEl);
+        if (aTrack) {
+          try { stream.addTrack(aTrack); } catch(e){}
+        }
+        return {
+          stream,
+          isCanvas: true,
+          canvas,
+          ctx,
+          renderFrame: () => {
+            if (ctx && videoEl.readyState >= 2) {
+              try { ctx.drawImage(videoEl, 0, 0, w, h); } catch(err){}
+            }
+          }
+        };
+      }
+
+      throw new Error('Video stream capture is not supported in this browser. Please use Google Chrome, Safari 14.1+, or Microsoft Edge.');
+    }
+
     async function extractClipBlob(startTime, endTime, onProgress) {
       return new Promise(async (resolve, reject) => {
+        let streamInfo = null;
+        let animFrameId = null;
+        let checkInterval = null;
+
         try {
-          const stream = (video.captureStream || video.mozCaptureStream).call(video);
-          if (!stream) {
-            throw new Error('Video stream capture not supported in this browser.');
-          }
+          streamInfo = getVideoElementCaptureStream(video);
+          const stream = streamInfo.stream;
 
           const recData = createSafeMediaRecorder(stream, 10000000);
           const recorder = recData.recorder;
@@ -1282,6 +1387,9 @@
           };
 
           recorder.onstop = () => {
+            if (animFrameId) cancelAnimationFrame(animFrameId);
+            if (checkInterval) clearInterval(checkInterval);
+
             if (chunks.length === 0) {
               reject(new Error('Export received 0 frames. Please verify video is playable and try again.'));
               return;
@@ -1307,21 +1415,46 @@
             setTimeout(onSeek, 600);
           });
 
+          // Draw first frame if using canvas pipeline
+          if (streamInfo.isCanvas && streamInfo.renderFrame) {
+            streamInfo.renderFrame();
+          }
+
           recorder.start(100);
-          video.play();
+          const playPromise = video.play();
+          if (playPromise && typeof playPromise.catch === 'function') {
+            playPromise.catch(e => console.warn('video.play() notice:', e));
+          }
+
+          // Smooth canvas rendering loop for Mac / Safari
+          if (streamInfo.isCanvas && streamInfo.renderFrame) {
+            const drawLoop = () => {
+              if (recorder.state === 'recording') {
+                streamInfo.renderFrame();
+                animFrameId = requestAnimationFrame(drawLoop);
+              }
+            };
+            animFrameId = requestAnimationFrame(drawLoop);
+          }
 
           const totalDuration = Math.max(0.3, endTime - startTime);
           const startWall = performance.now();
           let hasPlaybackStarted = false;
           let playbackStartWall = startWall;
 
-          const checkInterval = setInterval(() => {
+          checkInterval = setInterval(() => {
             if (exportCancelled) {
               clearInterval(checkInterval);
-              try { recorder.stop(); } catch(e){}
+              if (animFrameId) cancelAnimationFrame(animFrameId);
+              try { if (recorder.state !== 'inactive') recorder.stop(); } catch(e){}
               video.pause();
               reject(new Error('Export cancelled by user.'));
               return;
+            }
+
+            // Continuous frame draw fallback in case requestAnimationFrame is throttled
+            if (streamInfo.isCanvas && streamInfo.renderFrame) {
+              streamInfo.renderFrame();
             }
 
             const cur = video.currentTime;
@@ -1344,19 +1477,19 @@
 
             if (isDone) {
               clearInterval(checkInterval);
+              if (animFrameId) cancelAnimationFrame(animFrameId);
               video.pause();
               try {
                 if (recorder.state !== 'inactive') {
-                  recorder.requestData();
-                  setTimeout(() => {
-                    try { if (recorder.state !== 'inactive') recorder.stop(); } catch(e){}
-                  }, 120);
+                  recorder.stop();
                 }
               } catch(e){}
             }
           }, 50);
 
         } catch (err) {
+          if (animFrameId) cancelAnimationFrame(animFrameId);
+          if (checkInterval) clearInterval(checkInterval);
           reject(err);
         }
       });
@@ -1386,10 +1519,15 @@
         const a = document.createElement('a');
         a.href = url;
         a.download = filename;
+        a.style.position = 'fixed';
+        a.style.left = '-9999px';
+        a.style.opacity = '0';
         document.body.appendChild(a);
         a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 10000);
+        setTimeout(() => {
+          try { document.body.removeChild(a); } catch(e){}
+          URL.revokeObjectURL(url);
+        }, 15000);
 
         closeExportModal();
       } catch (err) {

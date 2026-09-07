@@ -4544,7 +4544,19 @@
         try { compCtx.drawImage(canvas.lowerCanvasEl, 0, 0, 1920, 1080); } catch(e){}
       }
 
-      const stream = (compCanvas.captureStream || compCanvas.mozCaptureStream).call(compCanvas, 30);
+      const streamFn = compCanvas.captureStream || compCanvas.mozCaptureStream || compCanvas.webkitCaptureStream;
+      if (!streamFn) {
+        alert('Canvas recording is not supported in this browser.');
+        if (progressContainer) progressContainer.style.display = 'none';
+        if (modalFooter) modalFooter.style.display = 'flex';
+        return;
+      }
+      let stream;
+      try {
+        stream = streamFn.call(compCanvas, 30);
+      } catch(e) {
+        stream = streamFn.call(compCanvas);
+      }
 
       if (isLocal) {
         try {
