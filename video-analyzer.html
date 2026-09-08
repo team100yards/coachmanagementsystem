@@ -2003,93 +2003,85 @@
         <button class="tool-btn" id="tool-select" data-tooltip="Select & Move&#10;(V)" onclick="toggleOrSetActiveTool('select')">
           <svg class="svg-icon" viewBox="0 0 24 24"><path d="m3 3 7 18 3-7 7-3L3 3z"/></svg>
         </button>
-        <button class="tool-btn" id="tool-spotlight" data-tooltip="Spotlight&#10;(S)" onclick="toggleOrSetActiveTool('spotlight')">
-          <svg class="svg-icon" viewBox="0 0 24 24">
-            <ellipse cx="12" cy="18" rx="9" ry="4"/>
-            <path d="M7 6 3 18"/><path d="m17 6 4 12"/><circle cx="12" cy="6" r="3"/>
-          </svg>
-        </button>
-        <button class="tool-btn" id="tool-tracker-ring" data-tooltip="Player Tracker&#10;(H)" onclick="toggleOrSetActiveTool('tracker-ring')">
-          <svg class="svg-icon" viewBox="0 0 24 24">
-            <ellipse cx="12" cy="12" rx="9" ry="5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="5 3"/>
-            <ellipse cx="12" cy="12" rx="5.5" ry="3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="3 2" opacity="0.8"/>
-            <circle cx="12" cy="12" r="2.2" fill="currentColor"/>
-          </svg>
-        </button>
-
-        <!-- Circle Tool with Sub-Menu (Solid, Dashed, Dotted) -->
-        <div class="tool-popover-wrapper" id="tool-circle-wrapper">
-          <button class="tool-btn has-sub" id="tool-circle" data-tooltip="Circle / Zone&#10;(C)" onclick="handleCircleToolButtonClick(event)" oncontextmenu="event.preventDefault(); toggleToolSubmenu('tool-circle-wrapper', 'circle-sub-popover', 'tool-circle', event);">
-            <svg class="svg-icon" id="tool-circle-icon" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.2"/>
+        <!-- Unified Spotlight & Player Tracker Category (Dynamic Moving vs Static) -->
+        <div class="tool-popover-wrapper" id="tool-spotlight-tracker-wrapper">
+          <button class="tool-btn has-sub" id="tool-spotlight-tracker" data-tooltip="Spotlight &amp; Tracker&#10;(Click to use, right-click/arrow for options)" onclick="handleSpotlightTrackerButtonClick(event)" oncontextmenu="event.preventDefault(); toggleToolSubmenu('tool-spotlight-tracker-wrapper', 'spotlight-tracker-sub-popover', 'tool-spotlight-tracker', event);">
+            <svg class="svg-icon" id="tool-spotlight-tracker-icon" viewBox="0 0 24 24">
+              <ellipse cx="12" cy="12" rx="9" ry="5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="5 3"/>
+              <ellipse cx="12" cy="12" rx="5.5" ry="3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="3 2" opacity="0.8"/>
+              <circle cx="12" cy="12" r="2.2" fill="currentColor"/>
             </svg>
             <span class="tool-caret-dot">▾</span>
           </button>
           
-          <div class="tool-sub-popover" id="circle-sub-popover">
-            <div class="tool-popover-header">CIRCLE STYLE</div>
-            <button type="button" class="sub-tool-opt active" id="sub-circle-solid" onclick="selectCircleSubStyle('solid', event)">
-              <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;"><circle cx="12" cy="12" r="8"/></svg>
+          <div class="tool-sub-popover" id="spotlight-tracker-sub-popover">
+            <div class="tool-popover-header">SPOTLIGHT &amp; TRACKER</div>
+            
+            <button type="button" class="sub-tool-opt active" id="sub-spotlight-dynamic" onclick="selectSpotlightTrackerTool('tracker-ring', event)">
+              <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;">
+                <ellipse cx="12" cy="12" rx="9" ry="5" stroke-dasharray="5 3"/>
+                <ellipse cx="12" cy="12" rx="5.5" ry="3" stroke-width="1.6" stroke-dasharray="3 2" opacity="0.8"/>
+                <circle cx="12" cy="12" r="2.2" fill="currentColor"/>
+              </svg>
               <div>
-                <div style="font-weight:700;">Solid Circle</div>
-                <div style="font-size:9px;color:var(--text-muted);">Continuous outline</div>
+                <div style="font-weight:700;">Dynamic Tracker (Moving) (H)</div>
+                <div style="font-size:9px;color:var(--text-muted);">Orbiting 4-dash ring around player with spotlight toggle</div>
               </div>
             </button>
-            <button type="button" class="sub-tool-opt" id="sub-circle-dashed" onclick="selectCircleSubStyle('dashed', event)">
-              <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-dasharray:6 6;"><circle cx="12" cy="12" r="8"/></svg>
+
+            <button type="button" class="sub-tool-opt" id="sub-spotlight-static" onclick="selectSpotlightTrackerTool('spotlight', event)">
+              <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;">
+                <ellipse cx="12" cy="18" rx="9" ry="4"/>
+                <path d="M7 6 3 18"/><path d="m17 6 4 12"/><circle cx="12" cy="6" r="3"/>
+              </svg>
               <div>
-                <div style="font-weight:700;">Dashed Circle</div>
-                <div style="font-size:9px;color:var(--text-muted);">Segmented border</div>
-              </div>
-            </button>
-            <button type="button" class="sub-tool-opt" id="sub-circle-dotted" onclick="selectCircleSubStyle('dotted', event)">
-              <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-dasharray:1 6;stroke-linecap:round;"><circle cx="12" cy="12" r="8"/></svg>
-              <div>
-                <div style="font-weight:700;">Dotted Circle</div>
-                <div style="font-size:9px;color:var(--text-muted);">Round dotted border</div>
+                <div style="font-weight:700;">Static Spotlight (Fixed) (S)</div>
+                <div style="font-size:9px;color:var(--text-muted);">Illuminated pitch disc &amp; 3D stadium beam</div>
               </div>
             </button>
           </div>
         </div>
 
-        <!-- Line & Movement Tool with Sub-Menu (Pass, Run, Dribble, Arcs) -->
-        <div class="tool-popover-wrapper" id="tool-line-wrapper">
-          <button class="tool-btn has-sub" id="tool-line" data-tooltip="Pass Line&#10;(D)" onclick="handleLineToolButtonClick(event)" oncontextmenu="event.preventDefault(); toggleToolSubmenu('tool-line-wrapper', 'line-sub-popover', 'tool-line', event);">
-            <svg class="svg-icon" id="tool-line-icon" viewBox="0 0 24 24">
-              <line x1="5" y1="19" x2="19" y2="5" stroke-dasharray="5 5"/>
+        <!-- Highlight Space Tool (Shadow Spotlight: darkens pitch, keeps space bright) -->
+        <button class="tool-btn" id="tool-space-highlight" data-tooltip="Highlight Space&#10;(Dark Pitch Shadow)&#10;(X)" onclick="toggleOrSetActiveTool('space-highlight')">
+          <svg class="svg-icon" viewBox="0 0 24 24">
+            <rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="2" opacity="0.4"/>
+            <ellipse cx="12" cy="12" rx="6.5" ry="4.5" fill="#00e676" opacity="0.25"/>
+            <ellipse cx="12" cy="12" rx="6.5" ry="4.5" fill="none" stroke="#00e676" stroke-width="2" stroke-dasharray="4 2"/>
+            <circle cx="12" cy="12" r="1.5" fill="#00e676"/>
+          </svg>
+        </button>
+
+        <!-- Unified Tactical Lines & Shapes Category (Line, Circle, Dribble, Right Arc, Left Arc) -->
+        <div class="tool-popover-wrapper" id="tool-shapes-lines-wrapper">
+          <button class="tool-btn has-sub" id="tool-shapes-lines" data-tooltip="Tactical Shapes &amp; Lines&#10;(Click to use, right-click/arrow for options)" onclick="handleShapesCategoryButtonClick(event)" oncontextmenu="event.preventDefault(); toggleToolSubmenu('tool-shapes-lines-wrapper', 'shapes-lines-sub-popover', 'tool-shapes-lines', event);">
+            <svg class="svg-icon" id="tool-shapes-lines-icon" viewBox="0 0 24 24">
+              <line x1="5" y1="19" x2="19" y2="5" stroke-dasharray="7 4"/>
               <polyline points="10 5 19 5 19 14"/>
             </svg>
             <span class="tool-caret-dot">▾</span>
           </button>
           
-          <div class="tool-sub-popover" id="line-sub-popover">
-            <div class="tool-popover-header">LINE &amp; MOVEMENT</div>
+          <div class="tool-sub-popover" id="shapes-lines-sub-popover">
+            <div class="tool-popover-header">TACTICAL LINES &amp; SHAPES</div>
             
-            <button type="button" class="sub-tool-opt active" id="sub-line-pass" onclick="selectLineSubStyle('arrow-straight', event)">
-              <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.2;"><line x1="4" y1="20" x2="18" y2="6" stroke-dasharray="5 5"/><polyline points="11 6 18 6 18 13"/></svg>
+            <button type="button" class="sub-tool-opt active" id="sub-shape-line" onclick="selectShapesTool('arrow-straight', event)">
+              <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.2;"><line x1="4" y1="20" x2="18" y2="6" stroke-dasharray="6 3"/><polyline points="11 6 18 6 18 13"/></svg>
               <div>
-                <div style="font-weight:700;">Pass Line (Dashed)</div>
-                <div style="font-size:9px;color:var(--text-muted);">Ball pass movement</div>
+                <div style="font-weight:700;">Straight Line / Pass (D)</div>
+                <div style="font-size:9px;color:var(--text-muted);">Direct movement or pass trajectory</div>
               </div>
             </button>
 
-            <button type="button" class="sub-tool-opt" id="sub-line-dotted" onclick="selectLineSubStyle('arrow-dotted', event)">
-              <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="4" y1="20" x2="18" y2="6" stroke-dasharray="1 5"/><polyline points="11 6 18 6 18 13"/></svg>
+            <button type="button" class="sub-tool-opt" id="sub-shape-circle" onclick="selectShapesTool('circle', event)">
+              <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;"><circle cx="12" cy="12" r="8"/></svg>
               <div>
-                <div style="font-weight:700;">Pass Line (Dotted)</div>
-                <div style="font-size:9px;color:var(--text-muted);">Ball pass with round dots</div>
+                <div style="font-weight:700;">Circle / Zone (C)</div>
+                <div style="font-size:9px;color:var(--text-muted);">Tactical zone &amp; radius with fill</div>
               </div>
             </button>
 
-            <button type="button" class="sub-tool-opt" id="sub-line-run" onclick="selectLineSubStyle('arrow-run', event)">
-              <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.2;"><line x1="4" y1="20" x2="18" y2="6"/><polyline points="11 6 18 6 18 13"/></svg>
-              <div>
-                <div style="font-weight:700;">Player Run (Solid)</div>
-                <div style="font-size:9px;color:var(--text-muted);">Off-the-ball straight run</div>
-              </div>
-            </button>
-
-            <button type="button" class="sub-tool-opt" id="sub-line-dribble" onclick="selectLineSubStyle('arrow-dribble', event)">
+            <button type="button" class="sub-tool-opt" id="sub-shape-dribble" onclick="selectShapesTool('arrow-dribble', event)">
               <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.2;"><path d="M4 20 L8 15 L12 17 L16 11 L19 5"/><polyline points="13 5 19 5 19 11"/></svg>
               <div>
                 <div style="font-weight:700;">Ball Carry / Dribble</div>
@@ -2099,19 +2091,19 @@
 
             <div style="height:1px;background:rgba(255,255,255,0.08);margin:2px 0;"></div>
 
-            <button type="button" class="sub-tool-opt" id="sub-line-arc-right" onclick="selectLineSubStyle('arrow-curved-right', event)">
+            <button type="button" class="sub-tool-opt" id="sub-shape-arc-right" onclick="selectShapesTool('arrow-curved-right', event)">
               <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.2;"><path d="M5 19C5 11 11 7 20 6"/><polyline points="14 2 20 6 15 11"/></svg>
               <div>
                 <div style="font-weight:700;">Right Arc Pass (A)</div>
-                <div style="font-size:9px;color:var(--text-muted);">Curved outward arc</div>
+                <div style="font-size:9px;color:var(--text-muted);">Curved outward arc pass</div>
               </div>
             </button>
 
-            <button type="button" class="sub-tool-opt" id="sub-line-arc-left" onclick="selectLineSubStyle('arrow-curved-left', event)">
+            <button type="button" class="sub-tool-opt" id="sub-shape-arc-left" onclick="selectShapesTool('arrow-curved-left', event)">
               <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.2;"><path d="M19 19C19 11 13 7 4 6"/><polyline points="10 2 4 6 9 11"/></svg>
               <div>
                 <div style="font-weight:700;">Left Arc Pass (Q)</div>
-                <div style="font-size:9px;color:var(--text-muted);">Curved inward arc</div>
+                <div style="font-size:9px;color:var(--text-muted);">Curved inward arc pass</div>
               </div>
             </button>
           </div>
@@ -2237,63 +2229,85 @@
           <span class="ctx-hint">💡 Click any player, arrow, or shape on pitch to select, move, or delete.</span>
         </div>
 
-        <!-- SPOTLIGHT CONTEXTUAL CONTROLS -->
-        <div id="ctx-spotlight-group" class="ctx-group" style="display:none;align-items:center;gap:8px;">
-          <span class="ctx-label">SPOTLIGHT:</span>
-          <span class="ctx-badge" style="background:rgba(0,230,118,0.15);color:var(--accent-green);border:1px solid rgba(0,230,118,0.35);">ACTIVE</span>
-          <span class="ctx-hint">💡 Drag or click on pitch to place illuminated 3D spotlight.</span>
+        <!-- UNIFIED SPOTLIGHT & TRACKER CONTEXTUAL CONTROLS -->
+        <div id="ctx-spotlight-tracker-group" class="ctx-group" style="display:none;align-items:center;gap:8px;">
+          <span class="ctx-label" id="ctx-st-mode-label">TRACKER:</span>
+          
+          <!-- Mode Switcher: Dynamic (Moving) vs Static -->
+          <div style="display:inline-flex;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14);border-radius:7px;padding:2px;gap:2px;">
+            <button type="button" class="ctx-btn" id="btn-st-mode-dynamic" onclick="setSpotlightTrackerMode('tracker-ring')" style="padding:4px 9px;border-radius:5px;font-size:11px;" title="Moving 4-dash animated rotating ring">
+              <span>🌀 Dynamic (Moving)</span>
+            </button>
+            <button type="button" class="ctx-btn" id="btn-st-mode-static" onclick="setSpotlightTrackerMode('spotlight')" style="padding:4px 9px;border-radius:5px;font-size:11px;" title="Fixed static stadium focus disc">
+              <span>🎯 Static</span>
+            </button>
+          </div>
+
+          <!-- Spotlight Beam Toggle (Works for BOTH Dynamic and Static) -->
+          <button class="ctx-btn" id="btn-toggle-unified-spotlight" onclick="toggleUnifiedSpotlightBeam()" title="Toggle 3D Stadium Spotlight Beam (On / Off)">
+            <span id="st-spotlight-status-icon">💡</span> <span id="st-spotlight-status-text">Spotlight: ON</span>
+          </button>
+
+          <span class="ctx-hint" id="ctx-st-hint">💡 Dynamic: 4-dash rotating ring around player. Static: fixed pitch focus disc. Both support spotlight beam.</span>
         </div>
 
-        <!-- PLAYER TRACKER RING CONTEXTUAL CONTROLS -->
-        <div id="ctx-tracker-group" class="ctx-group" style="display:none;align-items:center;gap:8px;">
-          <span class="ctx-label">HIGHLIGHT TRACKER:</span>
-          <span class="ctx-badge" style="background:rgba(0,230,118,0.15);color:var(--accent-green);border:1px solid rgba(0,230,118,0.35);">ACTIVE</span>
-          <button class="ctx-btn" id="btn-toggle-tracker-spotlight" onclick="toggleTrackerSpotlightBeam()" title="Toggle 3D Stadium Spotlight Beam">
-            <span id="tracker-spotlight-status-icon">💡</span> <span id="tracker-spotlight-status-text">Spotlight: ON</span>
+        <!-- TACTICAL SHAPES & LINES CONTEXTUAL CONTROLS -->
+        <div id="ctx-shapes-lines-group" class="ctx-group" style="display:none;align-items:center;gap:6px;">
+          <span class="ctx-label" id="ctx-shapes-tool-label">STYLE:</span>
+          <button type="button" class="ctx-btn" id="ctx-style-btn-solid" onclick="setSelectedShapeStrokeStyle('solid')" title="Solid Line (Runs without ball)">
+            <span>━ Solid</span>
           </button>
-          <span class="ctx-hint">💡 Click or drag on player to place 4-dash rotating tactical ring.</span>
+          <button type="button" class="ctx-btn" id="ctx-style-btn-dashed" onclick="setSelectedShapeStrokeStyle('dashed')" title="Dash Line (Ball travelling - large distinct dashes)">
+            <span>╍ Dash</span>
+          </button>
+          <button type="button" class="ctx-btn" id="ctx-style-btn-dotted" onclick="setSelectedShapeStrokeStyle('dotted')" title="Dotted Line (Running with ball - round dots)">
+            <span>••• Dotted</span>
+          </button>
+          
+          <!-- Circle Fill Button (Visible only when circle is selected / active) -->
+          <button type="button" class="ctx-btn" id="ctx-shapes-circle-fill" onclick="toggleSelectedCircleFill()" title="Toggle Zone Fill / Transparency" style="display:none;">
+            <span>🎨 <span id="ctx-shapes-fill-label">Fill: OFF</span></span>
+          </button>
+
+          <!-- Arrow / Line Rotate & Flip Buttons (Visible when line/arc/dribble is selected / active) -->
+          <div id="ctx-shapes-arrow-transforms" style="display:none;align-items:center;gap:6px;">
+            <div style="width:1px;height:18px;background:rgba(255,255,255,0.15);margin:0 2px;"></div>
+            <button class="ctx-btn" onclick="rotateSelectedObject(45)" title="Rotate by 45°">
+              <span>↻ Rotate 45°</span>
+            </button>
+            <button class="ctx-btn" onclick="flipSelectedArrowCurve()" title="Flip Direction">
+              <span>⇄ Flip</span>
+            </button>
+          </div>
+
+          <span class="ctx-hint" id="ctx-shapes-hint">💡 Solid = runs without ball, Dash = ball travelling, Dot = running with ball.</span>
         </div>
 
-        <!-- CIRCLE & ZONE CONTEXTUAL CONTROLS -->
-        <div id="ctx-circle-group" class="ctx-group" style="display:none;align-items:center;gap:8px;">
-          <span class="ctx-label">CIRCLE STYLE:</span>
-          <button type="button" class="ctx-btn" id="ctx-circle-btn-solid" onclick="setSelectedCircleStyle('solid')" title="Solid Outline">
-            <span>🔘 Solid</span>
+        <!-- HIGHLIGHT SPACE (PITCH SHADOW SPOTLIGHT) CONTEXTUAL CONTROLS -->
+        <div id="ctx-space-highlight-group" class="ctx-group" style="display:none;align-items:center;gap:8px;">
+          <span class="ctx-label">HIGHLIGHT SPACE:</span>
+          <span class="ctx-badge" style="background:rgba(0,230,118,0.15);color:var(--accent-green);border:1px solid rgba(0,230,118,0.35);">SHADOW SPOTLIGHT</span>
+          <span class="ctx-label" style="margin-left:4px;">DIM:</span>
+          <button type="button" class="ctx-btn" id="btn-space-dark-50" onclick="setSpaceHighlightDarkness(0.50)" title="50% Dim Shadow">
+            <span>50%</span>
           </button>
-          <button type="button" class="ctx-btn" id="ctx-circle-btn-dashed" onclick="setSelectedCircleStyle('dashed')" title="Dashed Outline">
-            <span>⭕ Dashed</span>
+          <button type="button" class="ctx-btn" id="btn-space-dark-65" onclick="setSpaceHighlightDarkness(0.65)" title="65% Dim Shadow (Standard)">
+            <span>65%</span>
           </button>
-          <button type="button" class="ctx-btn" id="ctx-circle-btn-dotted" onclick="setSelectedCircleStyle('dotted')" title="Dotted Outline">
-            <span>⚪ Dotted</span>
-          </button>
-          <button type="button" class="ctx-btn" id="ctx-circle-btn-fill" onclick="toggleSelectedCircleFill()" title="Toggle Zone Fill / Transparency">
-            <span>🎨 <span id="ctx-circle-fill-label">Fill / Shading</span></span>
-          </button>
-          <span class="ctx-hint">💡 Drag diagonally on pitch to draw custom tactical circle or ellipse.</span>
-        </div>
-
-        <!-- LINE & MOVEMENT CONTEXTUAL CONTROLS -->
-        <div id="ctx-arc-group" class="ctx-group" style="display:none;align-items:center;gap:6px;">
-          <span class="ctx-label" id="ctx-line-label">LINE / ARROW:</span>
-          <button type="button" class="ctx-btn" id="ctx-line-btn-pass" onclick="transformSelectedArrowType('straight-arrow')" title="Pass Line (Dashed)">
-            <span>⚽ Pass (Dash)</span>
-          </button>
-          <button type="button" class="ctx-btn" id="ctx-line-btn-dotted" onclick="transformSelectedArrowType('dotted-arrow')" title="Pass Line (Dotted)">
-            <span>⚪ Pass (Dots)</span>
-          </button>
-          <button type="button" class="ctx-btn" id="ctx-line-btn-run" onclick="transformSelectedArrowType('run-arrow')" title="Player Run (Solid)">
-            <span>🏃 Run (Solid)</span>
-          </button>
-          <button type="button" class="ctx-btn" id="ctx-line-btn-dribble" onclick="transformSelectedArrowType('dribble-arrow')" title="Ball Carry / Dribble (Zigzag)">
-            <span>⚡ Carry (Zigzag)</span>
+          <button type="button" class="ctx-btn" id="btn-space-dark-80" onclick="setSpaceHighlightDarkness(0.80)" title="80% Dim Shadow (High Focus)">
+            <span>80%</span>
           </button>
           <div style="width:1px;height:18px;background:rgba(255,255,255,0.15);margin:0 2px;"></div>
-          <button class="ctx-btn" onclick="rotateSelectedObject(45)" title="Rotate by 45°">
-            <span>↻ Rotate 45°</span>
+          <button type="button" class="ctx-btn" id="btn-space-shape-toggle" onclick="toggleSpaceHighlightShape()" title="Toggle Ellipse / Circle Aspect">
+            <span id="btn-space-shape-text">⬭ Ellipse</span>
           </button>
-          <button class="ctx-btn" onclick="flipSelectedArrowCurve()" title="Flip Direction">
-            <span>⇄ Flip</span>
+          <button type="button" class="ctx-btn" id="btn-space-feather-toggle" onclick="toggleSpaceHighlightFeather()" title="Toggle Soft Feathered Edge">
+            <span id="btn-space-feather-text">Soft Edge: ON</span>
           </button>
+          <button type="button" class="ctx-btn" onclick="deleteSelectedObject()" title="Delete Space Highlight" style="color:#ef4444;border-color:rgba(239,68,68,0.4);background:rgba(239,68,68,0.1);">
+            <span>🗑 Remove</span>
+          </button>
+          <span class="ctx-hint">💡 Drag on pitch to position or enlarge bright space. Pitch remains in dark shadow with no borders or lines.</span>
         </div>
 
         <!-- RULER & DISTANCE CALIBRATION OPTIONS -->
@@ -2338,6 +2352,55 @@
           <input type="text" id="ctx-jersey-input" class="ctx-input" maxlength="3" value="10" oninput="updateActivePlayerTokenJersey(this.value)" style="width:44px;text-align:center;">
           <span class="ctx-label">NAME:</span>
           <input type="text" id="ctx-player-name-input" class="ctx-input" placeholder="Player Name..." value="" oninput="updateActivePlayerTokenName(this.value)" style="width:120px;">
+        </div>
+
+        <!-- ADVANCED TACTICAL TEXT CONTROLS -->
+        <div id="ctx-text-group" class="ctx-group" style="display:none;align-items:center;gap:6px;">
+          <span class="ctx-label">TEXT NOTE:</span>
+          
+          <!-- Font Family Dropdown -->
+          <span class="ctx-label">FONT:</span>
+          <select id="ctx-text-font-select" class="ctx-select" onchange="setTextFont(this.value)" title="Choose Font Family" style="font-size:11px;">
+            <option value="Inter">Inter (Broadcast Sans)</option>
+            <option value="Impact">Impact (Athletic Display)</option>
+            <option value="JetBrains Mono">Tactical Mono</option>
+            <option value="Outfit">Outfit (Geometric)</option>
+            <option value="Arial">Arial</option>
+          </select>
+
+          <!-- Font Size Controls (Step & Presets) -->
+          <button type="button" class="ctx-btn" onclick="stepTextFontSize(-4)" title="Decrease Font Size" style="padding:4px 8px;font-weight:800;">
+            <span>A−</span>
+          </button>
+          <span class="ctx-badge" id="ctx-text-size-badge" style="min-width:36px;text-align:center;font-family:var(--font-mono);font-size:11px;">32px</span>
+          <button type="button" class="ctx-btn" onclick="stepTextFontSize(4)" title="Increase Font Size" style="padding:4px 8px;font-weight:800;">
+            <span>A+</span>
+          </button>
+
+          <!-- Formatting Toggles (Bold, Italic) -->
+          <button type="button" class="ctx-btn" id="btn-text-bold" onclick="toggleTextBold()" title="Toggle Bold" style="font-weight:800;padding:4px 9px;">
+            <span>B</span>
+          </button>
+          <button type="button" class="ctx-btn" id="btn-text-italic" onclick="toggleTextItalic()" title="Toggle Italic" style="font-style:italic;padding:4px 9px;">
+            <span>I</span>
+          </button>
+
+          <!-- Background Selector (Transparent, Dark Glass, Solid Black, Tactical Tint) -->
+          <div style="width:1px;height:18px;background:rgba(255,255,255,0.15);margin:0 2px;"></div>
+          <span class="ctx-label">BG:</span>
+          <select id="ctx-text-bg-select" class="ctx-select" onchange="setTextBackground(this.value)" title="Choose Background Style" style="font-size:11px;">
+            <option value="dark">Dark Glass</option>
+            <option value="transparent">Transparent</option>
+            <option value="solid">Solid Black</option>
+            <option value="tint">Tactical Tint</option>
+          </select>
+
+          <!-- Border Pill Badge Toggle -->
+          <button type="button" class="ctx-btn" id="btn-text-border-toggle" onclick="toggleTextBorder()" title="Toggle Outline Border Badge">
+            <span id="btn-text-border-label">Border: ON</span>
+          </button>
+
+          <span class="ctx-hint">💡 Double-click text on pitch to edit. Choose Transparent, Dark Glass, or Tactical Tint.</span>
         </div>
 
         <!-- POLYGON ZONE IN-PROGRESS CONTROLS -->
@@ -2604,11 +2667,13 @@
         <div class="shortcut-row"><span>Step Backward (-1 Frame)</span><span class="kbd-chip">, or ←</span></div>
         <div class="shortcut-row"><span>Jump ±5 Seconds</span><span class="kbd-chip">Shift + ← / →</span></div>
         <div class="shortcut-row"><span>Select & Move Tool</span><span class="kbd-chip">V</span></div>
+        <div class="shortcut-row"><span>Highlight Space (Pitch Shadow)</span><span class="kbd-chip">X</span></div>
         <div class="shortcut-row"><span>3D Spotlight Tool</span><span class="kbd-chip">S</span></div>
         <div class="shortcut-row"><span>Player Tracker Ring (4-Dash)</span><span class="kbd-chip">H</span></div>
+        <div class="shortcut-row"><span>Straight Passing Arrow / Line</span><span class="kbd-chip">D</span></div>
+        <div class="shortcut-row"><span>Circle / Tactical Zone</span><span class="kbd-chip">C</span></div>
         <div class="shortcut-row"><span>Right Curved Run Arc</span><span class="kbd-chip">A</span></div>
         <div class="shortcut-row"><span>Left Curved Run Arc</span><span class="kbd-chip">Q</span></div>
-        <div class="shortcut-row"><span>Straight Passing Arrow</span><span class="kbd-chip">D</span></div>
         <div class="shortcut-row"><span>Pitch Ruler & Distance</span><span class="kbd-chip">R</span></div>
         <div class="shortcut-row"><span>Calibrate Pitch Scale</span><span class="kbd-chip">Ruler Bar 📐 Calibrate</span></div>
         <div class="shortcut-row"><span>Player Position Token</span><span class="kbd-chip">M</span></div>
@@ -5255,9 +5320,16 @@
     /* ==========================================================================
        4. TELESTRATION 3D TACTICAL TOOLS & SHAPE BUILDERS
     ========================================================================== */
+    let activeShapeCategoryTool = 'arrow-straight'; // 'arrow-straight' | 'circle' | 'arrow-dribble' | 'arrow-curved-right' | 'arrow-curved-left'
+    let activeShapeStrokeStyle = 'dashed'; // 'solid' | 'dashed' | 'dotted'
     let activeCircleStyle = 'solid'; // 'solid' | 'dashed' | 'dotted'
     let activeLineStyle = 'arrow-straight'; // 'arrow-straight' (Pass) | 'arrow-run' (Run) | 'arrow-dribble' (Carry) | 'arrow-curved-right' | 'arrow-curved-left'
     let activeDrawZoneTool = 'polygon'; // 'polygon' | 'polyline' | 'pen'
+
+    // Pitch Space Highlight (Shadow Spotlight) state
+    let activeSpaceHighlightDarkness = 0.65; // 0.50 | 0.65 | 0.80
+    let activeSpaceHighlightIsCircle = false;
+    let activeSpaceHighlightFeather = true;
 
     function toggleToolSubmenu(wrapperId, popoverId, triggerId, e) {
       if (e) e.stopPropagation();
@@ -5281,183 +5353,137 @@
       wrapper.classList.toggle('open');
     }
 
-    function handleCircleToolButtonClick(e) {
+    /* --------------------------------------------------------------------------
+       UNIFIED TACTICAL SHAPES & LINES CATEGORY (Line, Circle, Dribble, Arcs)
+    -------------------------------------------------------------------------- */
+    function handleShapesCategoryButtonClick(e) {
       if (e) e.stopPropagation();
-      if (activeTool === 'circle') {
-        toggleToolSubmenu('tool-circle-wrapper', 'circle-sub-popover', 'tool-circle', e);
+      const isCurrentInShapes = ['circle', 'arrow-straight', 'arrow-dotted', 'arrow-run', 'arrow-dribble', 'arrow-curved-right', 'arrow-curved-left'].includes(activeTool);
+      if (isCurrentInShapes) {
+        // Toggle popover when clicking the category button while already in this category
+        toggleToolSubmenu('tool-shapes-lines-wrapper', 'shapes-lines-sub-popover', 'tool-shapes-lines', e);
       } else {
-        setActiveTool('circle');
+        // Activate currently selected tool from this category
+        setActiveTool(activeShapeCategoryTool || 'arrow-straight');
       }
     }
 
-    function selectCircleSubStyle(style, e) {
+    function selectShapesTool(tool, e) {
       if (e) e.stopPropagation();
-      activeCircleStyle = style;
-      setActiveTool('circle');
-      updateCircleToolUI();
-      const wrapper = document.getElementById('tool-circle-wrapper');
-      if (wrapper) wrapper.classList.remove('open');
-    }
-
-    function updateCircleToolUI() {
-      document.querySelectorAll('#circle-sub-popover .sub-tool-opt').forEach(btn => btn.classList.remove('active'));
-      const activeBtn = document.getElementById(`sub-circle-${activeCircleStyle}`);
-      if (activeBtn) activeBtn.classList.add('active');
-
-      const circleIcon = document.getElementById('tool-circle-icon');
-      if (circleIcon) {
-        if (activeCircleStyle === 'dashed') {
-          circleIcon.innerHTML = `<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="6 6"/>`;
-        } else if (activeCircleStyle === 'dotted') {
-          circleIcon.innerHTML = `<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="1 6" stroke-linecap="round"/>`;
-        } else {
-          circleIcon.innerHTML = `<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.2"/>`;
-        }
-      }
-
-      const btn = document.getElementById('tool-circle');
-      if (btn) btn.setAttribute('data-tooltip', `Circle (${activeCircleStyle.toUpperCase()})\n(C)`);
-    }
-
-    function handleLineToolButtonClick(e) {
-      if (e) e.stopPropagation();
-      const isAnyLine = ['arrow-straight', 'arrow-dotted', 'arrow-run', 'arrow-dribble', 'arrow-curved-right', 'arrow-curved-left'].includes(activeTool);
-      if (isAnyLine) {
-        toggleToolSubmenu('tool-line-wrapper', 'line-sub-popover', 'tool-line', e);
-      } else {
-        setActiveTool(activeLineStyle || 'arrow-straight');
-      }
-    }
-
-    function selectLineSubStyle(lineTool, e) {
-      if (e) e.stopPropagation();
-      activeLineStyle = lineTool;
-      setActiveTool(lineTool);
-      updateLineToolUI();
-      const wrapper = document.getElementById('tool-line-wrapper');
-      if (wrapper) wrapper.classList.remove('open');
-    }
-
-    function updateLineToolUI() {
-      document.querySelectorAll('#line-sub-popover .sub-tool-opt').forEach(btn => btn.classList.remove('active'));
-      let subId = 'sub-line-pass';
-      if (activeLineStyle === 'arrow-dotted') subId = 'sub-line-dotted';
-      else if (activeLineStyle === 'arrow-run') subId = 'sub-line-run';
-      else if (activeLineStyle === 'arrow-dribble') subId = 'sub-line-dribble';
-      else if (activeLineStyle === 'arrow-curved-right') subId = 'sub-line-arc-right';
-      else if (activeLineStyle === 'arrow-curved-left') subId = 'sub-line-arc-left';
-
-      const activeBtn = document.getElementById(subId);
-      if (activeBtn) activeBtn.classList.add('active');
-
-      const lineIcon = document.getElementById('tool-line-icon');
-      if (lineIcon) {
-        if (activeLineStyle === 'arrow-dotted') {
-          lineIcon.innerHTML = `<line x1="5" y1="19" x2="19" y2="5" stroke-dasharray="1 5" stroke-linecap="round"/><polyline points="10 5 19 5 19 14"/>`;
-        } else if (activeLineStyle === 'arrow-run') {
-          lineIcon.innerHTML = `<line x1="5" y1="19" x2="19" y2="5"/><polyline points="10 5 19 5 19 14"/>`;
-        } else if (activeLineStyle === 'arrow-dribble') {
-          lineIcon.innerHTML = `<path d="M4 20 L8 15 L12 17 L16 11 L19 5"/><polyline points="13 5 19 5 19 11"/>`;
-        } else if (activeLineStyle === 'arrow-curved-right') {
-          lineIcon.innerHTML = `<path d="M5 19C5 11 11 7 20 6"/><polyline points="14 2 20 6 15 11"/>`;
-        } else if (activeLineStyle === 'arrow-curved-left') {
-          lineIcon.innerHTML = `<path d="M19 19C19 11 13 7 4 6"/><polyline points="10 2 4 6 9 11"/>`;
-        } else {
-          lineIcon.innerHTML = `<line x1="5" y1="19" x2="19" y2="5" stroke-dasharray="5 5"/><polyline points="10 5 19 5 19 14"/>`;
-        }
-      }
-
-      let label = 'Pass (Dashed)\n(D)';
-      if (activeLineStyle === 'arrow-dotted') label = 'Pass (Dotted)\n(D)';
-      else if (activeLineStyle === 'arrow-run') label = 'Player Run\n(D)';
-      else if (activeLineStyle === 'arrow-dribble') label = 'Ball Carry\n(D)';
-      else if (activeLineStyle === 'arrow-curved-right') label = 'Right Arc\n(A)';
-      else if (activeLineStyle === 'arrow-curved-left') label = 'Left Arc\n(Q)';
-
-      const btn = document.getElementById('tool-line');
-      if (btn) btn.setAttribute('data-tooltip', label);
-    }
-
-    function handleDrawZoneToolButtonClick(e) {
-      if (e) e.stopPropagation();
-      const isAnyDrawZone = ['polygon', 'polyline', 'pen'].includes(activeTool);
-      if (isAnyDrawZone) {
-        toggleToolSubmenu('tool-drawzone-wrapper', 'drawzone-sub-popover', 'tool-drawzone', e);
-      } else {
-        setActiveTool(activeDrawZoneTool || 'polygon');
-      }
-    }
-
-    function selectDrawZoneSubTool(tool, e) {
-      if (e) e.stopPropagation();
-      activeDrawZoneTool = tool;
+      activeShapeCategoryTool = tool;
       setActiveTool(tool);
-      updateDrawZoneToolUI();
-      const wrapper = document.getElementById('tool-drawzone-wrapper');
+      updateShapesCategoryToolUI();
+      const wrapper = document.getElementById('tool-shapes-lines-wrapper');
       if (wrapper) wrapper.classList.remove('open');
     }
 
-    function updateDrawZoneToolUI() {
-      document.querySelectorAll('#drawzone-sub-popover .sub-tool-opt').forEach(btn => btn.classList.remove('active'));
-      const activeBtn = document.getElementById(`sub-drawzone-${activeDrawZoneTool}`);
-      if (activeBtn) activeBtn.classList.add('active');
+    function updateShapesCategoryToolUI() {
+      // 1. Highlight active tool in popover
+      document.querySelectorAll('#shapes-lines-sub-popover .sub-tool-opt').forEach(btn => btn.classList.remove('active'));
+      let optId = 'sub-shape-line';
+      if (activeShapeCategoryTool === 'circle') optId = 'sub-shape-circle';
+      else if (activeShapeCategoryTool === 'arrow-dribble') optId = 'sub-shape-dribble';
+      else if (activeShapeCategoryTool === 'arrow-curved-right') optId = 'sub-shape-arc-right';
+      else if (activeShapeCategoryTool === 'arrow-curved-left') optId = 'sub-shape-arc-left';
 
-      const icon = document.getElementById('tool-drawzone-icon');
+      const activeOpt = document.getElementById(optId);
+      if (activeOpt) activeOpt.classList.add('active');
+
+      // 2. Update category button icon & tooltip
+      const icon = document.getElementById('tool-shapes-lines-icon');
+      const btn = document.getElementById('tool-shapes-lines');
       if (icon) {
-        if (activeDrawZoneTool === 'polyline') {
-          icon.innerHTML = `<circle cx="4" cy="19" r="2.5"/><circle cx="12" cy="5" r="2.5"/><circle cx="20" cy="19" r="2.5"/><line x1="6.5" y1="17.5" x2="10" y2="7.5"/><line x1="14" y1="7.5" x2="17.5" y2="17.5"/>`;
-        } else if (activeDrawZoneTool === 'pen') {
-          icon.innerHTML = `<path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/>`;
+        if (activeShapeCategoryTool === 'circle') {
+          if (activeShapeStrokeStyle === 'dashed') {
+            icon.innerHTML = `<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="6 4"/>`;
+          } else if (activeShapeStrokeStyle === 'dotted') {
+            icon.innerHTML = `<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="1 5" stroke-linecap="round"/>`;
+          } else {
+            icon.innerHTML = `<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.2"/>`;
+          }
+          if (btn) btn.setAttribute('data-tooltip', `Circle / Zone\n(C)`);
+        } else if (activeShapeCategoryTool === 'arrow-dribble') {
+          icon.innerHTML = `<path d="M4 20 L8 15 L12 17 L16 11 L19 5" fill="none" stroke="currentColor" stroke-width="2.2"/><polyline points="13 5 19 5 19 11" fill="none" stroke="currentColor" stroke-width="2.2"/>`;
+          if (btn) btn.setAttribute('data-tooltip', `Ball Carry / Dribble\n(Zigzag)`);
+        } else if (activeShapeCategoryTool === 'arrow-curved-right') {
+          icon.innerHTML = `<path d="M5 19C5 11 11 7 20 6" fill="none" stroke="currentColor" stroke-width="2.2"/><polyline points="14 2 20 6 15 11" fill="none" stroke="currentColor" stroke-width="2.2"/>`;
+          if (btn) btn.setAttribute('data-tooltip', `Right Arc Pass\n(A)`);
+        } else if (activeShapeCategoryTool === 'arrow-curved-left') {
+          icon.innerHTML = `<path d="M19 19C19 11 13 7 4 6" fill="none" stroke="currentColor" stroke-width="2.2"/><polyline points="10 2 4 6 9 11" fill="none" stroke="currentColor" stroke-width="2.2"/>`;
+          if (btn) btn.setAttribute('data-tooltip', `Left Arc Pass\n(Q)`);
         } else {
-          icon.innerHTML = `<polygon points="12 2 22 8.5 18 20 6 20 2 8.5 12 2"/>`;
+          // Straight Line
+          if (activeShapeStrokeStyle === 'dashed') {
+            icon.innerHTML = `<line x1="5" y1="19" x2="19" y2="5" stroke="currentColor" stroke-width="2.2" stroke-dasharray="6 3"/><polyline points="10 5 19 5 19 14" fill="none" stroke="currentColor" stroke-width="2.2"/>`;
+            if (btn) btn.setAttribute('data-tooltip', `Pass Line (Dash)\n(D)`);
+          } else if (activeShapeStrokeStyle === 'dotted') {
+            icon.innerHTML = `<line x1="5" y1="19" x2="19" y2="5" stroke="currentColor" stroke-width="2.5" stroke-dasharray="1 5" stroke-linecap="round"/><polyline points="10 5 19 5 19 14" fill="none" stroke="currentColor" stroke-width="2.2"/>`;
+            if (btn) btn.setAttribute('data-tooltip', `Pass Line (Dotted)\n(D)`);
+          } else {
+            icon.innerHTML = `<line x1="5" y1="19" x2="19" y2="5" stroke="currentColor" stroke-width="2.2"/><polyline points="10 5 19 5 19 14" fill="none" stroke="currentColor" stroke-width="2.2"/>`;
+            if (btn) btn.setAttribute('data-tooltip', `Player Run (Solid)\n(D)`);
+          }
         }
       }
-
-      let label = 'Polygon Zone\n(P)';
-      if (activeDrawZoneTool === 'polyline') label = 'Three Line Triangle\n(L)';
-      else if (activeDrawZoneTool === 'pen') label = 'Tactical Pen\n(N)';
-
-      const btn = document.getElementById('tool-drawzone');
-      if (btn) btn.setAttribute('data-tooltip', label);
     }
 
-    function setSelectedCircleStyle(style) {
+    // Dynamic stroke style setter for Line, Circle, Dribble, and Arc passes
+    function setSelectedShapeStrokeStyle(style) {
+      activeShapeStrokeStyle = style;
       activeCircleStyle = style;
-      updateCircleToolUI();
+      activeLineStyle = (style === 'solid' ? 'arrow-run' : (style === 'dotted' ? 'arrow-dotted' : 'arrow-straight'));
+      updateShapesCategoryToolUI();
 
       if (!canvas) return;
       let activeObj = canvas.getActiveObject();
       if (!activeObj) {
         const objs = canvas.getObjects();
         for (let i = objs.length - 1; i >= 0; i--) {
-          if (objs[i].tacticalType === 'circle-zone') {
+          if (['circle-zone', 'curved-arrow', 'straight-arrow', 'dotted-arrow', 'run-arrow', 'dribble-arrow'].includes(objs[i].tacticalType)) {
             activeObj = objs[i];
             break;
           }
         }
       }
 
-      if (activeObj && activeObj.tacticalType === 'circle-zone') {
-        activeObj.circleStyle = style;
+      if (activeObj) {
         let dash = null;
-        let cap = 'butt';
+        let cap = 'round';
         if (style === 'dashed') {
-          dash = [16, 16];
+          dash = [26, 13];
           cap = 'butt';
         } else if (style === 'dotted') {
-          const sw = (activeObj && activeObj.strokeWidth) || strokeWidth || 4;
-          dash = [1, Math.max(14, sw * 2.2)];
+          const sw = (activeObj.strokeWidth) || (activeObj._objects && activeObj._objects[0] && activeObj._objects[0].strokeWidth) || strokeWidth || 6;
+          dash = [0.1, Math.max(15, sw * 2.4)];
           cap = 'round';
         }
-        activeObj.set({
-          strokeDashArray: dash,
-          strokeLineCap: cap
-        });
-        canvas.renderAll();
+
+        if (activeObj.tacticalType === 'circle-zone') {
+          activeObj.circleStyle = style;
+          activeObj.set({ strokeDashArray: dash, strokeLineCap: cap });
+        } else if (['curved-arrow', 'straight-arrow', 'dotted-arrow', 'run-arrow', 'dribble-arrow'].includes(activeObj.tacticalType)) {
+          activeObj.arrowStyle = style;
+          if (activeObj._objects && activeObj._objects[0]) {
+            activeObj._objects[0].set({ strokeDashArray: dash, strokeLineCap: cap });
+            activeObj.dirty = true;
+          }
+        }
+        canvas.requestRenderAll();
         saveCurrentCanvasToActiveKeyframe();
         updateContextualControls(activeObj);
+      } else {
+        updateContextualControls(null);
       }
     }
+
+    // Backward-compatibility wrappers
+    function handleCircleToolButtonClick(e) { handleShapesCategoryButtonClick(e); }
+    function selectCircleSubStyle(style, e) { setSelectedShapeStrokeStyle(style); }
+    function updateCircleToolUI() { updateShapesCategoryToolUI(); }
+    function handleLineToolButtonClick(e) { handleShapesCategoryButtonClick(e); }
+    function selectLineSubStyle(lineTool, e) { selectShapesTool(lineTool, e); }
+    function updateLineToolUI() { updateShapesCategoryToolUI(); }
+    function setSelectedCircleStyle(style) { setSelectedShapeStrokeStyle(style); }
 
     let activeCircleFillEnabled = false;
 
@@ -5478,14 +5504,14 @@
         const currentFill = activeObj.fill;
         const isFilled = currentFill && currentFill !== 'transparent' && currentFill !== 'rgba(0,0,0,0)' && currentFill !== 'none';
         if (!isFilled) {
-          let fColor = hexToRgba(activeObj.stroke || drawColor, 0.16);
+          let fColor = hexToRgba(activeObj.stroke || drawColor, 0.18);
           activeObj.set('fill', fColor);
           activeCircleFillEnabled = true;
         } else {
           activeObj.set('fill', 'transparent');
           activeCircleFillEnabled = false;
         }
-        canvas.renderAll();
+        canvas.requestRenderAll();
         saveCurrentCanvasToActiveKeyframe();
         updateContextualControls(activeObj);
       } else {
@@ -5519,13 +5545,13 @@
 
       let newArrow = null;
       if (newType === 'straight-arrow') {
-        newArrow = createStraightTacticalArrow(p1.x, p1.y, p2.x, p2.y, color, width);
+        newArrow = createStraightTacticalArrow(p1.x, p1.y, p2.x, p2.y, color, width, 'dashed');
       } else if (newType === 'dotted-arrow') {
-        newArrow = createDottedTacticalArrow(p1.x, p1.y, p2.x, p2.y, color, width);
+        newArrow = createStraightTacticalArrow(p1.x, p1.y, p2.x, p2.y, color, width, 'dotted');
       } else if (newType === 'run-arrow') {
-        newArrow = createSolidPlayerRunArrow(p1.x, p1.y, p2.x, p2.y, color, width);
+        newArrow = createStraightTacticalArrow(p1.x, p1.y, p2.x, p2.y, color, width, 'solid');
       } else if (newType === 'dribble-arrow') {
-        newArrow = createZigzagDribbleArrow(p1.x, p1.y, p2.x, p2.y, color, width);
+        newArrow = createZigzagDribbleArrow(p1.x, p1.y, p2.x, p2.y, color, width, activeShapeStrokeStyle);
       }
 
       if (newArrow) {
@@ -5535,10 +5561,88 @@
         canvas.remove(activeObj);
         canvas.add(newArrow);
         if (activeTool === 'select') canvas.setActiveObject(newArrow);
-        canvas.renderAll();
+        canvas.requestRenderAll();
         saveCurrentCanvasToActiveKeyframe();
         updateContextualControls(newArrow);
       }
+    }
+
+    /* --------------------------------------------------------------------------
+       HIGHLIGHT SPACE (PITCH SHADOW SPOTLIGHT) CONTROLS
+    -------------------------------------------------------------------------- */
+    function setSpaceHighlightDarkness(val) {
+      activeSpaceHighlightDarkness = val;
+      const activeObj = canvas ? canvas.getActiveObject() : null;
+      if (activeObj && activeObj.tacticalType === 'space-highlight') {
+        activeObj.darkness = val;
+        canvas.requestRenderAll();
+        saveCurrentCanvasToActiveKeyframe();
+        updateSpaceHighlightControlsUI(activeObj);
+      } else {
+        updateSpaceHighlightControlsUI(null);
+      }
+    }
+
+    function toggleSpaceHighlightShape() {
+      const activeObj = canvas ? canvas.getActiveObject() : null;
+      if (activeObj && activeObj.tacticalType === 'space-highlight') {
+        activeObj.isCircle = !activeObj.isCircle;
+        if (activeObj.isCircle) {
+          activeObj.ry = activeObj.rx;
+          activeObj.height = activeObj.rx * 2;
+        } else {
+          activeObj.ry = Math.round(activeObj.rx * 0.65);
+          activeObj.height = activeObj.ry * 2;
+        }
+        activeObj.setCoords();
+        canvas.requestRenderAll();
+        saveCurrentCanvasToActiveKeyframe();
+        updateSpaceHighlightControlsUI(activeObj);
+      } else {
+        activeSpaceHighlightIsCircle = !activeSpaceHighlightIsCircle;
+        updateSpaceHighlightControlsUI(null);
+      }
+    }
+
+    function toggleSpaceHighlightFeather() {
+      const activeObj = canvas ? canvas.getActiveObject() : null;
+      if (activeObj && activeObj.tacticalType === 'space-highlight') {
+        activeObj.feather = (activeObj.feather > 0) ? 0 : 22;
+        canvas.requestRenderAll();
+        saveCurrentCanvasToActiveKeyframe();
+        updateSpaceHighlightControlsUI(activeObj);
+      } else {
+        activeSpaceHighlightFeather = !activeSpaceHighlightFeather;
+        updateSpaceHighlightControlsUI(null);
+      }
+    }
+
+    function updateSpaceHighlightControlsUI(activeObj) {
+      const currDarkness = (activeObj && activeObj.darkness !== undefined) ? activeObj.darkness : activeSpaceHighlightDarkness;
+      const currIsCircle = (activeObj && activeObj.isCircle !== undefined) ? activeObj.isCircle : activeSpaceHighlightIsCircle;
+      const currFeather = (activeObj && activeObj.feather !== undefined) ? (activeObj.feather > 0) : activeSpaceHighlightFeather;
+
+      [0.50, 0.65, 0.80].forEach(val => {
+        const btn = document.getElementById(`btn-space-dark-${Math.round(val * 100)}`);
+        if (btn) {
+          const isMatch = Math.abs(currDarkness - val) < 0.05;
+          btn.style.background = isMatch ? 'rgba(0,230,118,0.25)' : 'rgba(255,255,255,0.08)';
+          btn.style.borderColor = isMatch ? '#00e676' : 'rgba(255,255,255,0.15)';
+          btn.style.color = isMatch ? '#00e676' : '#cbd5e1';
+        }
+      });
+
+      const shapeText = document.getElementById('btn-space-shape-text');
+      if (shapeText) shapeText.textContent = currIsCircle ? '⭕ Circle' : '⬭ Ellipse';
+
+      const featherBtn = document.getElementById('btn-space-feather-toggle');
+      const featherText = document.getElementById('btn-space-feather-text');
+      if (featherBtn) {
+        featherBtn.style.background = currFeather ? 'rgba(0,230,118,0.25)' : 'rgba(255,255,255,0.08)';
+        featherBtn.style.borderColor = currFeather ? '#00e676' : 'rgba(255,255,255,0.15)';
+        featherBtn.style.color = currFeather ? '#00e676' : '#cbd5e1';
+      }
+      if (featherText) featherText.textContent = currFeather ? 'Soft Edge: ON' : 'Soft Edge: OFF';
     }
 
     function toggleOrSetActiveTool(tool) {
@@ -5551,22 +5655,27 @@
 
     function setActiveTool(tool) {
       activeTool = tool;
-      window.activeTool = tool;
-
       document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
       const activeBtn = document.getElementById(`tool-${tool}`);
       if (activeBtn) activeBtn.classList.add('active');
 
-      if (tool === 'circle') {
-        const circleBtn = document.getElementById('tool-circle');
-        if (circleBtn) circleBtn.classList.add('active');
-        updateCircleToolUI();
+      if (['tracker-ring', 'spotlight'].includes(tool)) {
+        const spotTrackerBtn = document.getElementById('tool-spotlight-tracker');
+        if (spotTrackerBtn) spotTrackerBtn.classList.add('active');
+        activeSpotlightTrackerTool = tool;
+        updateSpotlightTrackerCategoryUI();
       }
-      if (['arrow-straight', 'arrow-dotted', 'arrow-run', 'arrow-dribble', 'arrow-curved-right', 'arrow-curved-left'].includes(tool)) {
-        const lineBtn = document.getElementById('tool-line');
-        if (lineBtn) lineBtn.classList.add('active');
-        activeLineStyle = tool;
-        updateLineToolUI();
+
+      if (['circle', 'arrow-straight', 'arrow-dotted', 'arrow-run', 'arrow-dribble', 'arrow-curved-right', 'arrow-curved-left'].includes(tool)) {
+        const shapesBtn = document.getElementById('tool-shapes-lines');
+        if (shapesBtn) shapesBtn.classList.add('active');
+        activeShapeCategoryTool = tool;
+        updateShapesCategoryToolUI();
+      }
+
+      if (tool === 'space-highlight') {
+        const spaceBtn = document.getElementById('tool-space-highlight');
+        if (spaceBtn) spaceBtn.classList.add('active');
       }
 
       if (['polygon', 'polyline', 'pen'].includes(tool)) {
@@ -5616,8 +5725,8 @@
           canvas.forEachObject(obj => { 
             obj.selectable = true; 
             obj.evented = true; 
-            obj.hasControls = true;
-            obj.hasBorders = true;
+            obj.hasControls = true; 
+            obj.hasBorders = true; 
           });
         } else if (tool === 'pen') {
           canvas.defaultCursor = 'crosshair';
@@ -5627,15 +5736,15 @@
           canvas.forEachObject(obj => { 
             obj.selectable = false; 
             obj.evented = false; 
-            obj.hasControls = false;
-            obj.hasBorders = false;
+            obj.hasControls = false; 
+            obj.hasBorders = false; 
           });
           canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
           canvas.freeDrawingBrush.color = drawColor;
           canvas.freeDrawingBrush.width = strokeWidth;
           canvas.freeDrawingBrush.decimate = 2;
         } else {
-          // Tactical drawing tools ('spotlight', 'tracker-ring', 'player', 'arrow-curved', 'arrow-straight', 'ruler', 'polygon', 'text')
+          // Tactical drawing tools ('space-highlight', 'spotlight', 'tracker-ring', 'player', 'arrow-curved', 'arrow-straight', 'ruler', 'polygon', 'text')
           canvas.defaultCursor = 'crosshair';
           canvas.isDrawingMode = false;
           canvas.selection = false;
@@ -5643,8 +5752,8 @@
           canvas.forEachObject(obj => { 
             obj.selectable = false; 
             obj.evented = false; 
-            obj.hasControls = false;
-            obj.hasBorders = false;
+            obj.hasControls = false; 
+            obj.hasBorders = false; 
           });
         }
         canvas.renderAll();
@@ -5653,7 +5762,97 @@
       updateCanvasBadge();
     }
 
-    function toggleTrackerSpotlightBeam() {
+    /* --------------------------------------------------------------------------
+       SPOTLIGHT & TRACKER UNIFIED CONTROLS (Dynamic Moving vs Static)
+    -------------------------------------------------------------------------- */
+    let activeSpotlightTrackerTool = 'tracker-ring'; // 'tracker-ring' (moving) or 'spotlight' (static)
+    let staticSpotlightBeamEnabled = true;
+
+    function handleSpotlightTrackerButtonClick(e) {
+      if (e && (e.button === 2 || (e.target && e.target.classList && e.target.classList.contains('tool-caret-dot')))) {
+        toggleToolSubmenu('tool-spotlight-tracker-wrapper', 'spotlight-tracker-sub-popover', 'tool-spotlight-tracker', e);
+        return;
+      }
+      toggleOrSetActiveTool(activeSpotlightTrackerTool);
+    }
+
+    function selectSpotlightTrackerTool(tool, e) {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
+      activeSpotlightTrackerTool = tool;
+      updateSpotlightTrackerCategoryUI();
+      const popover = document.getElementById('spotlight-tracker-sub-popover');
+      if (popover) popover.classList.remove('open');
+      setActiveTool(tool);
+    }
+
+    function updateSpotlightTrackerCategoryUI() {
+      const btn = document.getElementById('tool-spotlight-tracker');
+      const icon = document.getElementById('tool-spotlight-tracker-icon');
+      const optDynamic = document.getElementById('sub-spotlight-dynamic');
+      const optStatic = document.getElementById('sub-spotlight-static');
+      
+      if (optDynamic) optDynamic.classList.toggle('active', activeSpotlightTrackerTool === 'tracker-ring');
+      if (optStatic) optStatic.classList.toggle('active', activeSpotlightTrackerTool === 'spotlight');
+      
+      if (icon) {
+        if (activeSpotlightTrackerTool === 'spotlight') {
+          icon.innerHTML = `<ellipse cx="12" cy="18" rx="9" ry="4"/><path d="M7 6 3 18"/><path d="m17 6 4 12"/><circle cx="12" cy="6" r="3"/>`;
+          if (btn) btn.setAttribute('data-tooltip', `Static Spotlight\n(S)\n(Right-click for options)`);
+        } else {
+          icon.innerHTML = `<ellipse cx="12" cy="12" rx="9" ry="5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="5 3"/><ellipse cx="12" cy="12" rx="5.5" ry="3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="3 2" opacity="0.8"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/>`;
+          if (btn) btn.setAttribute('data-tooltip', `Player Tracker (Moving)\n(H)\n(Right-click for options)`);
+        }
+      }
+    }
+
+    function setSpotlightTrackerMode(mode) {
+      activeSpotlightTrackerTool = mode;
+      updateSpotlightTrackerCategoryUI();
+      
+      if (canvas) {
+        let activeObj = canvas.getActiveObject();
+        if (activeObj) {
+          if (mode === 'spotlight' && (activeObj.tacticalType === 'tracker-ring' || activeObj.type === 'tracker-ring')) {
+            const cx = activeObj.left;
+            const cy = activeObj.top;
+            const rx = activeObj.rx || 46;
+            const ry = activeObj.ry || (rx * 0.46);
+            const color = activeObj.trackerColor || activeObj.stroke || drawColor;
+            const hasBeam = (activeObj.showSpotlight !== undefined) ? activeObj.showSpotlight : staticSpotlightBeamEnabled;
+            const newSpot = create3DSpotlight(cx, cy, rx, ry, color, shapeOpacity, hasBeam);
+            newSpot.keyframeId = activeObj.keyframeId;
+            newSpot.selectable = (activeTool === 'select');
+            newSpot.evented = (activeTool === 'select');
+            canvas.remove(activeObj);
+            canvas.add(newSpot);
+            if (activeTool === 'select') canvas.setActiveObject(newSpot);
+            canvas.renderAll();
+            saveCurrentCanvasToActiveKeyframe();
+            updateSpotlightTrackerControlsUI(newSpot);
+          } else if (mode === 'tracker-ring' && activeObj.tacticalType === 'spotlight') {
+            const cx = activeObj.left;
+            const cy = activeObj.top;
+            const rx = activeObj.spotlightRadiusX || 46;
+            const ry = activeObj.spotlightRadiusY || (rx * 0.48);
+            const color = activeObj.spotlightColor || drawColor;
+            const hasBeam = (activeObj.showSpotlight !== undefined) ? activeObj.showSpotlight : trackerSpotlightEnabled;
+            const newRing = createTrackerRing(cx, cy, rx, ry, color, hasBeam);
+            newRing.keyframeId = activeObj.keyframeId;
+            newRing.selectable = (activeTool === 'select');
+            newRing.evented = (activeTool === 'select');
+            canvas.remove(activeObj);
+            canvas.add(newRing);
+            if (activeTool === 'select') canvas.setActiveObject(newRing);
+            canvas.renderAll();
+            saveCurrentCanvasToActiveKeyframe();
+            updateSpotlightTrackerControlsUI(newRing);
+          }
+        }
+      }
+      setActiveTool(mode);
+    }
+
+    function toggleUnifiedSpotlightBeam() {
       const activeObj = canvas ? canvas.getActiveObject() : null;
       if (activeObj && (activeObj.tacticalType === 'tracker-ring' || activeObj.type === 'tracker-ring')) {
         activeObj.showSpotlight = !activeObj.showSpotlight;
@@ -5661,75 +5860,277 @@
         activeObj.setCoords();
         canvas.requestRenderAll();
         saveCurrentCanvasToActiveKeyframe();
-        updateTrackerControlsUI(activeObj);
+        updateSpotlightTrackerControlsUI(activeObj);
+      } else if (activeObj && activeObj.tacticalType === 'spotlight') {
+        const currentHasBeam = (activeObj.showSpotlight !== undefined) ? activeObj.showSpotlight : true;
+        const nextHasBeam = !currentHasBeam;
+        activeObj.showSpotlight = nextHasBeam;
+        staticSpotlightBeamEnabled = nextHasBeam;
+        const cx = activeObj.left;
+        const cy = activeObj.top;
+        const rx = activeObj.spotlightRadiusX || 52;
+        const ry = activeObj.spotlightRadiusY || (rx * 0.46);
+        const color = activeObj.spotlightColor || drawColor;
+        const newSpot = create3DSpotlight(cx, cy, rx, ry, color, shapeOpacity, nextHasBeam);
+        newSpot.keyframeId = activeObj.keyframeId;
+        newSpot.selectable = (activeTool === 'select');
+        newSpot.evented = (activeTool === 'select');
+        canvas.remove(activeObj);
+        canvas.add(newSpot);
+        if (activeTool === 'select') canvas.setActiveObject(newSpot);
+        canvas.renderAll();
+        saveCurrentCanvasToActiveKeyframe();
+        updateSpotlightTrackerControlsUI(newSpot);
       } else {
-        trackerSpotlightEnabled = !trackerSpotlightEnabled;
-        updateTrackerControlsUI(null);
+        if (activeTool === 'spotlight') {
+          staticSpotlightBeamEnabled = !staticSpotlightBeamEnabled;
+        } else {
+          trackerSpotlightEnabled = !trackerSpotlightEnabled;
+        }
+        updateSpotlightTrackerControlsUI(null);
       }
     }
 
-    function updateTrackerControlsUI(activeObj) {
-      const isBeamOn = (activeObj && (activeObj.tacticalType === 'tracker-ring' || activeObj.type === 'tracker-ring'))
-        ? !!activeObj.showSpotlight
-        : trackerSpotlightEnabled;
-      const btn = document.getElementById('btn-toggle-tracker-spotlight');
-      const icon = document.getElementById('tracker-spotlight-status-icon');
-      const text = document.getElementById('tracker-spotlight-status-text');
-      if (btn) {
-        btn.style.background = isBeamOn ? 'rgba(0,230,118,0.22)' : 'rgba(255,255,255,0.08)';
-        btn.style.borderColor = isBeamOn ? '#00e676' : 'rgba(255,255,255,0.2)';
-        btn.style.color = isBeamOn ? '#00e676' : '#cbd5e1';
+    function updateSpotlightTrackerControlsUI(activeObj) {
+      const isStatic = (activeObj && activeObj.tacticalType === 'spotlight') || (activeTool === 'spotlight');
+      const isBeamOn = activeObj 
+        ? (activeObj.showSpotlight !== undefined ? !!activeObj.showSpotlight : true)
+        : (isStatic ? staticSpotlightBeamEnabled : trackerSpotlightEnabled);
+        
+      const btnDynamic = document.getElementById('btn-st-mode-dynamic');
+      const btnStatic = document.getElementById('btn-st-mode-static');
+      if (btnDynamic) {
+        btnDynamic.style.background = !isStatic ? 'rgba(0,230,118,0.25)' : 'transparent';
+        btnDynamic.style.color = !isStatic ? '#00e676' : '#cbd5e1';
+        btnDynamic.style.borderColor = !isStatic ? '#00e676' : 'transparent';
       }
-      if (icon) icon.textContent = isBeamOn ? '💡' : '⭕';
-      if (text) text.textContent = isBeamOn ? 'Spotlight: ON' : 'Spotlight: OFF';
+      if (btnStatic) {
+        btnStatic.style.background = isStatic ? 'rgba(0,230,118,0.25)' : 'transparent';
+        btnStatic.style.color = isStatic ? '#00e676' : '#cbd5e1';
+        btnStatic.style.borderColor = isStatic ? '#00e676' : 'transparent';
+      }
+      
+      const beamBtn = document.getElementById('btn-toggle-unified-spotlight');
+      const beamIcon = document.getElementById('st-spotlight-status-icon');
+      const beamText = document.getElementById('st-spotlight-status-text');
+      if (beamBtn) {
+        beamBtn.style.background = isBeamOn ? 'rgba(0,230,118,0.22)' : 'rgba(255,255,255,0.08)';
+        beamBtn.style.borderColor = isBeamOn ? '#00e676' : 'rgba(255,255,255,0.2)';
+        beamBtn.style.color = isBeamOn ? '#00e676' : '#cbd5e1';
+      }
+      if (beamIcon) beamIcon.textContent = isBeamOn ? '💡' : '⭕';
+      if (beamText) beamText.textContent = isBeamOn ? 'Spotlight: ON' : 'Spotlight: OFF';
+      
+      const label = document.getElementById('ctx-st-mode-label');
+      if (label) label.textContent = isStatic ? 'SPOTLIGHT (STATIC):' : 'TRACKER (MOVING):';
+    }
+
+    // Compatibility wrappers
+    function toggleTrackerSpotlightBeam() { toggleUnifiedSpotlightBeam(); }
+    function updateTrackerControlsUI(activeObj) { updateSpotlightTrackerControlsUI(activeObj); }
+
+    /* --------------------------------------------------------------------------
+       ADVANCED TACTICAL TEXT CONTROLS (Font, Size, Background, Border)
+    -------------------------------------------------------------------------- */
+    let activeTextFont = 'Inter';
+    let activeTextFontSize = 32;
+    let activeTextBgStyle = 'dark'; // 'dark', 'transparent', 'solid', 'tint'
+    let activeTextBold = true;
+    let activeTextItalic = false;
+    let activeTextHasBorder = true;
+
+    function setTextBackground(bgStyle) {
+      activeTextBgStyle = bgStyle;
+      const activeObj = canvas ? canvas.getActiveObject() : null;
+      if (activeObj && (activeObj.tacticalType === 'text-note' || activeObj.type === 'i-text' || activeObj.type === 'text')) {
+        activeObj.bgStyle = bgStyle;
+        let bg = 'rgba(15, 23, 42, 0.90)';
+        if (bgStyle === 'transparent') bg = 'transparent';
+        else if (bgStyle === 'solid') bg = '#000000';
+        else if (bgStyle === 'tint') bg = hexToRgba(activeObj.borderColor || drawColor, 0.35);
+        
+        activeObj.set('backgroundColor', bg);
+        canvas.requestRenderAll();
+        saveCurrentCanvasToActiveKeyframe();
+        updateTextControlsUI(activeObj);
+      }
+    }
+
+    function setTextFont(font) {
+      activeTextFont = font;
+      const activeObj = canvas ? canvas.getActiveObject() : null;
+      if (activeObj && (activeObj.tacticalType === 'text-note' || activeObj.type === 'i-text' || activeObj.type === 'text')) {
+        activeObj.set('fontFamily', font);
+        canvas.requestRenderAll();
+        saveCurrentCanvasToActiveKeyframe();
+        updateTextControlsUI(activeObj);
+      }
+    }
+
+    function stepTextFontSize(delta) {
+      const activeObj = canvas ? canvas.getActiveObject() : null;
+      if (activeObj && (activeObj.tacticalType === 'text-note' || activeObj.type === 'i-text' || activeObj.type === 'text')) {
+        const cur = activeObj.fontSize || 32;
+        const nextSize = Math.max(14, Math.min(72, cur + delta));
+        activeObj.set('fontSize', nextSize);
+        activeTextFontSize = nextSize;
+        canvas.requestRenderAll();
+        saveCurrentCanvasToActiveKeyframe();
+        updateTextControlsUI(activeObj);
+      } else {
+        activeTextFontSize = Math.max(14, Math.min(72, activeTextFontSize + delta));
+        updateTextControlsUI(null);
+      }
+    }
+
+    function toggleTextBold() {
+      const activeObj = canvas ? canvas.getActiveObject() : null;
+      if (activeObj && (activeObj.tacticalType === 'text-note' || activeObj.type === 'i-text' || activeObj.type === 'text')) {
+        const isBold = (activeObj.fontWeight === 'bold' || activeObj.fontWeight === '800' || activeObj.fontWeight === 800);
+        const nextWeight = isBold ? 'normal' : '800';
+        activeObj.set('fontWeight', nextWeight);
+        activeTextBold = !isBold;
+        canvas.requestRenderAll();
+        saveCurrentCanvasToActiveKeyframe();
+        updateTextControlsUI(activeObj);
+      } else {
+        activeTextBold = !activeTextBold;
+        updateTextControlsUI(null);
+      }
+    }
+
+    function toggleTextItalic() {
+      const activeObj = canvas ? canvas.getActiveObject() : null;
+      if (activeObj && (activeObj.tacticalType === 'text-note' || activeObj.type === 'i-text' || activeObj.type === 'text')) {
+        const isItalic = (activeObj.fontStyle === 'italic');
+        const nextStyle = isItalic ? 'normal' : 'italic';
+        activeObj.set('fontStyle', nextStyle);
+        activeTextItalic = !isItalic;
+        canvas.requestRenderAll();
+        saveCurrentCanvasToActiveKeyframe();
+        updateTextControlsUI(activeObj);
+      } else {
+        activeTextItalic = !activeTextItalic;
+        updateTextControlsUI(null);
+      }
+    }
+
+    function toggleTextBorder() {
+      const activeObj = canvas ? canvas.getActiveObject() : null;
+      if (activeObj && (activeObj.tacticalType === 'text-note' || activeObj.type === 'i-text' || activeObj.type === 'text')) {
+        const curBorder = (activeObj.hasBorder !== undefined) ? activeObj.hasBorder : !!activeObj.stroke;
+        const nextBorder = !curBorder;
+        activeObj.hasBorder = nextBorder;
+        activeTextHasBorder = nextBorder;
+        activeObj.set({
+          stroke: nextBorder ? (activeObj.borderColor || drawColor) : null,
+          strokeWidth: nextBorder ? 1.5 : 0
+        });
+        canvas.requestRenderAll();
+        saveCurrentCanvasToActiveKeyframe();
+        updateTextControlsUI(activeObj);
+      } else {
+        activeTextHasBorder = !activeTextHasBorder;
+        updateTextControlsUI(null);
+      }
+    }
+
+    function updateTextControlsUI(activeObj) {
+      const font = activeObj ? (activeObj.fontFamily || 'Inter') : activeTextFont;
+      const size = activeObj ? (activeObj.fontSize || 32) : activeTextFontSize;
+      const isBold = activeObj ? (activeObj.fontWeight === 'bold' || activeObj.fontWeight === '800' || activeObj.fontWeight === 800) : activeTextBold;
+      const isItalic = activeObj ? (activeObj.fontStyle === 'italic') : activeTextItalic;
+      const bg = activeObj ? (activeObj.bgStyle || 'dark') : activeTextBgStyle;
+      const hasBorder = activeObj ? (activeObj.hasBorder !== undefined ? activeObj.hasBorder : !!activeObj.stroke) : activeTextHasBorder;
+
+      const fontSel = document.getElementById('ctx-text-font-select');
+      if (fontSel) fontSel.value = font;
+      
+      const sizeBadge = document.getElementById('ctx-text-size-badge');
+      if (sizeBadge) sizeBadge.textContent = `${size}px`;
+      
+      const boldBtn = document.getElementById('btn-text-bold');
+      if (boldBtn) {
+        boldBtn.style.background = isBold ? 'rgba(0,230,118,0.25)' : 'rgba(255,255,255,0.08)';
+        boldBtn.style.borderColor = isBold ? '#00e676' : 'rgba(255,255,255,0.15)';
+        boldBtn.style.color = isBold ? '#00e676' : '#cbd5e1';
+      }
+
+      const italicBtn = document.getElementById('btn-text-italic');
+      if (italicBtn) {
+        italicBtn.style.background = isItalic ? 'rgba(0,230,118,0.25)' : 'rgba(255,255,255,0.08)';
+        italicBtn.style.borderColor = isItalic ? '#00e676' : 'rgba(255,255,255,0.15)';
+        italicBtn.style.color = isItalic ? '#00e676' : '#cbd5e1';
+      }
+
+      const bgSel = document.getElementById('ctx-text-bg-select');
+      if (bgSel) bgSel.value = bg;
+
+      const borderBtn = document.getElementById('btn-text-border-toggle');
+      const borderLbl = document.getElementById('btn-text-border-label');
+      if (borderBtn) {
+        borderBtn.style.background = hasBorder ? 'rgba(0,230,118,0.25)' : 'rgba(255,255,255,0.08)';
+        borderBtn.style.borderColor = hasBorder ? '#00e676' : 'rgba(255,255,255,0.15)';
+        borderBtn.style.color = hasBorder ? '#00e676' : '#cbd5e1';
+      }
+      if (borderLbl) borderLbl.textContent = hasBorder ? 'Border: ON' : 'Border: OFF';
     }
 
     function updateContextualControls(activeObj) {
       const defaultGroup = document.getElementById('ctx-default-group');
-      const spotlightGroup = document.getElementById('ctx-spotlight-group');
-      const trackerGroup = document.getElementById('ctx-tracker-group');
-      const circleGroup = document.getElementById('ctx-circle-group');
-      const arcGroup = document.getElementById('ctx-arc-group');
+      const spotlightTrackerGroup = document.getElementById('ctx-spotlight-tracker-group');
+      const textGroup = document.getElementById('ctx-text-group');
+      const spaceHighlightGroup = document.getElementById('ctx-space-highlight-group');
+      const shapesGroup = document.getElementById('ctx-shapes-lines-group');
       const rulerGroup = document.getElementById('ctx-ruler-group');
       const playerGroup = document.getElementById('ctx-player-group');
       const polygonGroup = document.getElementById('ctx-polygon-group');
       const polylineGroup = document.getElementById('ctx-polyline-group');
       const zoomGroup = document.getElementById('ctx-zoom-group');
 
-      const isSpotlight = (activeTool === 'spotlight') || (activeObj && activeObj.tacticalType === 'spotlight');
-      const isTracker = (activeTool === 'tracker-ring') || (activeObj && (activeObj.tacticalType === 'tracker-ring' || activeObj.type === 'tracker-ring'));
+      const isSpaceHighlight = (activeTool === 'space-highlight') || (activeObj && activeObj.tacticalType === 'space-highlight');
+      const isSpotlightOrTracker = (activeTool === 'tracker-ring' || activeTool === 'spotlight') ||
+                                   (activeObj && (activeObj.tacticalType === 'tracker-ring' || activeObj.type === 'tracker-ring' || activeObj.tacticalType === 'spotlight'));
+      const isText = (activeTool === 'text') || (activeObj && (activeObj.tacticalType === 'text-note' || activeObj.type === 'i-text' || activeObj.type === 'text'));
       const isZoom = (activeTool === 'zoom');
       const isPolygon = (activeTool === 'polygon') || (activeObj && activeObj.tacticalType === 'polygon-zone');
       const isPolyline = (activeTool === 'polyline') || (activeObj && activeObj.tacticalType === 'polyline-chain');
-      const isCircle = (activeTool === 'circle') || (activeObj && activeObj.tacticalType === 'circle-zone');
+
+      const isShapeOrLine = ['circle', 'arrow-straight', 'arrow-dotted', 'arrow-run', 'arrow-dribble', 'arrow-curved-right', 'arrow-curved-left', 'arrow-curved'].includes(activeTool) ||
+                            (activeObj && ['circle-zone', 'curved-arrow', 'straight-arrow', 'dotted-arrow', 'run-arrow', 'dribble-arrow'].includes(activeObj.tacticalType));
 
       const isRuler = (activeTool === 'ruler') ||
                       (activeObj && activeObj.tacticalType === 'ruler');
-
-      const isLineOrArrow = (['arrow-curved-right', 'arrow-curved-left', 'arrow-curved', 'arrow-straight', 'arrow-dotted', 'arrow-run', 'arrow-dribble'].includes(activeTool)) ||
-                            (activeObj && ['curved-arrow', 'straight-arrow', 'dotted-arrow', 'run-arrow', 'dribble-arrow'].includes(activeObj.tacticalType));
 
       const isPlayer = (activeTool === 'player') ||
                        (activeObj && activeObj.tacticalType === 'player-token');
 
       // Hide all contextual bars first
       if (defaultGroup) defaultGroup.style.display = 'none';
-      if (spotlightGroup) spotlightGroup.style.display = 'none';
-      if (trackerGroup) trackerGroup.style.display = 'none';
-      if (circleGroup) circleGroup.style.display = 'none';
-      if (arcGroup) arcGroup.style.display = 'none';
+      if (spotlightTrackerGroup) spotlightTrackerGroup.style.display = 'none';
+      if (textGroup) textGroup.style.display = 'none';
+      if (spaceHighlightGroup) spaceHighlightGroup.style.display = 'none';
+      if (shapesGroup) shapesGroup.style.display = 'none';
       if (rulerGroup) rulerGroup.style.display = 'none';
       if (playerGroup) playerGroup.style.display = 'none';
       if (polygonGroup) polygonGroup.style.display = 'none';
       if (polylineGroup) polylineGroup.style.display = 'none';
       if (zoomGroup) zoomGroup.style.display = 'none';
 
-      if (isSpotlight) {
-        if (spotlightGroup) spotlightGroup.style.display = 'flex';
-      } else if (isTracker) {
-        if (trackerGroup) {
-          trackerGroup.style.display = 'flex';
-          updateTrackerControlsUI(activeObj);
+      if (isSpaceHighlight) {
+        if (spaceHighlightGroup) {
+          spaceHighlightGroup.style.display = 'flex';
+          updateSpaceHighlightControlsUI(activeObj);
+        }
+      } else if (isSpotlightOrTracker) {
+        if (spotlightTrackerGroup) {
+          spotlightTrackerGroup.style.display = 'flex';
+          updateSpotlightTrackerControlsUI(activeObj);
+        }
+      } else if (isText) {
+        if (textGroup) {
+          textGroup.style.display = 'flex';
+          updateTextControlsUI(activeObj);
         }
       } else if (isZoom) {
         if (zoomGroup) {
@@ -5748,59 +6149,80 @@
           updatePolylineBadgeUI();
           updatePolylineRulerButtonUI();
         }
-      } else if (isCircle) {
-        if (circleGroup) {
-          circleGroup.style.display = 'flex';
-          const currStyle = (activeObj && activeObj.circleStyle) || activeCircleStyle || 'solid';
+      } else if (isShapeOrLine) {
+        if (shapesGroup) {
+          shapesGroup.style.display = 'flex';
+          
+          const isCircle = (activeTool === 'circle') || (activeObj && activeObj.tacticalType === 'circle-zone');
+          const isDribble = (activeTool === 'arrow-dribble') || (activeObj && activeObj.tacticalType === 'dribble-arrow');
+          const isArc = (['arrow-curved-right', 'arrow-curved-left', 'arrow-curved'].includes(activeTool)) || (activeObj && activeObj.tacticalType === 'curved-arrow');
+
+          // Update tool label
+          const label = document.getElementById('ctx-shapes-tool-label');
+          if (label) {
+            if (isCircle) label.textContent = 'CIRCLE STYLE:';
+            else if (isDribble) label.textContent = 'BALL CARRY:';
+            else if (isArc) label.textContent = 'ARC PASS STYLE:';
+            else label.textContent = 'LINE STYLE:';
+          }
+
+          // Active stroke style highlight (solid / dashed / dotted)
+          let currStyle = activeShapeStrokeStyle || 'dashed';
+          if (activeObj) {
+            if (activeObj.tacticalType === 'circle-zone') currStyle = activeObj.circleStyle || 'solid';
+            else if (activeObj.arrowStyle) currStyle = activeObj.arrowStyle;
+            else if (activeObj.tacticalType === 'run-arrow') currStyle = 'solid';
+            else if (activeObj.tacticalType === 'dotted-arrow') currStyle = 'dotted';
+            else if (activeObj.tacticalType === 'straight-arrow') currStyle = 'dashed';
+          }
+
           ['solid', 'dashed', 'dotted'].forEach(s => {
-            const btn = document.getElementById(`ctx-circle-btn-${s}`);
+            const btn = document.getElementById(`ctx-style-btn-${s}`);
             if (btn) {
-              if (s === currStyle) {
-                btn.style.background = 'rgba(0,230,118,0.25)';
-                btn.style.borderColor = '#00e676';
-                btn.style.color = '#00e676';
-              } else {
-                btn.style.background = 'rgba(255,255,255,0.08)';
-                btn.style.borderColor = 'rgba(255,255,255,0.15)';
-                btn.style.color = '#cbd5e1';
-              }
+              const isMatch = (s === currStyle);
+              btn.style.background = isMatch ? 'rgba(0,230,118,0.25)' : 'rgba(255,255,255,0.08)';
+              btn.style.borderColor = isMatch ? '#00e676' : 'rgba(255,255,255,0.15)';
+              btn.style.color = isMatch ? '#00e676' : '#cbd5e1';
             }
           });
 
-          const fillBtn = document.getElementById('ctx-circle-btn-fill');
-          const fillLabel = document.getElementById('ctx-circle-fill-label');
-          let isFilled = false;
-          if (activeObj && activeObj.tacticalType === 'circle-zone') {
-            const f = activeObj.fill;
-            isFilled = f && f !== 'transparent' && f !== 'rgba(0,0,0,0)' && f !== 'none';
-          } else {
-            const objs = canvas ? canvas.getObjects() : [];
-            let lastCircle = null;
-            for (let i = objs.length - 1; i >= 0; i--) {
-              if (objs[i].tacticalType === 'circle-zone') {
-                lastCircle = objs[i];
-                break;
+          // Circle Fill Button (shown only when circle is selected / drawing)
+          const fillBtn = document.getElementById('ctx-shapes-circle-fill');
+          const fillLabel = document.getElementById('ctx-shapes-fill-label');
+          if (fillBtn) {
+            fillBtn.style.display = isCircle ? 'inline-flex' : 'none';
+            if (isCircle) {
+              let isFilled = false;
+              if (activeObj && activeObj.tacticalType === 'circle-zone') {
+                const f = activeObj.fill;
+                isFilled = f && f !== 'transparent' && f !== 'rgba(0,0,0,0)' && f !== 'none';
+              } else {
+                isFilled = activeCircleFillEnabled;
               }
-            }
-            if (lastCircle) {
-              const f = lastCircle.fill;
-              isFilled = f && f !== 'transparent' && f !== 'rgba(0,0,0,0)' && f !== 'none';
-            } else {
-              isFilled = activeCircleFillEnabled;
+              fillBtn.style.background = isFilled ? 'rgba(0,230,118,0.25)' : 'rgba(255,255,255,0.08)';
+              fillBtn.style.borderColor = isFilled ? '#00e676' : 'rgba(255,255,255,0.15)';
+              fillBtn.style.color = isFilled ? '#00e676' : '#cbd5e1';
+              if (fillLabel) fillLabel.textContent = isFilled ? 'Fill: ON' : 'Fill: OFF';
             }
           }
 
-          if (fillBtn) {
-            if (isFilled) {
-              fillBtn.style.background = 'rgba(0,230,118,0.25)';
-              fillBtn.style.borderColor = '#00e676';
-              fillBtn.style.color = '#00e676';
-              if (fillLabel) fillLabel.textContent = 'Fill: ON';
+          // Arrow transformation buttons (Rotate 45° & Flip) - shown for lines, dribble & arcs
+          const arrowTransforms = document.getElementById('ctx-shapes-arrow-transforms');
+          if (arrowTransforms) {
+            arrowTransforms.style.display = !isCircle ? 'inline-flex' : 'none';
+          }
+
+          // Tactical hint
+          const hint = document.getElementById('ctx-shapes-hint');
+          if (hint) {
+            if (isCircle) {
+              hint.textContent = '💡 Drag diagonally for circle/zone. Toggle Fill for tinted interior.';
+            } else if (isDribble) {
+              hint.textContent = '💡 Ball carry zigzag path. Dot = with ball, Dash = ball travelling, Solid = off-ball.';
+            } else if (isArc) {
+              hint.textContent = '💡 Curved ball arc. Use Flip to reverse bend direction.';
             } else {
-              fillBtn.style.background = 'rgba(255,255,255,0.08)';
-              fillBtn.style.borderColor = 'rgba(255,255,255,0.15)';
-              fillBtn.style.color = '#cbd5e1';
-              if (fillLabel) fillLabel.textContent = 'Fill: OFF';
+              hint.textContent = '💡 Solid = runs without ball, Dash = ball travelling, Dot = running with ball.';
             }
           }
         }
@@ -5821,39 +6243,6 @@
           const nInput = document.getElementById('ctx-player-name-input');
           if (jInput && activeObj.playerNumber) jInput.value = activeObj.playerNumber;
           if (nInput && activeObj.playerName) nInput.value = activeObj.playerName;
-        }
-      } else if (isLineOrArrow) {
-        if (arcGroup) {
-          arcGroup.style.display = 'flex';
-          const lineLabel = document.getElementById('ctx-line-label');
-          if (lineLabel) {
-            if (['arrow-straight', 'arrow-dotted', 'arrow-run', 'arrow-dribble'].includes(activeTool) || (activeObj && ['straight-arrow', 'dotted-arrow', 'run-arrow', 'dribble-arrow'].includes(activeObj.tacticalType))) {
-              lineLabel.textContent = 'LINE OPTIONS:';
-            } else {
-              lineLabel.textContent = 'ARC OPTIONS:';
-            }
-          }
-          const currType = (activeObj && activeObj.tacticalType) || (activeTool === 'arrow-run' ? 'run-arrow' : (activeTool === 'arrow-dribble' ? 'dribble-arrow' : (activeTool === 'arrow-dotted' ? 'dotted-arrow' : 'straight-arrow')));
-          const passBtn = document.getElementById('ctx-line-btn-pass');
-          const dottedBtn = document.getElementById('ctx-line-btn-dotted');
-          const runBtn = document.getElementById('ctx-line-btn-run');
-          const dribbleBtn = document.getElementById('ctx-line-btn-dribble');
-          const highlightBtn = (btn, match) => {
-            if (!btn) return;
-            if (match) {
-              btn.style.background = 'rgba(0,230,118,0.25)';
-              btn.style.borderColor = '#00e676';
-              btn.style.color = '#00e676';
-            } else {
-              btn.style.background = 'rgba(255,255,255,0.08)';
-              btn.style.borderColor = 'rgba(255,255,255,0.15)';
-              btn.style.color = '#cbd5e1';
-            }
-          };
-          highlightBtn(passBtn, currType === 'straight-arrow' || activeTool === 'arrow-straight');
-          highlightBtn(dottedBtn, currType === 'dotted-arrow' || activeTool === 'arrow-dotted');
-          highlightBtn(runBtn, currType === 'run-arrow' || activeTool === 'arrow-run');
-          highlightBtn(dribbleBtn, currType === 'dribble-arrow' || activeTool === 'arrow-dribble');
         }
       } else {
         if (defaultGroup) {
@@ -5890,20 +6279,28 @@
         } else {
           modeBadge.textContent = 'SELECT & MOVE';
         }
+      } else if (activeTool === 'space-highlight') {
+        modeBadge.textContent = 'DRAWING: HIGHLIGHT SPACE (SHADOW SPOTLIGHT)';
       } else if (activeTool === 'circle') {
-        modeBadge.textContent = `DRAWING: CIRCLE (${(activeCircleStyle || 'solid').toUpperCase()})`;
+        modeBadge.textContent = `DRAWING: CIRCLE (${(activeShapeStrokeStyle || 'solid').toUpperCase()})`;
       } else if (activeTool === 'arrow-run') {
         modeBadge.textContent = 'DRAWING: PLAYER RUN (SOLID)';
       } else if (activeTool === 'arrow-dribble') {
-        modeBadge.textContent = 'DRAWING: BALL CARRY (ZIGZAG)';
+        modeBadge.textContent = `DRAWING: BALL CARRY (${(activeShapeStrokeStyle || 'solid').toUpperCase()})`;
       } else if (activeTool === 'arrow-straight') {
-        modeBadge.textContent = 'DRAWING: PASS LINE (DASHED)';
+        modeBadge.textContent = `DRAWING: PASS LINE (${(activeShapeStrokeStyle || 'dashed').toUpperCase()})`;
       } else if (activeTool === 'arrow-dotted') {
         modeBadge.textContent = 'DRAWING: PASS LINE (DOTTED)';
       } else if (activeTool === 'arrow-curved-right') {
-        modeBadge.textContent = 'DRAWING: RIGHT ARC';
+        modeBadge.textContent = `DRAWING: RIGHT ARC (${(activeShapeStrokeStyle || 'dashed').toUpperCase()})`;
       } else if (activeTool === 'arrow-curved-left' || activeTool === 'arrow-curved') {
-        modeBadge.textContent = 'DRAWING: LEFT ARC';
+        modeBadge.textContent = `DRAWING: LEFT ARC (${(activeShapeStrokeStyle || 'dashed').toUpperCase()})`;
+      } else if (activeTool === 'tracker-ring') {
+        modeBadge.textContent = 'DRAWING: DYNAMIC TRACKER (MOVING)';
+      } else if (activeTool === 'spotlight') {
+        modeBadge.textContent = `DRAWING: STATIC SPOTLIGHT (${staticSpotlightBeamEnabled ? 'BEAM ON' : 'FLOOR ONLY'})`;
+      } else if (activeTool === 'text') {
+        modeBadge.textContent = `TEXT NOTE (${(activeTextBgStyle || 'dark').toUpperCase()} BG)`;
       } else if (activeTool === 'ruler') {
         modeBadge.textContent = `RULER (${measurementUnit === 'yd' ? 'YARDS' : 'METERS'})`;
       } else if (activeTool === 'player') {
@@ -6005,8 +6402,17 @@
         isDrawingShape = false;
         // Tool remains active ('player') so user can place consecutive player tokens immediately
       }
+      else if (activeTool === 'space-highlight') {
+        tempShape = createSpaceHighlight(p.x, p.y, 40, 26, activeSpaceHighlightDarkness);
+        tempShape.isCircle = activeSpaceHighlightIsCircle;
+        tempShape.feather = activeSpaceHighlightFeather ? 22 : 0;
+        tempShape.selectable = false;
+        tempShape.evented = false;
+        canvas.add(tempShape);
+        canvas.renderAll();
+      }
       else if (activeTool === 'spotlight') {
-        tempShape = create3DSpotlight(p.x, p.y, 45, 20, drawColor, shapeOpacity, true);
+        tempShape = create3DSpotlight(p.x, p.y, 45, 20, drawColor, shapeOpacity, staticSpotlightBeamEnabled);
         tempShape.selectable = false;
         tempShape.evented = false;
         canvas.add(tempShape);
@@ -6020,7 +6426,7 @@
         canvas.renderAll();
       }
       else if (activeTool === 'circle') {
-        tempShape = createTacticalCircleZone(p.x, p.y, 4, 4, drawColor, strokeWidth, activeCircleStyle);
+        tempShape = createTacticalCircleZone(p.x, p.y, 4, 4, drawColor, strokeWidth, activeShapeStrokeStyle || activeCircleStyle);
         tempShape.selectable = false;
         tempShape.evented = false;
         canvas.add(tempShape);
@@ -6028,7 +6434,7 @@
       }
       else if (activeTool === 'arrow-curved-right') {
         arrowCurveDirection = 1;
-        tempShape = createCurvedTacticalArrow(p.x, p.y, p.x + 1, p.y + 1, drawColor, strokeWidth, 1);
+        tempShape = createCurvedTacticalArrow(p.x, p.y, p.x + 1, p.y + 1, drawColor, strokeWidth, 1, activeShapeStrokeStyle);
         tempShape.selectable = false;
         tempShape.evented = false;
         canvas.add(tempShape);
@@ -6036,35 +6442,35 @@
       }
       else if (activeTool === 'arrow-curved-left' || activeTool === 'arrow-curved') {
         arrowCurveDirection = -1;
-        tempShape = createCurvedTacticalArrow(p.x, p.y, p.x + 1, p.y + 1, drawColor, strokeWidth, -1);
+        tempShape = createCurvedTacticalArrow(p.x, p.y, p.x + 1, p.y + 1, drawColor, strokeWidth, -1, activeShapeStrokeStyle);
         tempShape.selectable = false;
         tempShape.evented = false;
         canvas.add(tempShape);
         canvas.renderAll();
       }
       else if (activeTool === 'arrow-straight') {
-        tempShape = createStraightTacticalArrow(p.x, p.y, p.x + 1, p.y, drawColor, strokeWidth);
+        tempShape = createStraightTacticalArrow(p.x, p.y, p.x + 1, p.y, drawColor, strokeWidth, activeShapeStrokeStyle);
         tempShape.selectable = false;
         tempShape.evented = false;
         canvas.add(tempShape);
         canvas.renderAll();
       }
       else if (activeTool === 'arrow-dotted') {
-        tempShape = createDottedTacticalArrow(p.x, p.y, p.x + 1, p.y, drawColor, strokeWidth);
+        tempShape = createStraightTacticalArrow(p.x, p.y, p.x + 1, p.y, drawColor, strokeWidth, 'dotted');
         tempShape.selectable = false;
         tempShape.evented = false;
         canvas.add(tempShape);
         canvas.renderAll();
       }
       else if (activeTool === 'arrow-run') {
-        tempShape = createSolidPlayerRunArrow(p.x, p.y, p.x + 1, p.y, drawColor, strokeWidth);
+        tempShape = createStraightTacticalArrow(p.x, p.y, p.x + 1, p.y, drawColor, strokeWidth, 'solid');
         tempShape.selectable = false;
         tempShape.evented = false;
         canvas.add(tempShape);
         canvas.renderAll();
       }
       else if (activeTool === 'arrow-dribble') {
-        tempShape = createZigzagDribbleArrow(p.x, p.y, p.x + 1, p.y, drawColor, strokeWidth);
+        tempShape = createZigzagDribbleArrow(p.x, p.y, p.x + 1, p.y, drawColor, strokeWidth, activeShapeStrokeStyle);
         tempShape.selectable = false;
         tempShape.evented = false;
         canvas.add(tempShape);
@@ -6086,9 +6492,17 @@
         isDrawingShape = false;
       }
       else if (activeTool === 'text') {
-        const textObject = createTacticalTextBox(p.x, p.y, 'Tactical Note', drawColor);
+        const textObject = createTacticalTextBox(p.x, p.y, 'Tactical Note', drawColor, {
+          fontFamily: activeTextFont,
+          fontSize: activeTextFontSize,
+          bgStyle: activeTextBgStyle,
+          fontWeight: activeTextBold ? '800' : 'normal',
+          fontStyle: activeTextItalic ? 'italic' : 'normal',
+          hasBorder: activeTextHasBorder
+        });
         canvas.add(textObject);
         canvas.setActiveObject(textObject);
+        updateContextualControls(textObject);
         textObject.enterEditing();
         textObject.selectAll();
         saveCurrentCanvasToActiveKeyframe();
@@ -6134,11 +6548,23 @@
       // Only update live rubberband if we are actively drawing a drag-based tool
       if (!isDrawingShape || !shapeStartPoint) return;
 
-      if (activeTool === 'spotlight' && tempShape) {
+      if (activeTool === 'space-highlight' && tempShape) {
+        const dx = Math.abs(p.x - shapeStartPoint.x);
+        const dy = Math.abs(p.y - shapeStartPoint.y);
+        const rx = Math.max(25, dx);
+        const ry = Math.max(16, tempShape.isCircle ? rx : (dy > 8 ? dy : Math.round(rx * 0.65)));
+        tempShape.rx = rx;
+        tempShape.ry = ry;
+        tempShape.width = rx * 2;
+        tempShape.height = ry * 2;
+        tempShape.setCoords();
+        canvas.requestRenderAll();
+      }
+      else if (activeTool === 'spotlight' && tempShape) {
         const rx = Math.max(25, Math.hypot(p.x - shapeStartPoint.x, p.y - shapeStartPoint.y));
         const ry = rx * 0.46;
         canvas.remove(tempShape);
-        tempShape = create3DSpotlight(shapeStartPoint.x, shapeStartPoint.y, rx, ry, drawColor, shapeOpacity, true);
+        tempShape = create3DSpotlight(shapeStartPoint.x, shapeStartPoint.y, rx, ry, drawColor, shapeOpacity, staticSpotlightBeamEnabled);
         tempShape.selectable = false;
         tempShape.evented = false;
         canvas.add(tempShape);
@@ -6172,7 +6598,7 @@
       }
       else if (activeTool === 'arrow-curved-right' && tempShape) {
         canvas.remove(tempShape);
-        tempShape = createCurvedTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, p.x, p.y, drawColor, strokeWidth, 1);
+        tempShape = createCurvedTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, p.x, p.y, drawColor, strokeWidth, 1, activeShapeStrokeStyle);
         tempShape.selectable = false;
         tempShape.evented = false;
         canvas.add(tempShape);
@@ -6180,7 +6606,7 @@
       }
       else if ((activeTool === 'arrow-curved-left' || activeTool === 'arrow-curved') && tempShape) {
         canvas.remove(tempShape);
-        tempShape = createCurvedTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, p.x, p.y, drawColor, strokeWidth, -1);
+        tempShape = createCurvedTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, p.x, p.y, drawColor, strokeWidth, -1, activeShapeStrokeStyle);
         tempShape.selectable = false;
         tempShape.evented = false;
         canvas.add(tempShape);
@@ -6188,7 +6614,7 @@
       }
       else if (activeTool === 'arrow-straight' && tempShape) {
         canvas.remove(tempShape);
-        tempShape = createStraightTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, p.x, p.y, drawColor, strokeWidth);
+        tempShape = createStraightTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, p.x, p.y, drawColor, strokeWidth, activeShapeStrokeStyle);
         tempShape.selectable = false;
         tempShape.evented = false;
         canvas.add(tempShape);
@@ -6196,7 +6622,7 @@
       }
       else if (activeTool === 'arrow-dotted' && tempShape) {
         canvas.remove(tempShape);
-        tempShape = createDottedTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, p.x, p.y, drawColor, strokeWidth);
+        tempShape = createStraightTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, p.x, p.y, drawColor, strokeWidth, 'dotted');
         tempShape.selectable = false;
         tempShape.evented = false;
         canvas.add(tempShape);
@@ -6204,7 +6630,7 @@
       }
       else if (activeTool === 'arrow-run' && tempShape) {
         canvas.remove(tempShape);
-        tempShape = createSolidPlayerRunArrow(shapeStartPoint.x, shapeStartPoint.y, p.x, p.y, drawColor, strokeWidth);
+        tempShape = createStraightTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, p.x, p.y, drawColor, strokeWidth, 'solid');
         tempShape.selectable = false;
         tempShape.evented = false;
         canvas.add(tempShape);
@@ -6212,7 +6638,7 @@
       }
       else if (activeTool === 'arrow-dribble' && tempShape) {
         canvas.remove(tempShape);
-        tempShape = createZigzagDribbleArrow(shapeStartPoint.x, shapeStartPoint.y, p.x, p.y, drawColor, strokeWidth);
+        tempShape = createZigzagDribbleArrow(shapeStartPoint.x, shapeStartPoint.y, p.x, p.y, drawColor, strokeWidth, activeShapeStrokeStyle);
         tempShape.selectable = false;
         tempShape.evented = false;
         canvas.add(tempShape);
@@ -6238,7 +6664,13 @@
         const dist = Math.hypot(p.x - shapeStartPoint.x, p.y - shapeStartPoint.y);
 
         if (dist < 6) {
-          if (activeTool === 'circle') {
+          if (activeTool === 'space-highlight') {
+            tempShape.rx = 120;
+            tempShape.ry = tempShape.isCircle ? 120 : 78;
+            tempShape.width = tempShape.rx * 2;
+            tempShape.height = tempShape.ry * 2;
+            tempShape.setCoords();
+          } else if (activeTool === 'circle') {
             tempShape.set({
               left: shapeStartPoint.x - 45,
               top: shapeStartPoint.y - 45,
@@ -6248,6 +6680,10 @@
               height: 90
             });
             tempShape.setCoords();
+          } else if (activeTool === 'spotlight') {
+            canvas.remove(tempShape);
+            tempShape = create3DSpotlight(shapeStartPoint.x, shapeStartPoint.y, 52, 24, drawColor, shapeOpacity, staticSpotlightBeamEnabled);
+            canvas.add(tempShape);
           } else if (activeTool === 'tracker-ring') {
             tempShape.rx = 46;
             tempShape.ry = 22;
@@ -6255,27 +6691,27 @@
             tempShape.height = tempShape.showSpotlight ? Math.max(220, 22 * 5.5) : 44;
           } else if (activeTool === 'arrow-curved-right') {
             canvas.remove(tempShape);
-            tempShape = createCurvedTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, shapeStartPoint.x + 90, shapeStartPoint.y - 45, drawColor, strokeWidth, 1);
+            tempShape = createCurvedTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, shapeStartPoint.x + 90, shapeStartPoint.y - 45, drawColor, strokeWidth, 1, activeShapeStrokeStyle);
             canvas.add(tempShape);
           } else if (activeTool === 'arrow-curved-left' || activeTool === 'arrow-curved') {
             canvas.remove(tempShape);
-            tempShape = createCurvedTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, shapeStartPoint.x - 90, shapeStartPoint.y - 45, drawColor, strokeWidth, -1);
+            tempShape = createCurvedTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, shapeStartPoint.x - 90, shapeStartPoint.y - 45, drawColor, strokeWidth, -1, activeShapeStrokeStyle);
             canvas.add(tempShape);
           } else if (activeTool === 'arrow-straight') {
             canvas.remove(tempShape);
-            tempShape = createStraightTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, shapeStartPoint.x + 90, shapeStartPoint.y, drawColor, strokeWidth);
+            tempShape = createStraightTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, shapeStartPoint.x + 90, shapeStartPoint.y, drawColor, strokeWidth, activeShapeStrokeStyle);
             canvas.add(tempShape);
           } else if (activeTool === 'arrow-dotted') {
             canvas.remove(tempShape);
-            tempShape = createDottedTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, shapeStartPoint.x + 90, shapeStartPoint.y, drawColor, strokeWidth);
+            tempShape = createStraightTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, shapeStartPoint.x + 90, shapeStartPoint.y, drawColor, strokeWidth, 'dotted');
             canvas.add(tempShape);
           } else if (activeTool === 'arrow-run') {
             canvas.remove(tempShape);
-            tempShape = createSolidPlayerRunArrow(shapeStartPoint.x, shapeStartPoint.y, shapeStartPoint.x + 90, shapeStartPoint.y, drawColor, strokeWidth);
+            tempShape = createStraightTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, shapeStartPoint.x + 90, shapeStartPoint.y, drawColor, strokeWidth, 'solid');
             canvas.add(tempShape);
           } else if (activeTool === 'arrow-dribble') {
             canvas.remove(tempShape);
-            tempShape = createZigzagDribbleArrow(shapeStartPoint.x, shapeStartPoint.y, shapeStartPoint.x + 90, shapeStartPoint.y, drawColor, strokeWidth);
+            tempShape = createZigzagDribbleArrow(shapeStartPoint.x, shapeStartPoint.y, shapeStartPoint.x + 90, shapeStartPoint.y, drawColor, strokeWidth, activeShapeStrokeStyle);
             canvas.add(tempShape);
           } else if (activeTool === 'ruler') {
             canvas.remove(tempShape);
@@ -6285,7 +6721,7 @@
         }
 
         tempShape.setCoords();
-        const isSelect = (activeTool === 'select');
+        const isSelect = (activeTool === 'select' || activeTool === 'space-highlight');
         tempShape.selectable = isSelect;
         tempShape.evented = isSelect;
         tempShape.hasControls = isSelect;
@@ -6304,6 +6740,19 @@
     }
 
     function handleCanvasObjectModified(e) {
+      const target = e && e.target;
+      if (target && target.tacticalType === 'space-highlight') {
+        if (target.scaleX !== 1 || target.scaleY !== 1) {
+          target.rx = Math.max(15, Math.round(target.rx * target.scaleX));
+          target.ry = Math.max(10, Math.round(target.ry * target.scaleY));
+          target.scaleX = 1;
+          target.scaleY = 1;
+          target.width = target.rx * 2;
+          target.height = target.ry * 2;
+          target.setCoords();
+          canvas.requestRenderAll();
+        }
+      }
       saveCurrentCanvasToActiveKeyframe();
     }
 
@@ -6476,6 +6925,115 @@
     /* --------------------------------------------------------------------------
        TACTICAL SHAPE FACTORIES
     -------------------------------------------------------------------------- */
+    // 0a. Tactical Space Highlighter (Shadow Spotlight Mask: dark pitch shadow with bright unshaded opening, scalable via drag)
+    fabric.SpaceHighlight = fabric.util.createClass(fabric.Object, {
+      type: 'space-highlight',
+      tacticalType: 'space-highlight',
+      rx: 90,
+      ry: 60,
+      darkness: 0.65,
+      feather: 22,
+      isCircle: false,
+      originX: 'center',
+      originY: 'center',
+      hasRotatingPoint: true,
+      hasBorders: true,
+      hasControls: true,
+      transparentCorners: false,
+      cornerColor: '#38bdf8',
+      cornerSize: 10,
+      cornerStyle: 'circle',
+      borderColor: 'rgba(56, 189, 248, 0.6)',
+      perPixelTargetFind: false,
+
+      initialize: function(options) {
+        options = options || {};
+        this.callSuper('initialize', options);
+        this.rx = options.rx || 90;
+        this.ry = options.ry || 60;
+        this.darkness = (options.darkness !== undefined) ? options.darkness : 0.65;
+        this.feather = (options.feather !== undefined) ? options.feather : 22;
+        this.isCircle = (options.isCircle !== undefined) ? options.isCircle : false;
+        this.width = this.rx * 2;
+        this.height = (this.isCircle ? this.rx : this.ry) * 2;
+        this.objectCaching = false;
+      },
+
+      _render: function(ctx) {
+        const rx = Math.max(12, this.rx || 90);
+        const ry = Math.max(12, this.isCircle ? rx : (this.ry || 60));
+        const darkness = (this.darkness !== undefined) ? this.darkness : 0.65;
+        const isFeathered = Boolean(this.feather && this.feather > 0);
+
+        ctx.save();
+        if (isFeathered) {
+          const featherSpread = Math.min(rx * 0.32, 40);
+          const innerR = Math.max(4, rx - featherSpread * 0.5);
+          const outerR = rx + featherSpread * 0.5;
+          const ratioY = ry / rx;
+
+          // 1. Dark mask with opening hole at outerR
+          ctx.beginPath();
+          ctx.rect(-20000, -20000, 40000, 40000);
+          ctx.ellipse(0, 0, outerR, outerR * ratioY, 0, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(0, 0, 0, ${darkness})`;
+          ctx.fill('evenodd');
+
+          // 2. Smooth soft falloff gradient ring between innerR and outerR
+          ctx.save();
+          ctx.scale(1, ratioY);
+          const grad = ctx.createRadialGradient(0, 0, innerR, 0, 0, outerR);
+          grad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+          grad.addColorStop(0.5, `rgba(0, 0, 0, ${darkness * 0.5})`);
+          grad.addColorStop(1, `rgba(0, 0, 0, ${darkness})`);
+
+          ctx.beginPath();
+          ctx.arc(0, 0, outerR, 0, Math.PI * 2);
+          ctx.fillStyle = grad;
+          ctx.fill();
+          ctx.restore();
+        } else {
+          // Crisp/sharp edge opening
+          ctx.beginPath();
+          ctx.rect(-20000, -20000, 40000, 40000);
+          ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(0, 0, 0, ${darkness})`;
+          ctx.fill('evenodd');
+        }
+        ctx.restore();
+      },
+
+      toObject: function(propertiesToInclude) {
+        return fabric.util.object.extend(this.callSuper('toObject', propertiesToInclude), {
+          tacticalType: this.tacticalType,
+          rx: this.rx,
+          ry: this.ry,
+          darkness: this.darkness,
+          feather: this.feather,
+          isCircle: this.isCircle
+        });
+      }
+    });
+
+    fabric.SpaceHighlight.fromObject = function(object, callback) {
+      callback && callback(new fabric.SpaceHighlight(object));
+    };
+
+    function createSpaceHighlight(cx, cy, rx, ry, darkness = 0.65) {
+      const radX = Math.max(20, rx || 100);
+      const radY = Math.max(15, ry || 65);
+      const highlight = new fabric.SpaceHighlight({
+        left: cx,
+        top: cy,
+        rx: radX,
+        ry: radY,
+        darkness: darkness,
+        feather: activeSpaceHighlightFeather ? 22 : 0,
+        isCircle: activeSpaceHighlightIsCircle
+      });
+      return highlight;
+    }
+
     // 0. Dynamic 4-Dash Player Tracker Ring with 3D Spotlight Beam (Player Tracker Lab integration)
     let trackerSpotlightEnabled = true;
 
@@ -6630,6 +7188,7 @@
 
     // 1. 3D Isometric Spotlight Ring with Light Beam
     function create3DSpotlight(cx, cy, rx, ry, color, opacity, withBeam) {
+      if (withBeam === undefined) withBeam = staticSpotlightBeamEnabled;
       const items = [];
       rx = Math.max(45, rx || 52);
       ry = Math.max(20, ry || (rx * 0.46));
@@ -6725,12 +7284,13 @@
         tacticalType: 'spotlight',
         spotlightRadiusX: rx,
         spotlightRadiusY: ry,
-        spotlightColor: color
+        spotlightColor: color,
+        showSpotlight: !!withBeam
       });
     }
 
-    // 2. Curved Tactical Run Arrow (Right or Left Curving Arc)
-    function createCurvedTacticalArrow(x1, y1, x2, y2, color, width, direction) {
+    // 2. Curved Tactical Run Arrow (Right or Left Curving Arc with Solid, Dashed, or Dotted stroke)
+    function createCurvedTacticalArrow(x1, y1, x2, y2, color, width, direction, style = 'dashed') {
       const dir = (direction !== undefined) ? direction : (arrowCurveDirection || -1);
       const dx = x2 - x1;
       const dy = y2 - y1;
@@ -6773,11 +7333,22 @@
       const shaftPath = `M ${x1} ${y1} Q ${cx} ${cy} ${bx} ${by}`;
       const headPath = `M ${x2} ${y2} L ${lx} ${ly} L ${bx} ${by} L ${rx} ${ry} Z`;
 
+      let dashArray = null;
+      let lineCap = 'round';
+      if (style === 'dashed') {
+        dashArray = [26, 13];
+        lineCap = 'butt';
+      } else if (style === 'dotted') {
+        dashArray = [0.1, Math.max(16, (width || 6) * 2.4)];
+        lineCap = 'round';
+      }
+
       const shaftObj = new fabric.Path(shaftPath, {
         fill: 'transparent',
         stroke: color,
         strokeWidth: Math.max(6, width),
-        strokeLineCap: 'round',
+        strokeLineCap: lineCap,
+        strokeDashArray: dashArray,
         shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.6)', blur: 8, offsetY: 2 })
       });
 
@@ -6801,6 +7372,7 @@
         tacticalType: 'curved-arrow'
       });
 
+      group.arrowStyle = style;
       group._arrowStart = { x: x1, y: y1 };
       group._arrowEnd = { x: x2, y: y2 };
       group._controlPoint = { x: cx, y: cy };
@@ -6808,8 +7380,8 @@
       return group;
     }
 
-    // 3. Straight Pass Arrow (Precision Aerodynamic Arrowhead)
-    function createStraightTacticalArrow(x1, y1, x2, y2, color, width) {
+    // 3. Straight Pass Arrow (Precision Aerodynamic Arrowhead: Dashed, Dotted, or Solid)
+    function createStraightTacticalArrow(x1, y1, x2, y2, color, width, style = 'dashed') {
       const dx = x2 - x1;
       const dy = y2 - y1;
       const dist = Math.sqrt(dx * dx + dy * dy);
@@ -6837,12 +7409,22 @@
       const linePath = `M ${x1} ${y1} L ${bx} ${by}`;
       const headPath = `M ${x2} ${y2} L ${lx} ${ly} L ${bx} ${by} L ${rx} ${ry} Z`;
 
+      let dashArray = null;
+      let lineCap = 'round';
+      if (style === 'dashed') {
+        dashArray = [26, 13];
+        lineCap = 'butt';
+      } else if (style === 'dotted') {
+        dashArray = [0.1, Math.max(16, (width || 6) * 2.4)];
+        lineCap = 'round';
+      }
+
       const shaftObj = new fabric.Path(linePath, {
         fill: 'transparent',
         stroke: color,
         strokeWidth: Math.max(6, width),
-        strokeLineCap: 'butt',
-        strokeDashArray: [16, 16],
+        strokeLineCap: lineCap,
+        strokeDashArray: dashArray,
         shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.6)', blur: 8, offsetY: 2 })
       });
 
@@ -6866,6 +7448,7 @@
         tacticalType: 'straight-arrow'
       });
 
+      group.arrowStyle = style;
       group._arrowStart = { x: x1, y: y1 };
       group._arrowEnd = { x: x2, y: y2 };
       return group;
@@ -6873,134 +7456,16 @@
 
     // 3b. Pass Line Arrow (Dotted with round dots and equal spacing)
     function createDottedTacticalArrow(x1, y1, x2, y2, color, width) {
-      const dx = x2 - x1;
-      const dy = y2 - y1;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < 4) {
-        return new fabric.Path(`M ${x1} ${y1} L ${x2} ${y2}`, {
-          stroke: color, strokeWidth: width, fill: 'transparent', tacticalType: 'dotted-arrow'
-        });
-      }
-
-      const ux = dx / dist;
-      const uy = dy / dist;
-      const vx = -uy;
-      const vy = ux;
-
-      const headLen = Math.max(26, width * 3.2);
-      const headWidth = Math.max(16, width * 2.0);
-
-      const bx = x2 - ux * (headLen * 0.7);
-      const by = y2 - uy * (headLen * 0.7);
-      const lx = x2 - ux * headLen + vx * headWidth;
-      const ly = y2 - uy * headLen + vy * headWidth;
-      const rx = x2 - ux * headLen - vx * headWidth;
-      const ry = y2 - uy * headLen - vy * headWidth;
-
-      const linePath = `M ${x1} ${y1} L ${bx} ${by}`;
-      const headPath = `M ${x2} ${y2} L ${lx} ${ly} L ${bx} ${by} L ${rx} ${ry} Z`;
-
-      const shaftObj = new fabric.Path(linePath, {
-        fill: 'transparent',
-        stroke: color,
-        strokeWidth: Math.max(5, width * 0.9),
-        strokeLineCap: 'round',
-        strokeDashArray: [1, Math.max(14, (width || 8) * 2.2)],
-        shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.6)', blur: 8, offsetY: 2 })
-      });
-
-      const headObj = new fabric.Path(headPath, {
-        fill: color,
-        stroke: '#000000',
-        strokeWidth: 1.5,
-        shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.6)', blur: 8, offsetY: 2 })
-      });
-
-      const dotObj = new fabric.Circle({
-        left: x1 - width * 1.1,
-        top: y1 - width * 1.1,
-        radius: width * 1.1,
-        fill: color,
-        stroke: '#ffffff',
-        strokeWidth: 2
-      });
-
-      const group = new fabric.Group([shaftObj, headObj, dotObj], {
-        tacticalType: 'dotted-arrow',
-        stroke: color,
-        strokeWidth: width
-      });
-
-      group._arrowStart = { x: x1, y: y1 };
-      group._arrowEnd = { x: x2, y: y2 };
-      return group;
+      return createStraightTacticalArrow(x1, y1, x2, y2, color, width, 'dotted');
     }
 
     // 3b. Player Run Arrow (Solid straight line indicating off-the-ball runs)
     function createSolidPlayerRunArrow(x1, y1, x2, y2, color, width) {
-      const dx = x2 - x1;
-      const dy = y2 - y1;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < 4) {
-        return new fabric.Path(`M ${x1} ${y1} L ${x2} ${y2}`, {
-          stroke: color, strokeWidth: width, fill: 'transparent', tacticalType: 'run-arrow'
-        });
-      }
-
-      const ux = dx / dist;
-      const uy = dy / dist;
-      const vx = -uy;
-      const vy = ux;
-
-      const headLen = Math.max(26, width * 3.2);
-      const headWidth = Math.max(16, width * 2.0);
-
-      const bx = x2 - ux * (headLen * 0.7);
-      const by = y2 - uy * (headLen * 0.7);
-      const lx = x2 - ux * headLen + vx * headWidth;
-      const ly = y2 - uy * headLen + vy * headWidth;
-      const rx = x2 - ux * headLen - vx * headWidth;
-      const ry = y2 - uy * headLen - vy * headWidth;
-
-      const linePath = `M ${x1} ${y1} L ${bx} ${by}`;
-      const headPath = `M ${x2} ${y2} L ${lx} ${ly} L ${bx} ${by} L ${rx} ${ry} Z`;
-
-      const shaftObj = new fabric.Path(linePath, {
-        fill: 'transparent',
-        stroke: color,
-        strokeWidth: Math.max(6, width),
-        strokeLineCap: 'round',
-        strokeLineJoin: 'round',
-        shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.6)', blur: 8, offsetY: 2 })
-      });
-
-      const headObj = new fabric.Path(headPath, {
-        fill: color,
-        stroke: '#000000',
-        strokeWidth: 1.5,
-        shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.6)', blur: 8, offsetY: 2 })
-      });
-
-      const dotObj = new fabric.Circle({
-        left: x1 - width * 1.1,
-        top: y1 - width * 1.1,
-        radius: width * 1.1,
-        fill: color,
-        stroke: '#ffffff',
-        strokeWidth: 2
-      });
-
-      const group = new fabric.Group([shaftObj, headObj, dotObj], {
-        tacticalType: 'run-arrow'
-      });
-
-      group._arrowStart = { x: x1, y: y1 };
-      group._arrowEnd = { x: x2, y: y2 };
-      return group;
+      return createStraightTacticalArrow(x1, y1, x2, y2, color, width, 'solid');
     }
 
     // 3c. Ball Carry / Dribble Arrow (Zigzag line indicating player with the ball)
-    function createZigzagDribbleArrow(x1, y1, x2, y2, color, width) {
+    function createZigzagDribbleArrow(x1, y1, x2, y2, color, width, style = 'solid') {
       const dx = x2 - x1;
       const dy = y2 - y1;
       const dist = Math.sqrt(dx * dx + dy * dy);
@@ -7047,12 +7512,23 @@
 
       const headPath = `M ${x2} ${y2} L ${lx} ${ly} L ${bx} ${by} L ${rx} ${ry} Z`;
 
+      let dashArray = null;
+      let lineCap = 'round';
+      if (style === 'dashed') {
+        dashArray = [22, 11];
+        lineCap = 'butt';
+      } else if (style === 'dotted') {
+        dashArray = [0.1, Math.max(15, (width || 6) * 2.3)];
+        lineCap = 'round';
+      }
+
       const shaftObj = new fabric.Path(shaftPath, {
         fill: 'transparent',
         stroke: color,
         strokeWidth: Math.max(6, width),
-        strokeLineCap: 'round',
+        strokeLineCap: lineCap,
         strokeLineJoin: 'round',
+        strokeDashArray: dashArray,
         shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.6)', blur: 8, offsetY: 2 })
       });
 
@@ -7076,6 +7552,7 @@
         tacticalType: 'dribble-arrow'
       });
 
+      group.arrowStyle = style;
       group._arrowStart = { x: x1, y: y1 };
       group._arrowEnd = { x: x2, y: y2 };
       return group;
@@ -7086,12 +7563,12 @@
       const actualRx = Math.max(8, rx || 20);
       const actualRy = Math.max(8, ry || 20);
       let dash = null;
-      let cap = 'butt';
+      let cap = 'round';
       if (style === 'dashed') {
-        dash = [16, 16];
+        dash = [26, 13];
         cap = 'butt';
       } else if (style === 'dotted') {
-        dash = [1, Math.max(14, (strokeWidth || 4) * 2.2)];
+        dash = [0.1, Math.max(16, (strokeWidth || 4) * 2.6)];
         cap = 'round';
       }
 
@@ -7336,25 +7813,59 @@
     }
 
     // 6. Tactical Annotation Text Box
-    function createTacticalTextBox(x, y, text, color) {
-      return new fabric.IText(text, {
-        fontSize: 34,
-        fontFamily: 'Inter',
-        fontWeight: '800',
+    function createTacticalTextBox(x, y, text, color, options = {}) {
+      const font = options.fontFamily || activeTextFont || 'Inter';
+      const size = options.fontSize || activeTextFontSize || 32;
+      const bgStyle = options.bgStyle || activeTextBgStyle || 'dark';
+      const isBold = options.fontWeight !== undefined ? options.fontWeight : (activeTextBold ? '800' : 'normal');
+      const isItalic = options.fontStyle !== undefined ? options.fontStyle : (activeTextItalic ? 'italic' : 'normal');
+      const hasBorder = options.hasBorder !== undefined ? options.hasBorder : activeTextHasBorder;
+
+      let bgColor = 'rgba(15, 23, 36, 0.92)';
+      let shadowObj = new fabric.Shadow({
+        color: 'rgba(0,0,0,0.7)',
+        blur: 12,
+        offsetY: 3
+      });
+
+      if (bgStyle === 'transparent') {
+        bgColor = 'transparent';
+        shadowObj = new fabric.Shadow({
+          color: 'rgba(0,0,0,0.95)',
+          blur: 10,
+          offsetX: 1,
+          offsetY: 2
+        });
+      } else if (bgStyle === 'solid') {
+        bgColor = '#000000';
+      } else if (bgStyle === 'tint') {
+        bgColor = hexToRgba(color || drawColor, 0.32);
+      } else {
+        // 'dark' glassmorphism
+        bgColor = 'rgba(15, 23, 36, 0.92)';
+      }
+
+      const itext = new fabric.IText(text, {
+        fontSize: size,
+        fontFamily: font,
+        fontWeight: isBold,
+        fontStyle: isItalic,
         fill: '#ffffff',
-        backgroundColor: 'rgba(15, 23, 36, 0.92)',
+        backgroundColor: bgColor,
         padding: 12,
-        borderColor: color,
-        cornerColor: color,
+        stroke: hasBorder ? (color || drawColor) : null,
+        strokeWidth: hasBorder ? 1.5 : 0,
+        borderColor: color || drawColor,
+        cornerColor: color || drawColor,
         left: x,
         top: y,
-        shadow: new fabric.Shadow({
-          color: 'rgba(0,0,0,0.7)',
-          blur: 12,
-          offsetY: 3
-        }),
+        shadow: shadowObj,
         tacticalType: 'text-note'
       });
+
+      itext.bgStyle = bgStyle;
+      itext.hasBorder = hasBorder;
+      return itext;
     }
 
     /* --------------------------------------------------------------------------
@@ -8311,7 +8822,7 @@
     function saveCurrentCanvasToActiveKeyframe() {
       if (!canvas) return;
       pushCanvasHistoryState();
-      const customProps = ['keyframeId', 'tacticalType', 'circleStyle', 'playerNumber', 'playerName', 'tokenColor', 'rulerDistance', 'rulerUnit', 'spotlightRadiusX', 'spotlightRadiusY', 'spotlightColor', 'rx', 'ry', 'trackerColor', 'showSpotlight', 'points', 'strokeDashArray', 'strokeLineCap', 'strokeLineJoin', '_showRulerDistance', '_chainPts', '_zonePts', '_chainColor', '_zoneColor', '_arrowStart', '_arrowEnd', '_rulerStart', '_rulerEnd'];
+      const customProps = ['keyframeId', 'tacticalType', 'circleStyle', 'arrowStyle', 'playerNumber', 'playerName', 'tokenColor', 'rulerDistance', 'rulerUnit', 'spotlightRadiusX', 'spotlightRadiusY', 'spotlightColor', 'rx', 'ry', 'darkness', 'feather', 'isCircle', 'trackerColor', 'showSpotlight', 'bgStyle', 'hasBorder', 'points', 'strokeDashArray', 'strokeLineCap', 'strokeLineJoin', '_showRulerDistance', '_chainPts', '_zonePts', '_chainColor', '_zoneColor', '_arrowStart', '_arrowEnd', '_rulerStart', '_rulerEnd'];
       const isZoomed = (stageZoomLevel > 1.0);
       const currentFrameTime = Math.round(currentVideoTime * 100) / 100;
 
@@ -8413,7 +8924,7 @@
     function saveCurrentFrameAsKeyframe() {
       if (isPlaying) pauseVideo();
       
-      const customProps = ['keyframeId', 'tacticalType', 'circleStyle', 'playerNumber', 'playerName', 'tokenColor', 'rulerDistance', 'rulerUnit', 'spotlightRadiusX', 'spotlightRadiusY', 'spotlightColor', 'rx', 'ry', 'trackerColor', 'showSpotlight', 'points', 'strokeDashArray', 'strokeLineCap', 'strokeLineJoin', '_showRulerDistance', '_chainPts', '_zonePts', '_chainColor', '_zoneColor', '_arrowStart', '_arrowEnd', '_rulerStart', '_rulerEnd'];
+      const customProps = ['keyframeId', 'tacticalType', 'circleStyle', 'arrowStyle', 'playerNumber', 'playerName', 'tokenColor', 'rulerDistance', 'rulerUnit', 'spotlightRadiusX', 'spotlightRadiusY', 'spotlightColor', 'rx', 'ry', 'darkness', 'feather', 'isCircle', 'trackerColor', 'showSpotlight', 'bgStyle', 'hasBorder', 'points', 'strokeDashArray', 'strokeLineCap', 'strokeLineJoin', '_showRulerDistance', '_chainPts', '_zonePts', '_chainColor', '_zoneColor', '_arrowStart', '_arrowEnd', '_rulerStart', '_rulerEnd'];
       const objectsJson = canvas ? (canvas.toJSON(customProps).objects || []) : [];
       const isZoomed = (stageZoomLevel > 1.0);
       const currentFrameTime = Math.round(currentVideoTime * 100) / 100;
@@ -10147,6 +10658,10 @@
         case 's':
         case 'S':
           toggleOrSetActiveTool('spotlight');
+          break;
+        case 'x':
+        case 'X':
+          toggleOrSetActiveTool('space-highlight');
           break;
         case 'a':
         case 'A':
