@@ -16,6 +16,14 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
+    // Match Reports Archive & Live Notes from iPhone / Mobile
+    match /match_reports/{reportId} {
+      allow read, write: if true;
+    }
+    match /match_live_notes/{sessionId}/{allSubcollections=**} {
+      allow read, write: if true;
+    }
+
     // Fallback
     match /{document=**} {
       allow read, write: if true;

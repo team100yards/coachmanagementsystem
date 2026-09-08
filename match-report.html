@@ -138,6 +138,13 @@
     .btn-pr-del{background:var(--rose-dim);border:1px solid rgba(255,69,105,0.35);color:var(--rose);font-size:11px;font-weight:700;padding:6px 10px;border-radius:6px;cursor:pointer;transition:all 0.15s;}
     .btn-pr-del:hover{background:rgba(255,69,105,0.25);}
 
+    /* Mobile / iPhone Sync Button & Indicators */
+    .btn-mobile-sync{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:20px;background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.3);color:var(--green);font-size:11px;font-weight:700;cursor:pointer;transition:all 0.2s ease;letter-spacing:0.2px;}
+    .btn-mobile-sync:hover{background:rgba(0,230,118,0.2);border-color:var(--green);box-shadow:0 0 12px rgba(0,230,118,0.25);}
+    .btn-mobile-sync.synced{background:rgba(0,230,118,0.16);border-color:var(--green);}
+    .sync-dot-pulse{width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;box-shadow:0 0 6px var(--green);animation:pulse-dot 1.6s infinite;}
+    @keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.3;transform:scale(0.8);}}
+
     @media (max-width: 900px) {
       body { overflow-y: auto; height: auto; min-height: 100vh; }
       .app-body { display: flex; flex-direction: column; height: auto; overflow: visible; }
@@ -216,7 +223,13 @@
           </div>
         </div>
         <div class="card">
-          <div class="card-label"><span class="dot" style="background:#00e676;"></span>Coach Notes</div>
+          <div class="card-label" style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="display:flex;align-items:center;gap:6px;"><span class="dot" style="background:#00e676;"></span>Coach Notes</div>
+            <button class="btn-mobile-sync" id="btn-mobile-sync" onclick="openMobileSyncModal()" title="Connect iPhone to dictate or type live notes via QR code or link">
+              <span class="sync-dot-pulse" id="sync-dot-pulse" style="display:none;"></span>
+              <span>📱</span> <span id="mobile-sync-btn-text">Connect iPhone (QR)</span>
+            </button>
+          </div>
           <div class="voice-bar" style="margin-bottom:10px;">
             <button class="btn-mic" id="btn-mic" onclick="toggleVoiceRecording()" title="Tap to dictate notes">&#x1F399;&#xFE0F;</button>
             <div class="voice-status">
@@ -326,6 +339,58 @@
     </div>
   </div>
 
+  <!-- IPHONE / MOBILE LIVE NOTES SYNC MODAL -->
+  <div class="modal-backdrop" id="mobile-sync-modal" style="display:none;" onclick="if(event.target===this)closeMobileSyncModal()">
+    <div class="modal-card" style="max-width:540px;">
+      <div class="modal-header">
+        <div class="modal-title" style="display:flex;align-items:center;gap:8px;">
+          <span>📱</span> Connect iPhone · Live Match Notes
+        </div>
+        <button class="modal-close" onclick="closeMobileSyncModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding:22px;display:flex;flex-direction:column;align-items:center;gap:16px;">
+        <div style="text-align:center;font-size:13px;color:var(--text-muted);line-height:1.5;max-width:440px;">
+          Scan with your iPhone Camera or share the link. Speak or type observations on the sideline — notes stream live into this Match Report in real time!
+        </div>
+
+        <!-- QR Code Container -->
+        <div style="background:#fff;padding:12px;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;position:relative;">
+          <img id="mobile-qr-image" src="" alt="Scan QR Code with iPhone" style="width:190px;height:190px;display:block;border-radius:6px;object-fit:contain;">
+        </div>
+
+        <!-- Session & Status Indicator -->
+        <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:30px;padding:6px 14px;font-size:12px;">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);" id="modal-status-dot"></span>
+          <span id="modal-status-text" style="color:var(--text);font-weight:600;">Listening for live notes...</span>
+          <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);" id="modal-session-code">#...</span>
+        </div>
+
+        <!-- Link Share Box -->
+        <div style="width:100%;display:flex;gap:8px;">
+          <input type="text" id="mobile-sync-url" readonly style="flex:1;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;color:var(--text);font-size:12px;font-family:var(--font-mono);outline:none;">
+          <button class="btn-toolbar" onclick="copyMobileSyncLink()" style="padding:0 16px;background:var(--green-dim);color:var(--green);border-color:rgba(0,230,118,0.35);font-weight:700;">📋 Copy</button>
+          <a id="btn-open-mobile-tab" href="#" target="_blank" class="btn-toolbar" style="padding:0 14px;display:flex;align-items:center;justify-content:center;text-decoration:none;" title="Test mobile view in new tab">↗️</a>
+        </div>
+
+        <!-- Incoming Stream Preview -->
+        <div style="width:100%;margin-top:2px;">
+          <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;display:flex;justify-content:space-between;">
+            <span>Live Incoming Notes Feed</span>
+            <span id="modal-notes-count" style="color:var(--green);font-weight:800;">0 received</span>
+          </div>
+          <div id="modal-incoming-list" style="max-height:120px;overflow-y:auto;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;font-size:12px;color:var(--text-dim);line-height:1.5;">
+            Waiting for first note from iPhone...
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;width:100%;justify-content:space-between;align-items:center;margin-top:4px;">
+          <button class="btn-toolbar" onclick="generateNewNotesSession()" style="font-size:11px;color:var(--text-muted);">🔄 Reset / New Session</button>
+          <button class="btn-toolbar" onclick="closeMobileSyncModal()" style="font-size:11px;padding:6px 18px;">Done</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
 
   <!-- Firebase SDKs for Cloud Sync across devices -->
@@ -338,6 +403,12 @@
     var speechRecognition = null;
     var rawReportText = '';
     var db = null;
+
+    // Mobile / iPhone Live Sync State
+    var liveNotesSessionId = '';
+    var liveNotesListenerUnsub = null;
+    var processedLiveEntryIds = new Set();
+    var liveNotesCount = 0;
 
     // Initialize Firebase & Firestore
     try {
@@ -460,7 +531,236 @@
         document.getElementById('btn-mic').disabled = true;
         document.getElementById('btn-mic').style.opacity = '0.4';
       }
+
+      // Initialize iPhone Live Notes Sync Session
+      initLiveNotesSession();
+
+      // Listen for fixture edits to update mobile title in real-time
+      ['home-team', 'away-team', 'competition'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('input', debounce(updateLiveSessionMetadata, 800));
+      });
     });
+
+    // ════════════════════════════════════════════════════════════
+    // IPHONE / MOBILE LIVE NOTES REAL-TIME SYNC
+    // ════════════════════════════════════════════════════════════
+
+    function getMobileNotesUrl(sid) {
+      var loc = window.location;
+      var path = loc.pathname.substring(0, loc.pathname.lastIndexOf('/') + 1) + 'notes.html';
+      return loc.origin + path + '?session=' + encodeURIComponent(sid || liveNotesSessionId);
+    }
+
+    function initLiveNotesSession() {
+      if (!liveNotesSessionId) {
+        liveNotesSessionId = sessionStorage.getItem('cms_live_notes_session');
+        if (!liveNotesSessionId) {
+          liveNotesSessionId = 'match_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 7);
+          sessionStorage.setItem('cms_live_notes_session', liveNotesSessionId);
+        }
+      }
+
+      updateMobileSyncButtonState(false);
+      updateLiveSessionMetadata();
+      startLiveNotesListener();
+    }
+
+    function updateLiveSessionMetadata() {
+      if (!db || !liveNotesSessionId) return;
+      var home = document.getElementById('home-team') ? document.getElementById('home-team').value.trim() : '';
+      var away = document.getElementById('away-team') ? document.getElementById('away-team').value.trim() : '';
+      var comp = document.getElementById('competition') ? document.getElementById('competition').value.trim() : '';
+      var title = (home && away) ? (home + ' vs ' + away) : (home || away || 'Match Session');
+      if (comp) title += ' · ' + comp;
+
+      db.collection('match_live_notes').doc(liveNotesSessionId).set({
+        matchTitle: title,
+        homeTeam: home,
+        awayTeam: away,
+        competition: comp,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        hostPlatform: 'Desktop'
+      }, { merge: true }).catch(function(e) { console.warn('Sync session metadata warning:', e); });
+    }
+
+    function startLiveNotesListener() {
+      if (!db || !liveNotesSessionId) return;
+      if (liveNotesListenerUnsub) {
+        liveNotesListenerUnsub();
+        liveNotesListenerUnsub = null;
+      }
+
+      liveNotesListenerUnsub = db.collection('match_live_notes')
+        .doc(liveNotesSessionId)
+        .collection('entries')
+        .orderBy('timestamp', 'asc')
+        .onSnapshot(function(snapshot) {
+          var newEntries = [];
+          snapshot.forEach(function(doc) {
+            var id = doc.id;
+            var data = doc.data();
+            if (!processedLiveEntryIds.has(id)) {
+              processedLiveEntryIds.add(id);
+              newEntries.push(data);
+            }
+          });
+
+          if (newEntries.length > 0) {
+            liveNotesCount += newEntries.length;
+            handleIncomingLiveNotes(newEntries);
+          }
+        }, function(err) {
+          console.warn('Live notes listener error:', err);
+        });
+    }
+
+    function handleIncomingLiveNotes(entries) {
+      var notesArea = document.getElementById('coach-notes');
+      if (!notesArea) return;
+
+      var appendText = '';
+      entries.forEach(function(item) {
+        var timePrefix = '';
+        if (item.timestamp && item.timestamp.toDate) {
+          var d = item.timestamp.toDate();
+          timePrefix = '[' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') + '] ';
+        } else {
+          timePrefix = '[' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + '] ';
+        }
+
+        var line = timePrefix + (item.text || '').trim();
+        appendText += (appendText ? '\n' : '') + line;
+
+        updateModalIncomingPreview(line);
+      });
+
+      if (appendText) {
+        var currentVal = notesArea.value;
+        var separator = currentVal.trim() ? '\n\n' : '';
+        notesArea.value = currentVal + separator + appendText;
+        notesArea.scrollTop = notesArea.scrollHeight;
+
+        updateMobileSyncButtonState(true);
+        var lastSnippet = entries[entries.length - 1].text || '';
+        if (lastSnippet.length > 35) lastSnippet = lastSnippet.substring(0, 35) + '...';
+        showToast('📱 iPhone Note added: "' + lastSnippet + '"', 'success');
+      }
+    }
+
+    function updateMobileSyncButtonState(hasNotes) {
+      var btnText = document.getElementById('mobile-sync-btn-text');
+      var dotPulse = document.getElementById('sync-dot-pulse');
+      var btn = document.getElementById('btn-mobile-sync');
+
+      if (liveNotesCount > 0) {
+        if (btnText) btnText.textContent = 'iPhone Synced (' + liveNotesCount + ')';
+        if (dotPulse) dotPulse.style.display = 'inline-block';
+        if (btn) btn.classList.add('synced');
+      } else {
+        if (btnText) btnText.textContent = 'Connect iPhone (QR)';
+        if (dotPulse) dotPulse.style.display = 'none';
+        if (btn) btn.classList.remove('synced');
+      }
+    }
+
+    function updateModalIncomingPreview(line) {
+      var list = document.getElementById('modal-incoming-list');
+      var countEl = document.getElementById('modal-notes-count');
+      if (countEl) countEl.textContent = liveNotesCount + (liveNotesCount === 1 ? ' received' : ' received');
+
+      if (list) {
+        if (list.textContent.includes('Waiting for first note')) {
+          list.innerHTML = '';
+        }
+        var row = document.createElement('div');
+        row.style.cssText = 'padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.05);color:var(--text);display:flex;align-items:center;gap:6px;';
+        row.innerHTML = '<span style="color:var(--green);font-weight:bold;">•</span> <span>' + escapeHtml(line) + '</span>';
+        list.appendChild(row);
+        list.scrollTop = list.scrollHeight;
+      }
+    }
+
+    function openMobileSyncModal() {
+      if (!liveNotesSessionId) initLiveNotesSession();
+      updateLiveSessionMetadata();
+
+      var modal = document.getElementById('mobile-sync-modal');
+      var qrImg = document.getElementById('mobile-qr-image');
+      var urlInput = document.getElementById('mobile-sync-url');
+      var tabLink = document.getElementById('btn-open-mobile-tab');
+      var codeBadge = document.getElementById('modal-session-code');
+
+      var mobileUrl = getMobileNotesUrl(liveNotesSessionId);
+
+      if (urlInput) urlInput.value = mobileUrl;
+      if (tabLink) tabLink.href = mobileUrl;
+      if (codeBadge) codeBadge.textContent = '#' + liveNotesSessionId.substring(0, 10);
+
+      // Generate crisp QR code using API with high error correction
+      if (qrImg) {
+        qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=' + encodeURIComponent(mobileUrl) + '&bgcolor=ffffff&color=000000&margin=1';
+      }
+
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function closeMobileSyncModal() {
+      var modal = document.getElementById('mobile-sync-modal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function copyMobileSyncLink() {
+      var input = document.getElementById('mobile-sync-url');
+      if (!input || !input.value) return;
+      navigator.clipboard.writeText(input.value).then(function() {
+        showToast('iPhone Link copied to clipboard! Send via AirDrop/Messages', 'success');
+      }).catch(function() {
+        input.select();
+        document.execCommand('copy');
+        showToast('Link copied!', 'success');
+      });
+    }
+
+    function generateNewNotesSession() {
+      if (!confirm('Start a new mobile session? (Previous notes remain in your report textarea)')) return;
+
+      if (liveNotesListenerUnsub) {
+        liveNotesListenerUnsub();
+        liveNotesListenerUnsub = null;
+      }
+      processedLiveEntryIds.clear();
+      liveNotesCount = 0;
+
+      liveNotesSessionId = 'match_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 7);
+      sessionStorage.setItem('cms_live_notes_session', liveNotesSessionId);
+
+      var list = document.getElementById('modal-incoming-list');
+      if (list) list.innerHTML = 'Waiting for first note from iPhone...';
+
+      openMobileSyncModal();
+      initLiveNotesSession();
+      showToast('New mobile session generated', 'success');
+    }
+
+    function debounce(fn, delay) {
+      var timer = null;
+      return function() {
+        var context = this, args = arguments;
+        clearTimeout(timer);
+        timer = setTimeout(function() {
+          fn.apply(context, args);
+        }, delay);
+      };
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
 
     async function saveApiKey() {
       var key = document.getElementById('api-key-input').value.trim();

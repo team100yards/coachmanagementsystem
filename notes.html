@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Match Notes">
+  <meta name="theme-color" content="#07090d">
+  <title>CMS · iPhone Live Match Notes</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #07090d;
+      --card: #0e131b;
+      --card-border: #1a2230;
+      --card-highlight: #141c29;
+      --green: #00e676;
+      --green-glow: rgba(0, 230, 118, 0.25);
+      --green-deep: #008744;
+      --red: #ff3b5c;
+      --yellow: #ffd600;
+      --blue: #2979ff;
+      --purple: #b388ff;
+      --text: #f0f4f8;
+      --text-muted: #8899a8;
+      --text-dim: #4d5d6d;
+      --radius: 14px;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0, 230, 118, 0.12) 0%, transparent 60%),
+        radial-gradient(circle at 100% 100%, rgba(41, 121, 255, 0.05) 0%, transparent 40%);
+      color: var(--text);
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+      display: flex;
+      flex-direction: column;
+      padding-top: calc(var(--safe-top) + 12px);
+      padding-bottom: calc(var(--safe-bottom) + 20px);
+      padding-left: 16px;
+      padding-right: 16px;
+      overflow-x: hidden;
+    }
+
+    /* HEADER */
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .brand-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #00e676, #005c28);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 4px 12px rgba(0, 230, 118, 0.3);
+    }
+
+    .brand-text h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: 1.5px;
+      line-height: 1.1;
+      color: #fff;
+    }
+
+    .brand-text p {
+      font-size: 10px;
+      color: var(--green);
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: rgba(0, 230, 118, 0.1);
+      border: 1px solid rgba(0, 230, 118, 0.25);
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--green);
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+      animation: pulse-dot 1.8s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* MATCH CARD */
+    .match-info-card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .match-fixture {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .session-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 3px 8px;
+      border-radius: 6px;
+      color: var(--text-muted);
+    }
+
+    /* QUICK ACTION CHIPS */
+    .chips-section {
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--text-muted);
+      font-weight: 700;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .chips-scroller {
+      display: flex;
+      gap: 7px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+    .chips-scroller::-webkit-scrollbar { display: none; }
+
+    .tag-chip {
+      flex: 0 0 auto;
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .tag-chip:active {
+      transform: scale(0.94);
+      background: var(--card-highlight);
+      border-color: var(--green);
+      color: var(--green);
+    }
+
+    .tag-chip.active-tag {
+      background: rgba(0, 230, 118, 0.18);
+      border-color: var(--green);
+      color: var(--green);
+    }
+
+    /* VOICE RECORDER HERO */
+    .voice-hero {
+      background: linear-gradient(180deg, var(--card) 0%, #0b0f16 100%);
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      padding: 20px 16px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 14px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .mic-button-wrap {
+      position: relative;
+      width: 90px;
+      height: 90px;
+      margin: 0 auto 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .mic-glow-ring {
+      position: absolute;
+      inset: -8px;
+      border-radius: 50%;
+      background: var(--green-glow);
+      opacity: 0;
+      transition: all 0.3s ease;
+    }
+
+    .mic-button {
+      position: relative;
+      z-index: 2;
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #182232, #0d121a);
+      border: 2px solid rgba(0, 230, 118, 0.4);
+      color: var(--green);
+      font-size: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .mic-button:active {
+      transform: scale(0.92);
+    }
+
+    /* Active Recording State */
+    .voice-hero.recording {
+      border-color: rgba(255, 59, 92, 0.5);
+      background: linear-gradient(180deg, rgba(255, 59, 92, 0.08) 0%, #0b0f16 100%);
+    }
+
+    .voice-hero.recording .mic-glow-ring {
+      opacity: 1;
+      background: rgba(255, 59, 92, 0.3);
+      animation: pulse-ring 1.2s infinite ease-in-out;
+    }
+
+    .voice-hero.recording .mic-button {
+      border-color: var(--red);
+      background: linear-gradient(135deg, #ff3b5c, #990022);
+      color: #fff;
+      box-shadow: 0 0 25px rgba(255, 59, 92, 0.6);
+    }
+
+    @keyframes pulse-ring {
+      0% { transform: scale(0.9); opacity: 0.6; }
+      50% { transform: scale(1.15); opacity: 0.2; }
+      100% { transform: scale(0.9); opacity: 0.6; }
+    }
+
+    .mic-label {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.3px;
+    }
+
+    .mic-subtext {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    .voice-live-transcript {
+      margin-top: 10px;
+      font-size: 13px;
+      font-style: italic;
+      color: #00e676;
+      min-height: 18px;
+      padding: 0 8px;
+      line-height: 1.4;
+      display: none;
+    }
+
+    /* NOTE INPUT CARD */
+    .input-card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .textarea-wrap {
+      position: relative;
+    }
+
+    .note-textarea {
+      width: 100%;
+      min-height: 90px;
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 14px;
+      font-family: inherit;
+      color: #fff;
+      line-height: 1.5;
+      resize: none;
+      outline: none;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    .note-textarea:focus {
+      border-color: rgba(0, 230, 118, 0.4);
+    }
+
+    .note-textarea::placeholder {
+      color: var(--text-dim);
+      font-size: 13px;
+    }
+
+    .clear-btn {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: var(--text-muted);
+      font-size: 11px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    /* ACTION BUTTONS */
+    .actions-grid {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .btn-send {
+      flex: 1;
+      height: 48px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #00e676, #00b359);
+      border: none;
+      color: #031407;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(0, 230, 118, 0.35);
+      transition: all 0.15s ease;
+    }
+
+    .btn-send:active {
+      transform: scale(0.97);
+      box-shadow: 0 2px 8px rgba(0, 230, 118, 0.2);
+    }
+
+    .btn-send:disabled {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    /* FEED SECTION */
+    .feed-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 8px;
+      margin-bottom: 8px;
+    }
+
+    .feed-count {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--green);
+      background: rgba(0, 230, 118, 0.12);
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    .notes-feed {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow-y: auto;
+      max-height: 240px;
+      padding-bottom: 10px;
+    }
+
+    .feed-item {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      animation: slideDown 0.25s ease-out;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .feed-item-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+    }
+
+    .feed-time {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted);
+    }
+
+    .feed-tag-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+    }
+
+    .feed-content {
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.4;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    .feed-status {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      color: var(--green);
+      align-self: flex-end;
+    }
+
+    .empty-feed {
+      text-align: center;
+      padding: 24px 16px;
+      color: var(--text-dim);
+      font-size: 12px;
+      border: 1px dashed var(--card-border);
+      border-radius: 12px;
+    }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: calc(var(--safe-bottom) + 20px);
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #111a24;
+      border: 1px solid var(--green);
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 30px;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+      z-index: 999;
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      pointer-events: none;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="brand-box">
+      <div class="brand-icon">📱</div>
+      <div class="brand-text">
+        <h1>Match Notes</h1>
+        <p>Live iPhone Sync</p>
+      </div>
+    </div>
+    <div class="status-pill" id="sync-status-pill">
+      <div class="status-dot"></div>
+      <span id="sync-status-label">Live Synced</span>
+    </div>
+  </header>
+
+  <!-- Match Info -->
+  <div class="match-info-card">
+    <div class="match-fixture" id="match-fixture-display">
+      <span>⚽</span> <span id="match-title-text">Active Match Session</span>
+    </div>
+    <div class="session-badge" id="session-code-badge">#...</div>
+  </div>
+
+  <!-- Quick Tag Chips -->
+  <div class="chips-section">
+    <div class="section-title">
+      <span>Quick Tags</span>
+      <span style="font-size: 10px; color: var(--text-dim);">Tap to tag note</span>
+    </div>
+    <div class="chips-scroller">
+      <button class="tag-chip" onclick="selectTag('⚽ Goal')">⚽ Goal</button>
+      <button class="tag-chip" onclick="selectTag('🎯 Chance')">🎯 Chance</button>
+      <button class="tag-chip" onclick="selectTag('⚠️ Pressing')">⚠️ Pressing</button>
+      <button class="tag-chip" onclick="selectTag('⚡ Counter')">⚡ Counter</button>
+      <button class="tag-chip" onclick="selectTag('🛡️ Defense')">🛡️ Defense</button>
+      <button class="tag-chip" onclick="selectTag('🟨 Card')">🟨 Card</button>
+      <button class="tag-chip" onclick="selectTag('🔄 Sub')">🔄 Sub</button>
+      <button class="tag-chip" onclick="selectTag('📐 Set Piece')">📐 Set Piece</button>
+    </div>
+  </div>
+
+  <!-- Voice Hero Recorder -->
+  <div class="voice-hero" id="voice-hero">
+    <div class="mic-button-wrap">
+      <div class="mic-glow-ring"></div>
+      <button class="mic-button" id="btn-mic" onclick="toggleSpeech()" title="Tap to record voice">
+        🎙️
+      </button>
+    </div>
+    <div class="mic-label" id="mic-label">Tap Mic to Speak</div>
+    <div class="mic-subtext" id="mic-subtext">Dictate coaching observations on the sideline</div>
+    <div class="voice-live-transcript" id="voice-live-text"></div>
+  </div>
+
+  <!-- Note Input -->
+  <div class="input-card">
+    <div class="textarea-wrap">
+      <textarea 
+        class="note-textarea" 
+        id="note-input" 
+        rows="3" 
+        placeholder="Type match observation or speak using the mic above..."
+        oninput="handleInput()"
+      ></textarea>
+      <button class="clear-btn" id="btn-clear" onclick="clearInput()">✕</button>
+    </div>
+
+    <div class="actions-grid">
+      <button class="btn-send" id="btn-send" onclick="sendLiveNote()">
+        <span>⚡ Send to Match Report</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Live Feed -->
+  <div class="feed-header">
+    <div class="section-title" style="margin-bottom: 0;">Sent Notes Stream</div>
+    <div class="feed-count" id="feed-count-badge">0 notes</div>
+  </div>
+
+  <div class="notes-feed" id="notes-feed">
+    <div class="empty-feed" id="empty-feed-msg">
+      No notes sent yet. Tap the mic or write an observation to stream directly to your PC match report!
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast">
+    <span>✓</span>
+    <span id="toast-text">Note sent to Match Report</span>
+  </div>
+
+  <!-- Firebase Compat SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    // State
+    var sessionId = '';
+    var db = null;
+    var selectedTag = '';
+    var recognition = null;
+    var isRecording = false;
+    var currentEntries = [];
+
+    // Initialize Firebase
+    try {
+      if (typeof firebase !== 'undefined') {
+        var app;
+        try {
+          app = firebase.initializeApp({
+            apiKey: "AIzaSyBf_L4yFf_P-SS6SIQjDA67OaZ8pJQtRuk",
+            authDomain: "coachmanagementsystem.firebaseapp.com",
+            projectId: "coachmanagementsystem",
+            storageBucket: "coachmanagementsystem.firebasestorage.app",
+            messagingSenderId: "892324628193",
+            appId: "1:892324628193:web:2cbbc23fc851d15aee99a0"
+          });
+        } catch(e) {
+          app = firebase.app();
+        }
+        db = firebase.firestore();
+      }
+    } catch(err) {
+      console.warn('Firebase init error:', err);
+    }
+
+    // Extract session from URL
+    function getSessionFromUrl() {
+      var params = new URLSearchParams(window.location.search);
+      var sid = params.get('session');
+      if (!sid) {
+        sid = localStorage.getItem('cms_active_notes_session') || 'session_' + Math.random().toString(36).substring(2, 9);
+        localStorage.setItem('cms_active_notes_session', sid);
+        // update url without reload
+        var newUrl = window.location.pathname + '?session=' + sid;
+        window.history.replaceState({ path: newUrl }, '', newUrl);
+      }
+      return sid;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      sessionId = getSessionFromUrl();
+      document.getElementById('session-code-badge').textContent = '#' + sessionId.substring(0, 10);
+
+      initFirestoreListener();
+      initSpeechRecognition();
+    });
+
+    // Firestore Real-Time Sync
+    function initFirestoreListener() {
+      if (!db || !sessionId) return;
+
+      // Listen to session info metadata
+      db.collection('match_live_notes').doc(sessionId).onSnapshot(function(docSnap) {
+        if (docSnap.exists) {
+          var data = docSnap.data();
+          if (data.matchTitle) {
+            document.getElementById('match-title-text').textContent = data.matchTitle;
+          }
+        }
+      }, function(err) {
+        console.warn('Session info listener warning:', err);
+      });
+
+      // Listen to entries collection
+      db.collection('match_live_notes')
+        .doc(sessionId)
+        .collection('entries')
+        .orderBy('timestamp', 'asc')
+        .onSnapshot(function(snapshot) {
+          currentEntries = [];
+          snapshot.forEach(function(doc) {
+            currentEntries.push(Object.assign({ id: doc.id }, doc.data()));
+          });
+          renderFeed(currentEntries);
+        }, function(err) {
+          console.error('Notes listener error:', err);
+        });
+    }
+
+    // Render Sent Notes Feed
+    function renderFeed(entries) {
+      var feedEl = document.getElementById('notes-feed');
+      var countBadge = document.getElementById('feed-count-badge');
+      var emptyMsg = document.getElementById('empty-feed-msg');
+
+      countBadge.textContent = entries.length + (entries.length === 1 ? ' note' : ' notes');
+
+      if (entries.length === 0) {
+        emptyMsg.style.display = 'block';
+        feedEl.innerHTML = '';
+        feedEl.appendChild(emptyMsg);
+        return;
+      }
+
+      emptyMsg.style.display = 'none';
+      feedEl.innerHTML = '';
+
+      // Show newest first on mobile feed
+      var reversed = entries.slice().reverse();
+      reversed.forEach(function(item) {
+        var card = document.createElement('div');
+        card.className = 'feed-item';
+
+        var timeStr = 'Just now';
+        if (item.timestamp && item.timestamp.toDate) {
+          var d = item.timestamp.toDate();
+          var hh = String(d.getHours()).padStart(2, '0');
+          var mm = String(d.getMinutes()).padStart(2, '0');
+          var ss = String(d.getSeconds()).padStart(2, '0');
+          timeStr = hh + ':' + mm + ':' + ss;
+        }
+
+        var tagHtml = item.tag ? '<span class="feed-tag-badge">' + escapeHtml(item.tag) + '</span>' : '';
+
+        card.innerHTML = 
+          '<div class="feed-item-top">' +
+            '<span class="feed-time">' + timeStr + '</span>' +
+            tagHtml +
+          '</div>' +
+          '<div class="feed-content">' + escapeHtml(item.text) + '</div>' +
+          '<div class="feed-status"><span>✓ Delivered to PC</span></div>';
+
+        feedEl.appendChild(card);
+      });
+    }
+
+    // Tag Selection
+    function selectTag(tagName) {
+      var chips = document.querySelectorAll('.tag-chip');
+      if (selectedTag === tagName) {
+        selectedTag = '';
+        chips.forEach(function(c) { c.classList.remove('active-tag'); });
+      } else {
+        selectedTag = tagName;
+        chips.forEach(function(c) {
+          c.classList.toggle('active-tag', c.textContent.trim() === tagName);
+        });
+
+        // If textarea already has content, prefix or prepend tag
+        var input = document.getElementById('note-input');
+        if (!input.value.startsWith(tagName)) {
+          input.value = tagName + ' - ' + input.value.replace(/^[⚽🎯⚠️⚡🛡️🟨🔄📐].*? - /, '');
+          handleInput();
+        }
+      }
+    }
+
+    // Input handlers
+    function handleInput() {
+      var val = document.getElementById('note-input').value;
+      document.getElementById('btn-clear').style.display = val ? 'flex' : 'none';
+    }
+
+    function clearInput() {
+      document.getElementById('note-input').value = '';
+      selectedTag = '';
+      document.querySelectorAll('.tag-chip').forEach(function(c) { c.classList.remove('active-tag'); });
+      handleInput();
+    }
+
+    // Web Speech API Voice Dictation
+    function initSpeechRecognition() {
+      var Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!Speech) {
+        document.getElementById('mic-subtext').textContent = 'Voice dictation not supported in this browser; use text input.';
+        return;
+      }
+
+      recognition = new Speech();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = navigator.language || 'en-US';
+
+      recognition.onstart = function() {
+        isRecording = true;
+        updateMicUi(true);
+      };
+
+      recognition.onresult = function(event) {
+        var interim = '';
+        var finalTranscript = '';
+
+        for (var i = event.resultIndex; i < event.results.length; i++) {
+          var t = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += t;
+          } else {
+            interim += t;
+          }
+        }
+
+        var liveEl = document.getElementById('voice-live-text');
+        if (interim || finalTranscript) {
+          liveEl.style.display = 'block';
+          liveEl.textContent = '“' + (finalTranscript || interim).trim() + '”';
+        }
+
+        if (finalTranscript.trim()) {
+          var input = document.getElementById('note-input');
+          var prefix = selectedTag ? selectedTag + ' - ' : '';
+          var sep = input.value.trim() ? ' ' : '';
+          
+          if (!input.value.includes(finalTranscript.trim())) {
+            input.value = (input.value ? input.value + sep : prefix) + finalTranscript.trim();
+          }
+          handleInput();
+        }
+      };
+
+      recognition.onerror = function(event) {
+        console.warn('Speech recognition error:', event.error);
+        if (event.error !== 'no-speech') {
+          showToast('Mic: ' + event.error);
+        }
+        stopSpeech();
+      };
+
+      recognition.onend = function() {
+        isRecording = false;
+        updateMicUi(false);
+      };
+    }
+
+    function toggleSpeech() {
+      if (!recognition) {
+        initSpeechRecognition();
+        if (!recognition) {
+          showToast('Speech recognition unavailable');
+          return;
+        }
+      }
+
+      if (isRecording) {
+        stopSpeech();
+      } else {
+        startSpeech();
+      }
+    }
+
+    function startSpeech() {
+      try {
+        recognition.start();
+      } catch(e) {
+        console.warn('Speech start error:', e);
+      }
+    }
+
+    function stopSpeech() {
+      try {
+        if (recognition) recognition.stop();
+      } catch(e) {}
+      isRecording = false;
+      updateMicUi(false);
+    }
+
+    function updateMicUi(recording) {
+      var hero = document.getElementById('voice-hero');
+      var label = document.getElementById('mic-label');
+      var sub = document.getElementById('mic-subtext');
+      var liveEl = document.getElementById('voice-live-text');
+
+      if (recording) {
+        hero.classList.add('recording');
+        label.textContent = '🔴 Listening... Speak now';
+        sub.textContent = 'Dictate your match observation clearly';
+        liveEl.style.display = 'block';
+      } else {
+        hero.classList.remove('recording');
+        label.textContent = 'Tap Mic to Speak';
+        sub.textContent = 'Dictate coaching observations on the sideline';
+        setTimeout(function() {
+          liveEl.style.display = 'none';
+          liveEl.textContent = '';
+        }, 1200);
+      }
+    }
+
+    // Send Live Note to Cloud Firestore
+    async function sendLiveNote() {
+      var input = document.getElementById('note-input');
+      var text = input.value.trim();
+
+      if (!text) {
+        showToast('Please type or dictate a note first');
+        return;
+      }
+
+      if (!db || !sessionId) {
+        showToast('Connection error: Session not active');
+        return;
+      }
+
+      var sendBtn = document.getElementById('btn-send');
+      sendBtn.disabled = true;
+
+      try {
+        // Stop recording if active
+        if (isRecording) stopSpeech();
+
+        var entryData = {
+          text: text,
+          tag: selectedTag || 'Note',
+          source: 'iPhone',
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        // Write to entries subcollection
+        await db.collection('match_live_notes')
+          .doc(sessionId)
+          .collection('entries')
+          .add(entryData);
+
+        // Update root session touch
+        await db.collection('match_live_notes')
+          .doc(sessionId)
+          .set({
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+            lastNote: text
+          }, { merge: true });
+
+        // Haptic feedback if available
+        if (navigator.vibrate) {
+          navigator.vibrate(50);
+        }
+
+        showToast('✓ Sent to Match Report!');
+        clearInput();
+
+      } catch(err) {
+        console.error('Error sending note:', err);
+        showToast('Failed to send note: ' + err.message);
+      } finally {
+        sendBtn.disabled = false;
+      }
+    }
+
+    // Toast helper
+    function showToast(msg) {
+      var t = document.getElementById('toast');
+      var txt = document.getElementById('toast-text');
+      txt.textContent = msg;
+      t.classList.add('show');
+      setTimeout(function() {
+        t.classList.remove('show');
+      }, 2500);
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+</html>
