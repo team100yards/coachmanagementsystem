@@ -5485,6 +5485,69 @@
     function updateLineToolUI() { updateShapesCategoryToolUI(); }
     function setSelectedCircleStyle(style) { setSelectedShapeStrokeStyle(style); }
 
+    /* --------------------------------------------------------------------------
+       POLYGON ZONE, TRIANGLE & PEN CATEGORY (Polygon, Polyline, Pen)
+    -------------------------------------------------------------------------- */
+    function handleDrawZoneToolButtonClick(e) {
+      if (e) e.stopPropagation();
+      if (e && (e.button === 2 || (e.target && e.target.classList && e.target.classList.contains('tool-caret-dot')))) {
+        toggleToolSubmenu('tool-drawzone-wrapper', 'drawzone-sub-popover', 'tool-drawzone', e);
+        return;
+      }
+      const isCurrentInDrawZone = ['polygon', 'polyline', 'pen'].includes(activeTool);
+      if (isCurrentInDrawZone) {
+        toggleToolSubmenu('tool-drawzone-wrapper', 'drawzone-sub-popover', 'tool-drawzone', e);
+      } else {
+        toggleOrSetActiveTool(activeDrawZoneTool || 'polygon');
+      }
+    }
+
+    function selectDrawZoneSubTool(tool, e) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      activeDrawZoneTool = tool;
+      setActiveTool(tool);
+      updateDrawZoneToolUI();
+      const wrapper = document.getElementById('tool-drawzone-wrapper');
+      if (wrapper) wrapper.classList.remove('open');
+      const popover = document.getElementById('drawzone-sub-popover');
+      if (popover) popover.classList.remove('open');
+    }
+
+    function updateDrawZoneToolUI() {
+      // 1. Highlight active sub-tool in popover
+      document.querySelectorAll('#drawzone-sub-popover .sub-tool-opt').forEach(btn => btn.classList.remove('active'));
+      let optId = 'sub-drawzone-polygon';
+      if (activeDrawZoneTool === 'polyline') optId = 'sub-drawzone-polyline';
+      else if (activeDrawZoneTool === 'pen') optId = 'sub-drawzone-pen';
+
+      const activeOpt = document.getElementById(optId);
+      if (activeOpt) activeOpt.classList.add('active');
+
+      // 2. Update category button icon & tooltip
+      const icon = document.getElementById('tool-drawzone-icon');
+      const btn = document.getElementById('tool-drawzone');
+      if (icon) {
+        if (activeDrawZoneTool === 'polyline') {
+          icon.innerHTML = `<circle cx="4" cy="19" r="2.5" fill="currentColor"/><circle cx="12" cy="5" r="2.5" fill="currentColor"/><circle cx="20" cy="19" r="2.5" fill="currentColor"/><line x1="6.5" y1="17.5" x2="10" y2="7.5"/><line x1="14" y1="7.5" x2="17.5" y2="17.5"/>`;
+          if (btn) btn.setAttribute('data-tooltip', `Three Line Triangle\n(L)\n(Right-click for options)`);
+        } else if (activeDrawZoneTool === 'pen') {
+          icon.innerHTML = `<path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/>`;
+          if (btn) btn.setAttribute('data-tooltip', `Tactical Pen\n(N)\n(Right-click for options)`);
+        } else {
+          // Polygon Zone
+          icon.innerHTML = `<polygon points="12 2 22 8.5 18 20 6 20 2 8.5 12 2"/>`;
+          if (btn) btn.setAttribute('data-tooltip', `Polygon Zone\n(P)\n(Right-click for options)`);
+        }
+      }
+    }
+
+    // Backward-compatibility wrappers for polygon zone
+    function handlePolygonToolButtonClick(e) { handleDrawZoneToolButtonClick(e); }
+    function selectPolygonSubStyle(style, e) { selectDrawZoneSubTool(style, e); }
+
     let activeCircleFillEnabled = false;
 
     function toggleSelectedCircleFill() {
@@ -10763,6 +10826,7 @@
     window.addEventListener('DOMContentLoaded', () => {
       initTelestrationCanvas();
       initTimelineScrubber();
+      updateDrawZoneToolUI();
       const holdSelect = document.getElementById('global-hold-duration-select');
       if (holdSelect) holdSelect.value = String(defaultHoldDuration);
       checkClipperHandoff();
