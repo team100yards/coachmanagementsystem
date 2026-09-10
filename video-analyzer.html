@@ -6771,6 +6771,15 @@
 
       let _lastExportKfKey = null;
 
+      // Offscreen cache: holds the last successfully decoded video frame so that
+      // when the video element is mid-seek (readyState < 2) we never fall through
+      // to the tactical pitch geometry fallback.
+      const _vidFrameCache = document.createElement('canvas');
+      _vidFrameCache.width = 1920;
+      _vidFrameCache.height = 1080;
+      const _vidFrameCacheCtx = _vidFrameCache.getContext('2d', { alpha: false });
+      let _vidFrameCacheReady = false;
+
       async function renderFrameAtTime(t) {
         const visibleKfs = getVisibleKeyframesAtTime(t);
         const currentKfKey = visibleKfs.map(k => k.id).sort().join(',');
@@ -6817,7 +6826,15 @@
         }
 
         if (isLocal && localVid && localVid.readyState >= 2) {
-          try { compCtx.drawImage(localVid, 0, 0, 1920, 1080); } catch(e){}
+          // Video frame is ready — draw it and update the cache
+          try {
+            compCtx.drawImage(localVid, 0, 0, 1920, 1080);
+            _vidFrameCacheCtx.drawImage(localVid, 0, 0, 1920, 1080);
+            _vidFrameCacheReady = true;
+          } catch(e){}
+        } else if (isLocal && _vidFrameCacheReady) {
+          // Video is still seeking — reuse last cached frame instead of showing pitch
+          try { compCtx.drawImage(_vidFrameCache, 0, 0, 1920, 1080); } catch(e){}
         } else if (isPitch && pitchCanvas) {
           try {
             renderSyntheticPitch(t);
@@ -7036,6 +7053,16 @@
       compCtx.imageSmoothingQuality = 'high';
 
       let _lastFallbackKfKey = null;
+
+      // Offscreen cache: holds the last successfully decoded video frame so that
+      // when the video element is mid-seek (readyState < 2) we never fall through
+      // to the tactical pitch geometry fallback.
+      const _fallbackVidCache = document.createElement('canvas');
+      _fallbackVidCache.width = 1920;
+      _fallbackVidCache.height = 1080;
+      const _fallbackVidCacheCtx = _fallbackVidCache.getContext('2d', { alpha: false });
+      let _fallbackVidCacheReady = false;
+
       function renderCompFrame() {
         const visibleKfs = getVisibleKeyframesAtTime(currentVideoTime);
         const currentKfKey = visibleKfs.map(k => k.id).sort().join(',');
@@ -7081,7 +7108,15 @@
         }
 
         if (isLocal && localVid && localVid.readyState >= 2) {
-          try { compCtx.drawImage(localVid, 0, 0, 1920, 1080); } catch(e){}
+          // Video frame is ready — draw it and update the cache
+          try {
+            compCtx.drawImage(localVid, 0, 0, 1920, 1080);
+            _fallbackVidCacheCtx.drawImage(localVid, 0, 0, 1920, 1080);
+            _fallbackVidCacheReady = true;
+          } catch(e){}
+        } else if (isLocal && _fallbackVidCacheReady) {
+          // Video is still seeking — reuse last cached frame instead of showing pitch
+          try { compCtx.drawImage(_fallbackVidCache, 0, 0, 1920, 1080); } catch(e){}
         } else if (isPitch && pitchCanvas) {
           try { compCtx.drawImage(pitchCanvas, 0, 0, 1920, 1080); } catch(e){}
         } else {
