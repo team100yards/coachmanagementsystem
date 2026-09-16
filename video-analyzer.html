@@ -1748,32 +1748,91 @@
     .floating-text-toolbar {
       position: absolute;
       display: flex;
-      align-items: center;
-      gap: 5px;
-      padding: 5px 8px;
+      flex-direction: column;
+      gap: 6px;
+      padding: 8px 10px;
       background: rgba(10, 16, 28, 0.96);
-      border: 1px solid rgba(0, 230, 118, 0.4);
-      border-radius: 8px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7), 0 0 12px rgba(0, 230, 118, 0.2);
+      border: 1px solid rgba(0, 230, 118, 0.45);
+      border-radius: 10px;
+      box-shadow: 0 10px 32px rgba(0, 0, 0, 0.8), 0 0 16px rgba(0, 230, 118, 0.2);
       z-index: 120;
-      backdrop-filter: blur(12px);
+      backdrop-filter: blur(14px);
       user-select: none;
-      transform: translateX(-50%);
+      transform: none; /* Centering and clamping strictly computed in JS */
       pointer-events: auto;
       transition: opacity 0.15s ease;
       white-space: nowrap;
+      box-sizing: border-box;
+      max-width: calc(100vw - 24px);
+    }
+
+    .ftt-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: nowrap;
+    }
+
+    .ftt-drag-handle {
+      cursor: grab;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 28px;
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: -1px;
+      border-radius: 4px;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+
+    .ftt-drag-handle:hover {
+      color: var(--accent-green);
+      background: rgba(0, 230, 118, 0.15);
+    }
+
+    .ftt-drag-handle:active {
+      cursor: grabbing;
+    }
+
+    .ftt-btn-group {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 6px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .ftt-btn-group .ftt-btn {
+      border: none;
+      border-radius: 0;
+      border-right: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .ftt-btn-group .ftt-btn:last-child {
+      border-right: none;
     }
 
     .ftt-select {
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid rgba(255, 255, 255, 0.2);
       color: #fff;
-      font-size: 11px;
-      font-weight: 600;
-      padding: 4px 6px;
-      border-radius: 5px;
+      font-size: 12px;
+      font-weight: 700;
+      height: 30px;
+      padding: 4px 8px;
+      border-radius: 6px;
       cursor: pointer;
       outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    .ftt-select:hover, .ftt-select:focus {
+      border-color: var(--accent-green);
     }
 
     .ftt-select option {
@@ -1781,53 +1840,71 @@
       color: #fff;
     }
 
+    .ftt-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 40px;
+      height: 30px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--accent-green);
+      padding: 0 6px;
+      user-select: none;
+      border-right: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(0, 230, 118, 0.08);
+    }
+
     .ftt-sep {
       width: 1px;
-      height: 18px;
-      background: rgba(255, 255, 255, 0.15);
+      height: 20px;
+      background: rgba(255, 255, 255, 0.18);
       margin: 0 2px;
+      flex-shrink: 0;
     }
 
     .ftt-colors {
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 5px;
     }
 
     .ftt-color-dot {
-      width: 18px;
-      height: 18px;
+      width: 22px;
+      height: 22px;
       border-radius: 50%;
       border: 2px solid transparent;
       cursor: pointer;
       padding: 0;
-      transition: transform 0.12s ease, border-color 0.12s ease;
+      transition: transform 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease;
     }
 
     .ftt-color-dot:hover {
-      transform: scale(1.25);
+      transform: scale(1.22);
     }
 
     .ftt-color-dot.active {
       border-color: #ffffff;
-      box-shadow: 0 0 8px currentColor;
+      box-shadow: 0 0 10px currentColor, 0 0 0 2px #000;
     }
 
     .ftt-btn {
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid rgba(255, 255, 255, 0.18);
       color: #e2e8f0;
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 700;
       padding: 4px 8px;
-      border-radius: 5px;
+      border-radius: 6px;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-width: 26px;
-      height: 26px;
+      min-width: 30px;
+      height: 30px;
       transition: all 0.15s ease;
+      box-sizing: border-box;
     }
 
     .ftt-btn:hover {
@@ -1841,10 +1918,29 @@
       color: #00e676;
     }
 
-    .ftt-btn-del:hover {
-      background: rgba(255, 23, 68, 0.25);
-      border-color: #ff1744;
+    .ftt-btn-step {
+      min-width: 26px;
+      padding: 4px 6px;
+      font-weight: 800;
+      font-size: 11px;
+    }
+
+    .ftt-btn-toggle {
+      font-size: 11px;
+      gap: 4px;
+      padding: 4px 10px;
+    }
+
+    .ftt-btn-del {
+      border-color: rgba(239, 68, 68, 0.4);
+      background: rgba(239, 68, 68, 0.12);
       color: #ff5252;
+    }
+
+    .ftt-btn-del:hover {
+      background: rgba(255, 23, 68, 0.28);
+      border-color: #ff1744;
+      color: #fff;
     }
 
     .ftt-btn-done {
@@ -1852,6 +1948,7 @@
       color: #080c14;
       border: none;
       font-weight: 800;
+      padding: 4px 12px;
     }
 
     .ftt-btn-done:hover {
@@ -3500,69 +3597,140 @@
           </div>
 
           <!-- Floating In-Place Text Formatting Toolbar (Directly Attached to Active Text Note) -->
+          <!-- Floating In-Place Text Formatting Toolbar (Directly Attached to Active Text Note) -->
           <div id="floating-text-toolbar" class="floating-text-toolbar" style="display:none;">
-            <!-- Font Family -->
-            <select id="ftt-font-family" class="ftt-select" onchange="updateActiveTextProperty('fontFamily', this.value)" title="Font Family">
-              <option value="Inter">Inter</option>
-              <option value="Bebas Neue">Bebas Neue</option>
-              <option value="Oswald">Oswald</option>
-              <option value="Montserrat">Montserrat</option>
-              <option value="Teko">Teko</option>
-              <option value="Impact">Impact</option>
-              <option value="Outfit">Outfit</option>
-              <option value="Russo One">Russo One</option>
-              <option value="JetBrains Mono">Mono</option>
-              <option value="Arial Black">Arial Black</option>
-            </select>
-            <!-- Font Size -->
-            <select id="ftt-font-size" class="ftt-select" onchange="updateActiveTextProperty('fontSize', this.value)" title="Font Size">
-              <option value="18">18px</option>
-              <option value="22">22px</option>
-              <option value="26">26px</option>
-              <option value="32" selected>32px</option>
-              <option value="40">40px</option>
-              <option value="48">48px</option>
-              <option value="60">60px</option>
-            </select>
-            <div class="ftt-sep"></div>
-            <!-- Quick Text Colors -->
-            <div class="ftt-colors">
-              <button type="button" class="ftt-color-dot active" data-color="#ffd600" style="background:#ffd600;" onclick="updateActiveTextProperty('fill', '#ffd600')" title="Vision Yellow"></button>
-              <button type="button" class="ftt-color-dot" data-color="#ffffff" style="background:#ffffff;" onclick="updateActiveTextProperty('fill', '#ffffff')" title="Pure White"></button>
-              <button type="button" class="ftt-color-dot" data-color="#00e676" style="background:#00e676;" onclick="updateActiveTextProperty('fill', '#00e676')" title="Emerald Green"></button>
-              <button type="button" class="ftt-color-dot" data-color="#00b0ff" style="background:#00b0ff;" onclick="updateActiveTextProperty('fill', '#00b0ff')" title="Tactical Cyan"></button>
-              <button type="button" class="ftt-color-dot" data-color="#ff1744" style="background:#ff1744;" onclick="updateActiveTextProperty('fill', '#ff1744')" title="Pressing Red"></button>
-              <button type="button" class="ftt-color-dot" data-color="#ff9100" style="background:#ff9100;" onclick="updateActiveTextProperty('fill', '#ff9100')" title="Sprint Orange"></button>
-              <button type="button" class="ftt-color-dot" data-color="#d500f9" style="background:#d500f9;" onclick="updateActiveTextProperty('fill', '#d500f9')" title="Dynamic Purple"></button>
-              <button type="button" class="ftt-color-dot" data-color="#000000" style="background:#000000;border:1px solid rgba(255,255,255,0.4);" onclick="updateActiveTextProperty('fill', '#000000')" title="Pure Black"></button>
+            <!-- ROW 1: Typography, Alignment, Rotation & Primary Actions -->
+            <div class="ftt-row">
+              <!-- Drag Handle to freely move toolbar anywhere on stage -->
+              <div class="ftt-drag-handle" id="ftt-drag-handle" title="Drag toolbar anywhere on video stage">
+                <span>⋮⋮</span>
+              </div>
+
+              <!-- Font Family Selector -->
+              <select id="ftt-font-family" class="ftt-select" onchange="updateActiveTextProperty('fontFamily', this.value)" title="Font Family" style="max-width:130px;">
+                <option value="Inter">Inter (Broadcast)</option>
+                <option value="Bebas Neue">Bebas Neue</option>
+                <option value="Oswald">Oswald</option>
+                <option value="Montserrat">Montserrat</option>
+                <option value="Teko">Teko (Jersey)</option>
+                <option value="Impact">Impact</option>
+                <option value="Outfit">Outfit</option>
+                <option value="Russo One">Russo One</option>
+                <option value="JetBrains Mono">Mono (Tactical)</option>
+                <option value="Arial Black">Arial Black</option>
+              </select>
+
+              <!-- Font Size Controls (Step Buttons + Badge) -->
+              <div class="ftt-btn-group">
+                <button type="button" class="ftt-btn ftt-btn-step" onclick="stepTextFontSize(-4)" title="Decrease Size">A−</button>
+                <span class="ftt-badge" id="ftt-size-badge" title="Current Size">32px</span>
+                <button type="button" class="ftt-btn ftt-btn-step" onclick="stepTextFontSize(4)" title="Increase Size">A+</button>
+              </div>
+
+              <div class="ftt-sep"></div>
+
+              <!-- Style Toggles: Bold, Italic, Uppercase -->
+              <div class="ftt-btn-group">
+                <button type="button" class="ftt-btn" id="ftt-bold" onclick="updateActiveTextProperty('fontWeight', null)" title="Bold"><b>B</b></button>
+                <button type="button" class="ftt-btn" id="ftt-italic" onclick="updateActiveTextProperty('fontStyle', null)" title="Italic"><i>I</i></button>
+                <button type="button" class="ftt-btn" id="ftt-uppercase" onclick="toggleTextUppercase()" title="Toggle UPPERCASE"><b>TT</b></button>
+              </div>
+
+              <div class="ftt-sep"></div>
+
+              <!-- Alignment -->
+              <div class="ftt-btn-group">
+                <button type="button" class="ftt-btn" id="ftt-align-left" onclick="setTextAlign('left')" title="Align Left">⯇</button>
+                <button type="button" class="ftt-btn" id="ftt-align-center" onclick="setTextAlign('center')" title="Align Center">≡</button>
+                <button type="button" class="ftt-btn" id="ftt-align-right" onclick="setTextAlign('right')" title="Align Right">⯈</button>
+              </div>
+
+              <div class="ftt-sep"></div>
+
+              <!-- Quick Rotation -->
+              <div class="ftt-btn-group">
+                <button type="button" class="ftt-btn" onclick="rotateTextObject(-15)" title="Tilt Left 15° (Pitch Perspective)">↺ -15°</button>
+                <button type="button" class="ftt-btn" onclick="rotateTextObject(15)" title="Tilt Right 15° (Pitch Perspective)">↻ +15°</button>
+                <button type="button" class="ftt-btn" id="ftt-rot-reset" onclick="setTextRotation(0)" title="Reset to Level Horizontal (0°)">0°</button>
+              </div>
+
+              <div class="ftt-sep"></div>
+
+              <!-- Primary Actions: Delete & Done -->
+              <button type="button" class="ftt-btn ftt-btn-del" id="ftt-delete" onclick="deleteSelectedObject()" title="Delete Text Note (Del)">🗑</button>
+              <button type="button" class="ftt-btn ftt-btn-done" id="ftt-done" onclick="finishTextEditing()" title="Done (Enter / Esc)">✓ Done</button>
             </div>
-            <div class="ftt-sep"></div>
-            <!-- Background Badge Style -->
-            <select id="ftt-bg-style" class="ftt-select" onchange="updateActiveTextProperty('bgStyle', this.value)" title="Background Badge Style">
-              <option value="dark">Dark Glass</option>
-              <option value="transparent">Transparent</option>
-              <option value="solid">Solid Black</option>
-              <option value="tint">Color Tint</option>
-              <option value="white">White Card</option>
-            </select>
-            <!-- Bold / Italic / Uppercase -->
-            <button type="button" class="ftt-btn" id="ftt-bold" onclick="updateActiveTextProperty('fontWeight', null)" title="Bold"><b>B</b></button>
-            <button type="button" class="ftt-btn" id="ftt-italic" onclick="updateActiveTextProperty('fontStyle', null)" title="Italic"><i>I</i></button>
-            <button type="button" class="ftt-btn" id="ftt-uppercase" onclick="toggleTextUppercase()" title="Uppercase (TT)" style="font-size:10px;"><b>TT</b></button>
-            <!-- Alignment -->
-            <button type="button" class="ftt-btn" onclick="setTextAlign('left')" title="Align Left">⯇</button>
-            <button type="button" class="ftt-btn" onclick="setTextAlign('center')" title="Align Center">≡</button>
-            <button type="button" class="ftt-btn" onclick="setTextAlign('right')" title="Align Right">⯈</button>
-            <!-- Rotation -->
-            <button type="button" class="ftt-btn" onclick="rotateTextObject(-15)" title="Tilt Left 15°">↺</button>
-            <button type="button" class="ftt-btn" onclick="rotateTextObject(15)" title="Tilt Right 15°">↻</button>
-            <button type="button" class="ftt-btn" onclick="setTextRotation(0)" title="Reset Rotation (0°)">0°</button>
-            <!-- Outline / Halo & Border -->
-            <button type="button" class="ftt-btn" id="ftt-outline" onclick="toggleTextOutline()" title="Text Halo Outline">Aa</button>
-            <button type="button" class="ftt-btn" id="ftt-border" onclick="updateActiveTextProperty('hasBorder', null)" title="Outline Border">🔲</button>
-            <div class="ftt-sep"></div>
-            <button type="button" class="ftt-btn ftt-btn-del" id="ftt-delete" onclick="deleteSelectedObject()" title="Delete Text Note (Del)">🗑</button>
-            <button type="button" class="ftt-btn ftt-btn-done" id="ftt-done" onclick="finishTextEditing()" title="Done (Enter)">✓</button>
+
+            <!-- ROW 2: Tactical Presets, Colors, Background Badges, High-Contrast Halo -->
+            <div class="ftt-row">
+              <!-- Tactical Quick Presets -->
+              <select id="ftt-preset-select" class="ftt-select" onchange="applyTextPreset(this.value); this.selectedIndex = 0;"
+                title="Insert Tactical Coaching Term" style="color:var(--accent-green);font-weight:800;border-color:rgba(0,230,118,0.4);max-width:115px;">
+                <option value="" disabled selected>⚡ Presets</option>
+                <optgroup label="Tactical Spaces">
+                  <option value="HALF-SPACE">HALF-SPACE</option>
+                  <option value="BETWEEN THE LINES">BETWEEN THE LINES</option>
+                  <option value="OPEN SPACE">OPEN SPACE</option>
+                  <option value="POCKET">POCKET</option>
+                  <option value="WEAK SIDE">WEAK SIDE</option>
+                  <option value="CHANNEL">CHANNEL</option>
+                </optgroup>
+                <optgroup label="Tactical Actions">
+                  <option value="PRESS TRIGGER">PRESS TRIGGER</option>
+                  <option value="OFFSIDE LINE">OFFSIDE LINE</option>
+                  <option value="TRANSITION">TRANSITION</option>
+                  <option value="COUNTER ATTACK">COUNTER ATTACK</option>
+                  <option value="REST DEFENSE">REST DEFENSE</option>
+                  <option value="OVERLOAD">OVERLOAD</option>
+                  <option value="UNDERLAP RUN">UNDERLAP RUN</option>
+                  <option value="OVERLAP RUN">OVERLAP RUN</option>
+                  <option value="SWITCH PLAY">SWITCH PLAY</option>
+                </optgroup>
+                <optgroup label="Tactical Superiority">
+                  <option value="1v1 ISOLATION">1v1 ISOLATION</option>
+                  <option value="2v1 OVERLOAD">2v1 OVERLOAD</option>
+                  <option value="3v2 SUPERIORITY">3v2 SUPERIORITY</option>
+                  <option value="BLOCK COMPACT">BLOCK COMPACT</option>
+                </optgroup>
+              </select>
+
+              <div class="ftt-sep"></div>
+
+              <!-- High-Visibility Color Palette (8 colors) -->
+              <div class="ftt-colors">
+                <button type="button" class="ftt-color-dot active" data-color="#ffd600" style="background:#ffd600;" onclick="updateActiveTextProperty('fill', '#ffd600')" title="Vision Yellow"></button>
+                <button type="button" class="ftt-color-dot" data-color="#ffffff" style="background:#ffffff;" onclick="updateActiveTextProperty('fill', '#ffffff')" title="Pure White"></button>
+                <button type="button" class="ftt-color-dot" data-color="#00e676" style="background:#00e676;" onclick="updateActiveTextProperty('fill', '#00e676')" title="Emerald Green"></button>
+                <button type="button" class="ftt-color-dot" data-color="#00b0ff" style="background:#00b0ff;" onclick="updateActiveTextProperty('fill', '#00b0ff')" title="Tactical Cyan"></button>
+                <button type="button" class="ftt-color-dot" data-color="#ff1744" style="background:#ff1744;" onclick="updateActiveTextProperty('fill', '#ff1744')" title="Pressing Red"></button>
+                <button type="button" class="ftt-color-dot" data-color="#ff9100" style="background:#ff9100;" onclick="updateActiveTextProperty('fill', '#ff9100')" title="Sprint Orange"></button>
+                <button type="button" class="ftt-color-dot" data-color="#d500f9" style="background:#d500f9;" onclick="updateActiveTextProperty('fill', '#d500f9')" title="Dynamic Purple"></button>
+                <button type="button" class="ftt-color-dot" data-color="#000000" style="background:#000000;border:1px solid rgba(255,255,255,0.4);" onclick="updateActiveTextProperty('fill', '#000000')" title="Pure Black"></button>
+              </div>
+
+              <div class="ftt-sep"></div>
+
+              <!-- Background Style Badge -->
+              <select id="ftt-bg-style" class="ftt-select" onchange="updateActiveTextProperty('bgStyle', this.value)" title="Background Badge Style" style="max-width:115px;">
+                <option value="dark">Dark Glass</option>
+                <option value="transparent">Transparent</option>
+                <option value="solid">Solid Black</option>
+                <option value="tint">Color Tint</option>
+                <option value="white">White Card</option>
+              </select>
+
+              <div class="ftt-sep"></div>
+
+              <!-- High Contrast Halo Toggle -->
+              <button type="button" class="ftt-btn ftt-btn-toggle" id="ftt-outline" onclick="toggleTextOutline()" title="Toggle High-Contrast Halo (100% Turf Legibility)">
+                <span style="font-weight:900;letter-spacing:-0.5px;">Aa</span>&nbsp;Halo
+              </button>
+
+              <!-- Border Pill Toggle -->
+              <button type="button" class="ftt-btn ftt-btn-toggle" id="ftt-border" onclick="updateActiveTextProperty('hasBorder', null)" title="Toggle Outline Border Box">
+                🔲 Border
+              </button>
+            </div>
           </div>
 
           <!-- On-Stage Watermark Display Badge (Synchronized with Watermark State) -->
@@ -6474,6 +6642,9 @@
       const scale = stageWidth / VIRTUAL_WIDTH;
       canvas.setZoom(scale);
       canvas.renderAll();
+      if (typeof positionFloatingTextToolbar === 'function') {
+        positionFloatingTextToolbar();
+      }
     }
 
     /* ==========================================================================
@@ -9931,13 +10102,77 @@
       if (fttOutline) fttOutline.classList.toggle('active', hasOutline);
       const fttBorder = document.getElementById('ftt-border');
       if (fttBorder) fttBorder.classList.toggle('active', hasBorder);
+      const fttSizeBadge = document.getElementById('ftt-size-badge');
+      if (fttSizeBadge) fttSizeBadge.textContent = `${size}px`;
+      const fttRotReset = document.getElementById('ftt-rot-reset');
+      if (fttRotReset) fttRotReset.textContent = `${rotDeg}°`;
+
+      const fttAlignL = document.getElementById('ftt-align-left');
+      const fttAlignC = document.getElementById('ftt-align-center');
+      const fttAlignR = document.getElementById('ftt-align-right');
+      if (fttAlignL) fttAlignL.classList.toggle('active', curAlign === 'left');
+      if (fttAlignC) fttAlignC.classList.toggle('active', curAlign === 'center');
+      if (fttAlignR) fttAlignR.classList.toggle('active', curAlign === 'right');
     }
 
     /* --------------------------------------------------------------------------
        FLOATING IN-PLACE TEXT FORMATTING TOOLBAR
     -------------------------------------------------------------------------- */
+    let isDraggingFloatingToolbar = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let startToolbarLeft = 0;
+    let startToolbarTop = 0;
+    let toolbarIsManuallyMoved = false;
+
     function isTextObject(obj) {
       return Boolean(obj && (obj.tacticalType === 'text-note' || obj.type === 'i-text' || obj.type === 'text'));
+    }
+
+    function initFloatingToolbarDrag() {
+      const handle = document.getElementById('ftt-drag-handle');
+      const toolbar = document.getElementById('floating-text-toolbar');
+      const stage = document.getElementById('player-stage');
+      if (!handle || !toolbar || !stage) return;
+      if (handle._dragInitialized) return;
+      handle._dragInitialized = true;
+
+      handle.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        isDraggingFloatingToolbar = true;
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+        startToolbarLeft = parseFloat(toolbar.style.left) || 0;
+        startToolbarTop = parseFloat(toolbar.style.top) || 0;
+        document.body.style.cursor = 'grabbing';
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (!isDraggingFloatingToolbar) return;
+        e.preventDefault();
+        const dx = e.clientX - dragStartX;
+        const dy = e.clientY - dragStartY;
+        const stageRect = stage.getBoundingClientRect();
+        const toolbarWidth = toolbar.offsetWidth || 500;
+        const toolbarHeight = toolbar.offsetHeight || 80;
+        const margin = 10;
+        const maxLeft = Math.max(margin, stageRect.width - toolbarWidth - margin);
+        const maxTop = Math.max(margin, stageRect.height - toolbarHeight - margin);
+
+        let newLeft = Math.max(margin, Math.min(startToolbarLeft + dx, maxLeft));
+        let newTop = Math.max(margin, Math.min(startToolbarTop + dy, maxTop));
+        toolbar.style.left = `${Math.round(newLeft)}px`;
+        toolbar.style.top = `${Math.round(newTop)}px`;
+        toolbarIsManuallyMoved = true;
+      });
+
+      window.addEventListener('mouseup', () => {
+        if (isDraggingFloatingToolbar) {
+          isDraggingFloatingToolbar = false;
+          document.body.style.cursor = '';
+        }
+      });
     }
 
     function positionFloatingTextToolbar(targetObj) {
@@ -9968,19 +10203,38 @@
       const objScreenWidth = objRect.width * scaleX;
       const objScreenHeight = objRect.height * scaleY;
 
-      const toolbarWidth = toolbar.offsetWidth || 440;
-      const toolbarHeight = toolbar.offsetHeight || 44;
+      // Ensure toolbar is visible and accurately dimensioned
+      toolbar.style.display = 'flex';
+      const toolbarWidth = toolbar.offsetWidth || 500;
+      const toolbarHeight = toolbar.offsetHeight || 80;
 
+      const margin = 10;
+      const maxLeft = Math.max(margin, stageRect.width - toolbarWidth - margin);
+      const maxTop = Math.max(margin, stageRect.height - toolbarHeight - margin);
+
+      if (toolbarIsManuallyMoved) {
+        let curLeft = parseFloat(toolbar.style.left) || margin;
+        let curTop = parseFloat(toolbar.style.top) || margin;
+        curLeft = Math.max(margin, Math.min(curLeft, maxLeft));
+        curTop = Math.max(margin, Math.min(curTop, maxTop));
+        toolbar.style.left = `${Math.round(curLeft)}px`;
+        toolbar.style.top = `${Math.round(curTop)}px`;
+        return;
+      }
+
+      // Center horizontally relative to object center
       let left = objScreenLeft + (objScreenWidth / 2) - (toolbarWidth / 2);
+      // Place above the text object with 12px margin
       let top = objScreenTop - toolbarHeight - 12;
 
-      // If positioned too high or off stage top, place below the text box
-      if (top < 8) {
+      // If positioned too close to the top of stage, place below the text box
+      if (top < margin) {
         top = objScreenTop + objScreenHeight + 12;
       }
-      // Clamp inside stage boundaries
-      left = Math.max(8, Math.min(left, stageRect.width - toolbarWidth - 8));
-      top = Math.max(8, Math.min(top, stageRect.height - toolbarHeight - 8));
+
+      // Clamp strictly inside stage boundaries so it NEVER goes off screen
+      left = Math.max(margin, Math.min(left, maxLeft));
+      top = Math.max(margin, Math.min(top, maxTop));
 
       toolbar.style.left = `${Math.round(left)}px`;
       toolbar.style.top = `${Math.round(top)}px`;
@@ -9995,26 +10249,23 @@
         return;
       }
 
+      initFloatingToolbarDrag();
+
+      // Reset manual move flag when targeting a different text object
+      if (toolbar._lastTargetObj !== obj) {
+        toolbarIsManuallyMoved = false;
+        toolbar._lastTargetObj = obj;
+      }
+
       toolbar.style.display = 'flex';
 
       // Synchronize toolbar controls with current object properties
       const fontSel = document.getElementById('ftt-font-family');
       if (fontSel) fontSel.value = obj.fontFamily || 'Inter';
 
-      const sizeSel = document.getElementById('ftt-font-size');
-      if (sizeSel) {
-        const curSz = Math.round(obj.fontSize || 32);
-        const options = Array.from(sizeSel.options).map(o => parseInt(o.value, 10));
-        let closest = options[0];
-        let minDiff = Math.abs(curSz - closest);
-        options.forEach(optVal => {
-          if (Math.abs(curSz - optVal) < minDiff) {
-            minDiff = Math.abs(curSz - optVal);
-            closest = optVal;
-          }
-        });
-        sizeSel.value = String(closest);
-      }
+      const curSz = Math.round(obj.fontSize || 32);
+      const sizeBadge = document.getElementById('ftt-size-badge');
+      if (sizeBadge) sizeBadge.textContent = `${curSz}px`;
 
       const bgSel = document.getElementById('ftt-bg-style');
       if (bgSel) bgSel.value = obj.bgStyle || 'dark';
@@ -10030,6 +10281,17 @@
       const isUpper = (obj.text && obj.text === obj.text.toUpperCase() && obj.text !== obj.text.toLowerCase());
       const upperBtn = document.getElementById('ftt-uppercase');
       if (upperBtn) upperBtn.classList.toggle('active', isUpper);
+
+      const curAlign = obj.textAlign || 'center';
+      const aL = document.getElementById('ftt-align-left');
+      const aC = document.getElementById('ftt-align-center');
+      const aR = document.getElementById('ftt-align-right');
+      if (aL) aL.classList.toggle('active', curAlign === 'left');
+      if (aC) aC.classList.toggle('active', curAlign === 'center');
+      if (aR) aR.classList.toggle('active', curAlign === 'right');
+
+      const rotBtn = document.getElementById('ftt-rot-reset');
+      if (rotBtn) rotBtn.textContent = `${Math.round(obj.angle || 0)}°`;
 
       const hasOutline = !!obj.hasOutline;
       const outlineBtn = document.getElementById('ftt-outline');
@@ -10051,7 +10313,11 @@
 
     function hideFloatingTextToolbar() {
       const toolbar = document.getElementById('floating-text-toolbar');
-      if (toolbar) toolbar.style.display = 'none';
+      if (toolbar) {
+        toolbar.style.display = 'none';
+        toolbarIsManuallyMoved = false;
+        toolbar._lastTargetObj = null;
+      }
     }
 
     function updateActiveTextProperty(prop, value) {
