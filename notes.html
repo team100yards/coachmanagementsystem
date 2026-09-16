@@ -529,6 +529,467 @@
       transform: translateX(-50%) translateY(0);
       opacity: 1;
     }
+
+    /* MATCH CLOCK CARD (MOBILE) */
+    .mobile-clock-card {
+      background: linear-gradient(145deg, #0e141d 0%, #070a10 100%);
+      border: 1px solid rgba(0, 230, 118, 0.28);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+      position: relative;
+      overflow: hidden;
+    }
+    .mobile-clock-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--green), transparent);
+    }
+    .mobile-clock-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .clock-label-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .clock-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+    .clock-period-tag {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+    }
+    .clock-minute-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 800;
+      color: #031407;
+      background: var(--green);
+      padding: 2px 9px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 230, 118, 0.4);
+      cursor: pointer;
+    }
+    .mobile-clock-main {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .mobile-clock-digits {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 36px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #ffffff;
+      text-shadow: 0 0 16px rgba(0, 230, 118, 0.35);
+      cursor: pointer;
+      line-height: 1;
+    }
+    .mobile-clock-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .clock-play-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #00e676, #00b359);
+      border: none;
+      color: #031407;
+      font-size: 16px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 3px 12px rgba(0, 230, 118, 0.4);
+      transition: all 0.15s ease;
+    }
+    .clock-play-btn:active {
+      transform: scale(0.92);
+    }
+    .clock-play-btn.running {
+      background: linear-gradient(135deg, #ffd600, #f57f17);
+      color: #120e00;
+      box-shadow: 0 3px 12px rgba(255, 214, 0, 0.4);
+    }
+    .clock-adj-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+    .clock-adj-btn:active {
+      background: rgba(0, 230, 118, 0.2);
+      color: var(--green);
+    }
+    .mobile-period-bar {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .mobile-period-bar::-webkit-scrollbar { display: none; }
+    .period-btn {
+      flex: 1;
+      min-width: 48px;
+      padding: 6px 0;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+    }
+    .period-btn.active {
+      background: rgba(0, 230, 118, 0.16);
+      border-color: var(--green);
+      color: var(--green);
+      box-shadow: 0 0 10px rgba(0, 230, 118, 0.25);
+    }
+
+    /* TABS BAR (NOTES vs FORMATION) */
+    .mobile-tab-bar {
+      display: flex;
+      gap: 8px;
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 4px;
+      margin-bottom: 12px;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 9px 8px;
+      border-radius: 10px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .tab-btn.active {
+      background: linear-gradient(135deg, rgba(0, 230, 118, 0.18), rgba(0, 230, 118, 0.06));
+      border: 1px solid rgba(0, 230, 118, 0.35);
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+    .tab-sub-count {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: rgba(0, 230, 118, 0.2);
+      color: var(--green);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* PITCH & SQUAD SECTION (MOBILE) */
+    .mobile-formation-panel {
+      display: none;
+      animation: fadeIn 0.2s ease-out;
+      margin-bottom: 14px;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .pitch-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .formation-badge-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--green);
+      background: rgba(0, 230, 118, 0.12);
+      border: 1px solid rgba(0, 230, 118, 0.25);
+      padding: 4px 10px;
+      border-radius: 8px;
+    }
+    .formation-select-mobile {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      color: #fff;
+      padding: 5px 8px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      outline: none;
+    }
+    .mobile-pitch-wrap {
+      position: relative;
+      width: 100%;
+      height: 410px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.7), 0 8px 24px rgba(0, 0, 0, 0.5);
+      background:
+        repeating-linear-gradient(
+          180deg,
+          #1b5e20 0px,
+          #1b5e20 40px,
+          #18541c 40px,
+          #18541c 80px
+        );
+      margin-bottom: 12px;
+    }
+    /* Pitch markings */
+    .pitch-line {
+      position: absolute;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      pointer-events: none;
+    }
+    .pitch-touchlines {
+      inset: 8px;
+      border-radius: 4px;
+    }
+    .pitch-halfway {
+      top: 50%;
+      left: 8px;
+      right: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.4);
+    }
+    .pitch-center-circle {
+      top: 50%;
+      left: 50%;
+      width: 72px;
+      height: 72px;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+    .pitch-center-spot {
+      top: 50%;
+      left: 50%;
+      width: 4px;
+      height: 4px;
+      background: #fff;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .pitch-penalty-top {
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 52%;
+      height: 60px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+      border-left: 1px solid rgba(255, 255, 255, 0.4);
+      border-right: 1px solid rgba(255, 255, 255, 0.4);
+    }
+    .pitch-goal-top {
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 26%;
+      height: 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+      border-left: 1px solid rgba(255, 255, 255, 0.4);
+      border-right: 1px solid rgba(255, 255, 255, 0.4);
+    }
+    .pitch-penalty-bottom {
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 52%;
+      height: 60px;
+      border-top: 1px solid rgba(255, 255, 255, 0.4);
+      border-left: 1px solid rgba(255, 255, 255, 0.4);
+      border-right: 1px solid rgba(255, 255, 255, 0.4);
+    }
+    .pitch-goal-bottom {
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 26%;
+      height: 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.4);
+      border-left: 1px solid rgba(255, 255, 255, 0.4);
+      border-right: 1px solid rgba(255, 255, 255, 0.4);
+    }
+
+    /* Player Node on Mobile Pitch */
+    .mobile-player-node {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      z-index: 10;
+      transition: transform 0.15s ease;
+      touch-action: manipulation;
+    }
+    .mobile-player-node:active {
+      transform: translate(-50%, -50%) scale(1.15);
+    }
+    .mobile-player-kit {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #00e676, #008744);
+      border: 2px solid #ffffff;
+      color: #031407;
+      font-size: 11px;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+    }
+    .mobile-player-node.is-gk .mobile-player-kit {
+      background: linear-gradient(135deg, #ffd600, #ff8f00);
+      color: #211200;
+    }
+    .mobile-player-name {
+      margin-top: 2px;
+      font-size: 9px;
+      font-weight: 700;
+      color: #ffffff;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      padding: 1px 5px;
+      border-radius: 4px;
+      white-space: nowrap;
+      max-width: 68px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    /* Mobile Bench Substitutes */
+    .mobile-bench-card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+    }
+    .mobile-bench-header {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .mobile-bench-chips-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .mobile-bench-chip {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .mobile-bench-chip:active {
+      transform: scale(0.95);
+      background: rgba(0, 230, 118, 0.2);
+      border-color: var(--green);
+      color: var(--green);
+    }
+    .mobile-bench-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 800;
+      color: var(--green);
+    }
+
+    /* Textarea toolbar */
+    .textarea-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .stamp-minute-btn {
+      background: rgba(0, 230, 118, 0.12);
+      border: 1px solid rgba(0, 230, 118, 0.3);
+      color: var(--green);
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+    .stamp-minute-btn:active {
+      background: var(--green);
+      color: #031407;
+      transform: scale(0.96);
+    }
+
+    /* Feed Match Time */
+    .feed-match-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 11px;
+      color: var(--green);
+      background: rgba(0, 230, 118, 0.12);
+      padding: 2px 7px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
   </style>
 </head>
 <body>
@@ -556,66 +1017,161 @@
     <div class="session-badge" id="session-code-badge">#...</div>
   </div>
 
-  <!-- Quick Tag Chips -->
-  <div class="chips-section">
-    <div class="section-title">
-      <span>Quick Tags</span>
-      <span style="font-size: 10px; color: var(--text-dim);">Tap to tag note</span>
-    </div>
-    <div class="chips-scroller">
-      <button class="tag-chip" onclick="selectTag('⚽ Goal')">⚽ Goal</button>
-      <button class="tag-chip" onclick="selectTag('🎯 Chance')">🎯 Chance</button>
-      <button class="tag-chip" onclick="selectTag('⚠️ Pressing')">⚠️ Pressing</button>
-      <button class="tag-chip" onclick="selectTag('⚡ Counter')">⚡ Counter</button>
-      <button class="tag-chip" onclick="selectTag('🛡️ Defense')">🛡️ Defense</button>
-      <button class="tag-chip" onclick="selectTag('🟨 Card')">🟨 Card</button>
-      <button class="tag-chip" onclick="selectTag('🔄 Sub')">🔄 Sub</button>
-      <button class="tag-chip" onclick="selectTag('📐 Set Piece')">📐 Set Piece</button>
-    </div>
-  </div>
-
-  <!-- Voice Hero Recorder -->
-  <div class="voice-hero" id="voice-hero">
-    <div class="mic-button-wrap">
-      <div class="mic-glow-ring"></div>
-      <button class="mic-button" id="btn-mic" onclick="toggleSpeech()" title="Tap to record voice">
-        🎙️
-      </button>
-    </div>
-    <div class="mic-label" id="mic-label">Tap Mic to Speak</div>
-    <div class="mic-subtext" id="mic-subtext">Dictate coaching observations on the sideline</div>
-    <div class="voice-live-transcript" id="voice-live-text"></div>
-  </div>
-
-  <!-- Note Input -->
-  <div class="input-card">
-    <div class="textarea-wrap">
-      <textarea 
-        class="note-textarea" 
-        id="note-input" 
-        rows="3" 
-        placeholder="Type match observation or speak using the mic above..."
-        oninput="handleInput()"
-      ></textarea>
-      <button class="clear-btn" id="btn-clear" onclick="clearInput()">✕</button>
+  <!-- Live Match Clock Card -->
+  <div class="mobile-clock-card">
+    <div class="mobile-clock-header">
+      <div class="clock-label-group">
+        <span class="clock-icon">⏱️</span>
+        <span class="clock-title">Match Clock</span>
+        <span class="clock-period-tag" id="mobile-clock-period-tag">1ST HALF</span>
+      </div>
+      <div class="clock-minute-badge" id="mobile-clock-minute-tag" onclick="promptSetMobileMinute()" title="Tap to set minute">01'</div>
     </div>
 
-    <div class="actions-grid">
-      <button class="btn-send" id="btn-send" onclick="sendLiveNote()">
-        <span>⚡ Send to Match Report</span>
-      </button>
+    <div class="mobile-clock-main">
+      <div class="mobile-clock-digits" id="mobile-clock-digits" onclick="promptSetMobileMinute()" title="Tap to set time">00:00</div>
+      <div class="mobile-clock-controls">
+        <button class="clock-adj-btn" onclick="adjustMobileClock(-60)" title="-1 min">-1'</button>
+        <button class="clock-play-btn" id="mobile-btn-clock-toggle" onclick="toggleMobileClock()" title="Start / Pause">
+          <span id="mobile-clock-play-icon">▶</span>
+        </button>
+        <button class="clock-adj-btn" onclick="adjustMobileClock(60)" title="+1 min">+1'</button>
+      </div>
+    </div>
+
+    <div class="mobile-period-bar">
+      <button class="period-btn active" id="m-btn-period-1h" onclick="setMobilePeriod('1H')">1H</button>
+      <button class="period-btn" id="m-btn-period-ht" onclick="setMobilePeriod('HT')">HT</button>
+      <button class="period-btn" id="m-btn-period-2h" onclick="setMobilePeriod('2H')">2H</button>
+      <button class="period-btn" id="m-btn-period-et" onclick="setMobilePeriod('ET')">ET</button>
+      <button class="period-btn" id="m-btn-period-ft" onclick="setMobilePeriod('FT')">FT</button>
     </div>
   </div>
 
-  <!-- Live Feed -->
-  <div class="feed-header">
-    <div class="section-title" style="margin-bottom: 0;">Sent Notes Stream</div>
-    <div class="feed-count" id="feed-count-badge">0 notes</div>
+  <!-- Mobile Tab Switcher -->
+  <div class="mobile-tab-bar">
+    <button class="tab-btn active" id="tab-btn-notes" onclick="switchMobileTab('notes')">
+      <span>📝 Sideline Notes</span>
+    </button>
+    <button class="tab-btn" id="tab-btn-formation" onclick="switchMobileTab('formation')">
+      <span>🏟️ Formation & Squad</span>
+      <span class="tab-sub-count" id="squad-count-chip">XI</span>
+    </button>
   </div>
 
-  <div class="notes-feed" id="notes-feed">
-    <div class="empty-feed" id="empty-feed-msg">
-      No notes sent yet. Tap the mic or write an observation to stream directly to your PC match report!
+  <!-- Panel: Sideline Notes -->
+  <div id="panel-notes">
+    <!-- Quick Tag Chips -->
+    <div class="chips-section">
+      <div class="section-title">
+        <span>Quick Tags</span>
+        <span style="font-size: 10px; color: var(--text-dim);">Tap to tag note</span>
+      </div>
+      <div class="chips-scroller">
+        <button class="tag-chip" onclick="selectTag('⚽ Goal')">⚽ Goal</button>
+        <button class="tag-chip" onclick="selectTag('🎯 Chance')">🎯 Chance</button>
+        <button class="tag-chip" onclick="selectTag('⚠️ Pressing')">⚠️ Pressing</button>
+        <button class="tag-chip" onclick="selectTag('⚡ Counter')">⚡ Counter</button>
+        <button class="tag-chip" onclick="selectTag('🛡️ Defense')">🛡️ Defense</button>
+        <button class="tag-chip" onclick="selectTag('🟨 Card')">🟨 Card</button>
+        <button class="tag-chip" onclick="selectTag('🔄 Sub')">🔄 Sub</button>
+        <button class="tag-chip" onclick="selectTag('📐 Set Piece')">📐 Set Piece</button>
+      </div>
+    </div>
+
+    <!-- Voice Hero Recorder -->
+    <div class="voice-hero" id="voice-hero">
+      <div class="mic-button-wrap">
+        <div class="mic-glow-ring"></div>
+        <button class="mic-button" id="btn-mic" onclick="toggleSpeech()" title="Tap to record voice">
+          🎙️
+        </button>
+      </div>
+      <div class="mic-label" id="mic-label">Tap Mic to Speak</div>
+      <div class="mic-subtext" id="mic-subtext">Dictate coaching observations on the sideline</div>
+      <div class="voice-live-transcript" id="voice-live-text"></div>
+    </div>
+
+    <!-- Note Input -->
+    <div class="input-card">
+      <div class="textarea-toolbar">
+        <button class="stamp-minute-btn" onclick="insertCurrentTimecodeIntoMobileNote()" title="Insert current match minute">
+          <span>⏱️</span> <span id="mobile-stamp-lbl">Stamp 01'</span>
+        </button>
+        <span style="font-size: 10px; color: var(--text-dim);">Records match minute (not phone time)</span>
+      </div>
+      <div class="textarea-wrap">
+        <textarea 
+          class="note-textarea" 
+          id="note-input" 
+          rows="3" 
+          placeholder="Type match observation or tap player on pitch to tag..."
+          oninput="handleInput()"
+        ></textarea>
+        <button class="clear-btn" id="btn-clear" onclick="clearInput()">✕</button>
+      </div>
+
+      <div class="actions-grid">
+        <button class="btn-send" id="btn-send" onclick="sendLiveNote()">
+          <span>⚡ Send to Match Report</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Live Feed -->
+    <div class="feed-header">
+      <div class="section-title" style="margin-bottom: 0;">Sent Notes Stream</div>
+      <div class="feed-count" id="feed-count-badge">0 notes</div>
+    </div>
+
+    <div class="notes-feed" id="notes-feed">
+      <div class="empty-feed" id="empty-feed-msg">
+        No notes sent yet. Tap the mic or write an observation to stream directly to your PC match report!
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel: Formation & Squad -->
+  <div id="panel-formation" class="mobile-formation-panel">
+    <div class="pitch-header-row">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 12px; font-weight: 700; color: #fff;">Tactical Pitch</span>
+        <span class="formation-badge-pill" id="mobile-formation-badge">4-3-3</span>
+      </div>
+      <select class="formation-select-mobile" id="mobile-formation-selector" onchange="changeMobileFormation(this.value)">
+        <option value="4-3-3">4-3-3</option>
+        <option value="4-2-3-1">4-2-3-1</option>
+        <option value="4-4-2">4-4-2</option>
+        <option value="3-5-2">3-5-2</option>
+        <option value="3-4-3">3-4-3</option>
+        <option value="5-3-2">5-3-2</option>
+        <option value="4-1-4-1">4-1-4-1</option>
+        <option value="5-4-1">5-4-1</option>
+      </select>
+    </div>
+
+    <!-- 2D Pitch Field with Tactical Coordinates -->
+    <div class="mobile-pitch-wrap">
+      <div class="pitch-line pitch-touchlines"></div>
+      <div class="pitch-line pitch-halfway"></div>
+      <div class="pitch-line pitch-center-circle"></div>
+      <div class="pitch-center-spot"></div>
+      <div class="pitch-line pitch-penalty-top"></div>
+      <div class="pitch-line pitch-goal-top"></div>
+      <div class="pitch-line pitch-penalty-bottom"></div>
+      <div class="pitch-line pitch-goal-bottom"></div>
+
+      <!-- Player Nodes -->
+      <div id="mobile-pitch-nodes"></div>
+    </div>
+
+    <!-- Substitutes Bench -->
+    <div class="mobile-bench-card">
+      <div class="mobile-bench-header">
+        <span>Substitutes Bench</span>
+        <span style="font-size: 9px; color: var(--green);">Tap to tag in note</span>
+      </div>
+      <div class="mobile-bench-chips-wrap" id="mobile-bench-chips"></div>
     </div>
   </div>
 
@@ -637,6 +1193,151 @@
     var recognition = null;
     var isRecording = false;
     var currentEntries = [];
+
+    // Match Clock State (Synced with Firestore session)
+    var mobileClock = {
+      seconds: 0,
+      running: false,
+      period: '1H',
+      timerId: null
+    };
+
+    // Tactical Squad & Formation State
+    var currentFormation = '4-3-3';
+    var currentStartingXI = [];
+    var currentSubstitutes = [];
+
+    var FORMATIONS_MAP = {
+      '4-3-3': [
+        { role: 'GK', label: 'GK', x: 50, y: 88 },
+        { role: 'DEF', label: 'LB', x: 16, y: 72 },
+        { role: 'DEF', label: 'CB', x: 38, y: 74 },
+        { role: 'DEF', label: 'CB', x: 62, y: 74 },
+        { role: 'DEF', label: 'RB', x: 84, y: 72 },
+        { role: 'MID', label: 'DM', x: 50, y: 56 },
+        { role: 'MID', label: 'LCM', x: 30, y: 46 },
+        { role: 'MID', label: 'RCM', x: 70, y: 46 },
+        { role: 'FWD', label: 'LW', x: 18, y: 22 },
+        { role: 'FWD', label: 'ST', x: 50, y: 16 },
+        { role: 'FWD', label: 'RW', x: 82, y: 22 }
+      ],
+      '4-2-3-1': [
+        { role: 'GK', label: 'GK', x: 50, y: 88 },
+        { role: 'DEF', label: 'LB', x: 16, y: 72 },
+        { role: 'DEF', label: 'CB', x: 38, y: 74 },
+        { role: 'DEF', label: 'CB', x: 62, y: 74 },
+        { role: 'DEF', label: 'RB', x: 84, y: 72 },
+        { role: 'MID', label: 'LDM', x: 36, y: 58 },
+        { role: 'MID', label: 'RDM', x: 64, y: 58 },
+        { role: 'MID', label: 'LAM', x: 20, y: 38 },
+        { role: 'MID', label: 'CAM', x: 50, y: 36 },
+        { role: 'MID', label: 'RAM', x: 80, y: 38 },
+        { role: 'FWD', label: 'ST', x: 50, y: 16 }
+      ],
+      '4-4-2': [
+        { role: 'GK', label: 'GK', x: 50, y: 88 },
+        { role: 'DEF', label: 'LB', x: 16, y: 72 },
+        { role: 'DEF', label: 'CB', x: 38, y: 74 },
+        { role: 'DEF', label: 'CB', x: 62, y: 74 },
+        { role: 'DEF', label: 'RB', x: 84, y: 72 },
+        { role: 'MID', label: 'LM', x: 16, y: 48 },
+        { role: 'MID', label: 'CM', x: 38, y: 50 },
+        { role: 'MID', label: 'CM', x: 62, y: 50 },
+        { role: 'MID', label: 'RM', x: 84, y: 48 },
+        { role: 'FWD', label: 'ST', x: 38, y: 18 },
+        { role: 'FWD', label: 'ST', x: 62, y: 18 }
+      ],
+      '3-5-2': [
+        { role: 'GK', label: 'GK', x: 50, y: 88 },
+        { role: 'DEF', label: 'LCB', x: 26, y: 74 },
+        { role: 'DEF', label: 'CB', x: 50, y: 76 },
+        { role: 'DEF', label: 'RCB', x: 74, y: 74 },
+        { role: 'MID', label: 'LWB', x: 12, y: 48 },
+        { role: 'MID', label: 'CM', x: 34, y: 52 },
+        { role: 'MID', label: 'DM', x: 50, y: 58 },
+        { role: 'MID', label: 'CM', x: 66, y: 52 },
+        { role: 'MID', label: 'RWB', x: 88, y: 48 },
+        { role: 'FWD', label: 'ST', x: 38, y: 18 },
+        { role: 'FWD', label: 'ST', x: 62, y: 18 }
+      ],
+      '3-4-3': [
+        { role: 'GK', label: 'GK', x: 50, y: 88 },
+        { role: 'DEF', label: 'LCB', x: 26, y: 74 },
+        { role: 'DEF', label: 'CB', x: 50, y: 76 },
+        { role: 'DEF', label: 'RCB', x: 74, y: 74 },
+        { role: 'MID', label: 'LM', x: 14, y: 48 },
+        { role: 'MID', label: 'CM', x: 38, y: 52 },
+        { role: 'MID', label: 'CM', x: 62, y: 52 },
+        { role: 'MID', label: 'RM', x: 86, y: 48 },
+        { role: 'FWD', label: 'LW', x: 20, y: 20 },
+        { role: 'FWD', label: 'ST', x: 50, y: 16 },
+        { role: 'FWD', label: 'RW', x: 80, y: 20 }
+      ],
+      '5-3-2': [
+        { role: 'GK', label: 'GK', x: 50, y: 88 },
+        { role: 'DEF', label: 'LWB', x: 12, y: 68 },
+        { role: 'DEF', label: 'LCB', x: 31, y: 75 },
+        { role: 'DEF', label: 'CB', x: 50, y: 76 },
+        { role: 'DEF', label: 'RCB', x: 69, y: 75 },
+        { role: 'DEF', label: 'RWB', x: 88, y: 68 },
+        { role: 'MID', label: 'LCM', x: 32, y: 48 },
+        { role: 'MID', label: 'CM', x: 50, y: 52 },
+        { role: 'MID', label: 'RCM', x: 68, y: 48 },
+        { role: 'FWD', label: 'ST', x: 38, y: 18 },
+        { role: 'FWD', label: 'ST', x: 62, y: 18 }
+      ],
+      '4-1-4-1': [
+        { role: 'GK', label: 'GK', x: 50, y: 88 },
+        { role: 'DEF', label: 'LB', x: 16, y: 72 },
+        { role: 'DEF', label: 'CB', x: 38, y: 74 },
+        { role: 'DEF', label: 'CB', x: 62, y: 74 },
+        { role: 'DEF', label: 'RB', x: 84, y: 72 },
+        { role: 'MID', label: 'DM', x: 50, y: 60 },
+        { role: 'MID', label: 'LM', x: 16, y: 42 },
+        { role: 'MID', label: 'CM', x: 38, y: 44 },
+        { role: 'MID', label: 'CM', x: 62, y: 44 },
+        { role: 'MID', label: 'RM', x: 84, y: 42 },
+        { role: 'FWD', label: 'ST', x: 50, y: 16 }
+      ],
+      '5-4-1': [
+        { role: 'GK', label: 'GK', x: 50, y: 88 },
+        { role: 'DEF', label: 'LWB', x: 12, y: 68 },
+        { role: 'DEF', label: 'LCB', x: 31, y: 75 },
+        { role: 'DEF', label: 'CB', x: 50, y: 76 },
+        { role: 'DEF', label: 'RCB', x: 69, y: 75 },
+        { role: 'DEF', label: 'RWB', x: 88, y: 68 },
+        { role: 'MID', label: 'LM', x: 16, y: 44 },
+        { role: 'MID', label: 'CM', x: 38, y: 48 },
+        { role: 'MID', label: 'CM', x: 62, y: 48 },
+        { role: 'MID', label: 'RM', x: 84, y: 44 },
+        { role: 'FWD', label: 'ST', x: 50, y: 16 }
+      ]
+    };
+
+    var DEFAULT_SQUAD = {
+      startingXI: [
+        { number: 1, name: 'Alisson Becker', position: 'GK' },
+        { number: 66, name: 'Trent Alexander-Arnold', position: 'RB' },
+        { number: 4, name: 'Virgil van Dijk', position: 'CB' },
+        { number: 5, name: 'Ibrahima Konate', position: 'CB' },
+        { number: 26, name: 'Andy Robertson', position: 'LB' },
+        { number: 3, name: 'Wataru Endo', position: 'DM' },
+        { number: 10, name: 'Alexis Mac Allister', position: 'CM' },
+        { number: 8, name: 'Dominik Szoboszlai', position: 'CM' },
+        { number: 11, name: 'Mohamed Salah', position: 'RW' },
+        { number: 9, name: 'Darwin Nunez', position: 'ST' },
+        { number: 7, name: 'Luis Diaz', position: 'LW' }
+      ],
+      substitutes: [
+        { number: 62, name: 'Caoimhin Kelleher', position: 'GK' },
+        { number: 2, name: 'Joe Gomez', position: 'DEF' },
+        { number: 21, name: 'Kostas Tsimikas', position: 'DEF' },
+        { number: 17, name: 'Curtis Jones', position: 'MID' },
+        { number: 19, name: 'Harvey Elliott', position: 'MID' },
+        { number: 18, name: 'Cody Gakpo', position: 'FWD' },
+        { number: 20, name: 'Diogo Jota', position: 'FWD' }
+      ]
+    };
 
     // Initialize Firebase
     try {
@@ -667,7 +1368,6 @@
       if (!sid) {
         sid = localStorage.getItem('cms_active_notes_session') || 'session_' + Math.random().toString(36).substring(2, 9);
         localStorage.setItem('cms_active_notes_session', sid);
-        // update url without reload
         var newUrl = window.location.pathname + '?session=' + sid;
         window.history.replaceState({ path: newUrl }, '', newUrl);
       }
@@ -680,25 +1380,325 @@
 
       initFirestoreListener();
       initSpeechRecognition();
+      renderMobilePitch();
+      renderMobileBench();
+      updateMobileClockUI();
     });
 
-    // Firestore Real-Time Sync
+    // ════════════════════════════════════════════════════════════
+    // MATCH CLOCK & MATCH MINUTE ENGINE (MOBILE)
+    // ════════════════════════════════════════════════════════════
+    function getMatchMinuteString(seconds, period) {
+      var totalMin = Math.floor(seconds / 60);
+      if (period === '1H') {
+        if (totalMin < 45) return (totalMin + 1) + "'";
+        var added = totalMin - 45;
+        return added > 0 ? ("45+" + added + "'") : "45'";
+      } else if (period === 'HT') {
+        return "HT (45')";
+      } else if (period === '2H') {
+        if (totalMin < 90) return (totalMin + 1) + "'";
+        var added = totalMin - 90;
+        return added > 0 ? ("90+" + added + "'") : "90'";
+      } else if (period === 'ET') {
+        if (totalMin < 120) return (totalMin + 1) + "'";
+        var added = totalMin - 120;
+        return added > 0 ? ("120+" + added + "'") : "120'";
+      } else if (period === 'FT') {
+        return "FT (90')";
+      }
+      return (totalMin + 1) + "'";
+    }
+
+    function toggleMobileClock() {
+      if (mobileClock.running) {
+        pauseMobileClock();
+      } else {
+        startMobileClock();
+      }
+      publishMobileClockState();
+    }
+
+    function startMobileClock() {
+      if (mobileClock.running) return;
+      mobileClock.running = true;
+      if (mobileClock.timerId) clearInterval(mobileClock.timerId);
+      mobileClock.timerId = setInterval(function() {
+        mobileClock.seconds++;
+        updateMobileClockUI();
+      }, 1000);
+      updateMobileClockUI();
+    }
+
+    function pauseMobileClock() {
+      mobileClock.running = false;
+      if (mobileClock.timerId) {
+        clearInterval(mobileClock.timerId);
+        mobileClock.timerId = null;
+      }
+      updateMobileClockUI();
+    }
+
+    function adjustMobileClock(deltaSec) {
+      mobileClock.seconds = Math.max(0, mobileClock.seconds + deltaSec);
+      updateMobileClockUI();
+      publishMobileClockState();
+    }
+
+    function setMobilePeriod(p) {
+      mobileClock.period = p;
+      if (p === '1H') mobileClock.seconds = 0;
+      else if (p === 'HT') { mobileClock.seconds = 45 * 60; pauseMobileClock(); }
+      else if (p === '2H') mobileClock.seconds = 45 * 60;
+      else if (p === 'ET') mobileClock.seconds = 90 * 60;
+      else if (p === 'FT') { mobileClock.seconds = 90 * 60; pauseMobileClock(); }
+      updateMobileClockUI();
+      publishMobileClockState();
+    }
+
+    function promptSetMobileMinute() {
+      var curMin = Math.floor(mobileClock.seconds / 60);
+      var val = prompt("Set Match Clock Minute (0 - 150):", curMin);
+      if (val !== null) {
+        var num = parseInt(val, 10);
+        if (!isNaN(num) && num >= 0 && num <= 150) {
+          mobileClock.seconds = num * 60;
+          if (num >= 90) mobileClock.period = 'ET';
+          else if (num >= 45) mobileClock.period = '2H';
+          else mobileClock.period = '1H';
+          updateMobileClockUI();
+          publishMobileClockState();
+        }
+      }
+    }
+
+    function updateMobileClockUI() {
+      var sec = mobileClock.seconds || 0;
+      var mm = String(Math.floor(sec / 60)).padStart(2, '0');
+      var ss = String(sec % 60).padStart(2, '0');
+
+      var digitsEl = document.getElementById('mobile-clock-digits');
+      if (digitsEl) digitsEl.textContent = mm + ':' + ss;
+
+      var minStr = getMatchMinuteString(sec, mobileClock.period);
+      var minBadge = document.getElementById('mobile-clock-minute-tag');
+      if (minBadge) minBadge.textContent = minStr;
+
+      var stampLbl = document.getElementById('mobile-stamp-lbl');
+      if (stampLbl) stampLbl.textContent = 'Stamp ' + minStr;
+
+      var periodTag = document.getElementById('mobile-clock-period-tag');
+      if (periodTag) {
+        var labels = { '1H': '1ST HALF', 'HT': 'HALF TIME', '2H': '2ND HALF', 'ET': 'EXTRA TIME', 'FT': 'FULL TIME' };
+        periodTag.textContent = labels[mobileClock.period] || mobileClock.period;
+      }
+
+      var toggleBtn = document.getElementById('mobile-btn-clock-toggle');
+      var playIcon = document.getElementById('mobile-clock-play-icon');
+      if (toggleBtn && playIcon) {
+        toggleBtn.classList.toggle('running', mobileClock.running);
+        playIcon.textContent = mobileClock.running ? '⏸' : '▶';
+      }
+
+      ['1h', 'ht', '2h', 'et', 'ft'].forEach(function(pid) {
+        var btn = document.getElementById('m-btn-period-' + pid);
+        if (btn) btn.classList.toggle('active', pid.toUpperCase() === mobileClock.period);
+      });
+    }
+
+    function syncMobileClockFromRemote(clockData) {
+      if (!clockData) return;
+      var sec = typeof clockData.seconds === 'number' ? clockData.seconds : mobileClock.seconds;
+      if (clockData.running && clockData.updatedAt) {
+        var elapsed = Math.floor((Date.now() - clockData.updatedAt) / 1000);
+        if (elapsed > 0 && elapsed < 3600) {
+          sec += elapsed;
+        }
+      }
+      mobileClock.seconds = sec;
+      if (clockData.period) mobileClock.period = clockData.period;
+      if (clockData.running) {
+        startMobileClock();
+      } else {
+        pauseMobileClock();
+      }
+      updateMobileClockUI();
+    }
+
+    function publishMobileClockState() {
+      if (!db || !sessionId) return;
+      db.collection('match_live_notes').doc(sessionId).set({
+        matchClock: {
+          seconds: mobileClock.seconds,
+          running: mobileClock.running,
+          period: mobileClock.period,
+          updatedAt: Date.now()
+        },
+        hostPlatform: 'iPhone'
+      }, { merge: true }).catch(function(e) { console.warn('Sync mobile clock error:', e); });
+    }
+
+    // ════════════════════════════════════════════════════════════
+    // TABS & FORMATION PITCH ENGINE (MOBILE)
+    // ════════════════════════════════════════════════════════════
+    function switchMobileTab(tab) {
+      var isNotes = tab === 'notes';
+      var panelNotes = document.getElementById('panel-notes');
+      var panelForm = document.getElementById('panel-formation');
+      if (panelNotes) panelNotes.style.display = isNotes ? 'block' : 'none';
+      if (panelForm) panelForm.style.display = isNotes ? 'none' : 'block';
+
+      var tabNotes = document.getElementById('tab-btn-notes');
+      var tabForm = document.getElementById('tab-btn-formation');
+      if (tabNotes) tabNotes.classList.toggle('active', isNotes);
+      if (tabForm) tabForm.classList.toggle('active', !isNotes);
+
+      if (!isNotes) {
+        renderMobilePitch();
+        renderMobileBench();
+      }
+    }
+
+    function changeMobileFormation(newForm) {
+      currentFormation = newForm;
+      renderMobilePitch();
+      if (db && sessionId) {
+        db.collection('match_live_notes').doc(sessionId).set({
+          formation: newForm,
+          hostPlatform: 'iPhone'
+        }, { merge: true }).catch(function(e) { console.warn('Formation sync warning:', e); });
+      }
+      showToast('Formation set to ' + newForm);
+    }
+
+    function renderMobilePitch() {
+      var container = document.getElementById('mobile-pitch-nodes');
+      if (!container) return;
+      container.innerHTML = '';
+
+      var coords = FORMATIONS_MAP[currentFormation] || FORMATIONS_MAP['4-3-3'];
+      var squad = (currentStartingXI && currentStartingXI.length >= 11) ? currentStartingXI : DEFAULT_SQUAD.startingXI;
+
+      coords.forEach(function(slot, idx) {
+        var player = squad[idx] || { number: idx + 1, name: slot.label, position: slot.role };
+        var isGk = slot.role === 'GK' || (player.position && player.position.toUpperCase() === 'GK');
+
+        var node = document.createElement('div');
+        node.className = 'mobile-player-node' + (isGk ? ' is-gk' : '');
+        node.style.left = slot.x + '%';
+        node.style.top = slot.y + '%';
+        node.title = 'Tap to tag #' + player.number + ' ' + player.name + ' in note';
+        
+        node.onclick = function() {
+          tagPlayerInMobileNote(player.number, player.name);
+        };
+
+        var firstName = player.name.trim().split(/\s+/)[0] || player.name;
+        node.innerHTML = 
+          '<div class="mobile-player-kit">' + escapeHtml(player.number) + '</div>' +
+          '<div class="mobile-player-name">' + escapeHtml(firstName) + '</div>';
+
+        container.appendChild(node);
+      });
+
+      var badge = document.getElementById('mobile-formation-badge');
+      if (badge) badge.textContent = currentFormation;
+
+      var sel = document.getElementById('mobile-formation-selector');
+      if (sel) sel.value = currentFormation;
+    }
+
+    function renderMobileBench() {
+      var wrap = document.getElementById('mobile-bench-chips');
+      if (!wrap) return;
+      wrap.innerHTML = '';
+
+      var subs = (currentSubstitutes && currentSubstitutes.length) ? currentSubstitutes : DEFAULT_SQUAD.substitutes;
+      subs.forEach(function(sub) {
+        var chip = document.createElement('button');
+        chip.className = 'mobile-bench-chip';
+        chip.innerHTML = '<span class="mobile-bench-num">#' + escapeHtml(sub.number) + '</span> ' + escapeHtml(sub.name);
+        chip.onclick = function() {
+          tagPlayerInMobileNote(sub.number, sub.name);
+        };
+        wrap.appendChild(chip);
+      });
+
+      var countEl = document.getElementById('squad-count-chip');
+      if (countEl) countEl.textContent = 'XI + ' + subs.length;
+    }
+
+    function tagPlayerInMobileNote(num, name) {
+      var input = document.getElementById('note-input');
+      var tagStr = '#' + num + ' ' + name;
+      if (input.value.includes(tagStr)) {
+        showToast(tagStr + ' already in note');
+        switchMobileTab('notes');
+        return;
+      }
+      var sep = input.value.trim() ? ' ' : '';
+      input.value = input.value + sep + tagStr + ' ';
+      handleInput();
+      showToast('Tagged ' + tagStr + ' in notes');
+
+      if (navigator.vibrate) {
+        navigator.vibrate(30);
+      }
+
+      setTimeout(function() {
+        switchMobileTab('notes');
+        input.focus();
+      }, 350);
+    }
+
+    function insertCurrentTimecodeIntoMobileNote() {
+      var input = document.getElementById('note-input');
+      var minStr = getMatchMinuteString(mobileClock.seconds, mobileClock.period);
+      var timecode = '[' + minStr + '] ';
+      var sep = input.value.trim() ? '\n' : '';
+      input.value = input.value + sep + timecode;
+      input.focus();
+      handleInput();
+      showToast('Stamped ' + minStr);
+    }
+
+    // ════════════════════════════════════════════════════════════
+    // FIRESTORE REAL-TIME SYNC LISTENER
+    // ════════════════════════════════════════════════════════════
     function initFirestoreListener() {
       if (!db || !sessionId) return;
 
-      // Listen to session info metadata
+      // Listen to session root doc
       db.collection('match_live_notes').doc(sessionId).onSnapshot(function(docSnap) {
         if (docSnap.exists) {
           var data = docSnap.data();
           if (data.matchTitle) {
             document.getElementById('match-title-text').textContent = data.matchTitle;
           }
+          // Sync match clock from Desktop or on fresh connection
+          if (data.matchClock) {
+            if (data.hostPlatform === 'Desktop' || (!mobileClock.running && mobileClock.seconds === 0)) {
+              syncMobileClockFromRemote(data.matchClock);
+            }
+          }
+          // Sync formation & squad
+          if (data.formation && FORMATIONS_MAP[data.formation]) {
+            currentFormation = data.formation;
+          }
+          if (data.startingXI && Array.isArray(data.startingXI) && data.startingXI.length >= 11) {
+            currentStartingXI = data.startingXI;
+          }
+          if (data.substitutes && Array.isArray(data.substitutes)) {
+            currentSubstitutes = data.substitutes;
+          }
+          renderMobilePitch();
+          renderMobileBench();
         }
       }, function(err) {
         console.warn('Session info listener warning:', err);
       });
 
-      // Listen to entries collection
+      // Listen to entries subcollection
       db.collection('match_live_notes')
         .doc(sessionId)
         .collection('entries')
@@ -714,7 +1714,7 @@
         });
     }
 
-    // Render Sent Notes Feed
+    // Render Sent Notes Feed (Uses MATCH MINUTE, NOT phone time!)
     function renderFeed(entries) {
       var feedEl = document.getElementById('notes-feed');
       var countBadge = document.getElementById('feed-count-badge');
@@ -732,26 +1732,19 @@
       emptyMsg.style.display = 'none';
       feedEl.innerHTML = '';
 
-      // Show newest first on mobile feed
       var reversed = entries.slice().reverse();
       reversed.forEach(function(item) {
         var card = document.createElement('div');
         card.className = 'feed-item';
 
-        var timeStr = 'Just now';
-        if (item.timestamp && item.timestamp.toDate) {
-          var d = item.timestamp.toDate();
-          var hh = String(d.getHours()).padStart(2, '0');
-          var mm = String(d.getMinutes()).padStart(2, '0');
-          var ss = String(d.getSeconds()).padStart(2, '0');
-          timeStr = hh + ':' + mm + ':' + ss;
-        }
+        // Display the match minute prominently (not phone wall clock)
+        var matchTimeDisplay = item.matchTime || getMatchMinuteString(item.matchSeconds || 0, item.matchPeriod || '1H');
 
         var tagHtml = item.tag ? '<span class="feed-tag-badge">' + escapeHtml(item.tag) + '</span>' : '';
 
         card.innerHTML = 
           '<div class="feed-item-top">' +
-            '<span class="feed-time">' + timeStr + '</span>' +
+            '<span class="feed-match-time">⏱️ ' + escapeHtml(matchTimeDisplay) + '</span>' +
             tagHtml +
           '</div>' +
           '<div class="feed-content">' + escapeHtml(item.text) + '</div>' +
@@ -773,7 +1766,6 @@
           c.classList.toggle('active-tag', c.textContent.trim() === tagName);
         });
 
-        // If textarea already has content, prefix or prepend tag
         var input = document.getElementById('note-input');
         if (!input.value.startsWith(tagName)) {
           input.value = tagName + ' - ' + input.value.replace(/^[⚽🎯⚠️⚡🛡️🟨🔄📐].*? - /, '');
@@ -782,7 +1774,6 @@
       }
     }
 
-    // Input handlers
     function handleInput() {
       var val = document.getElementById('note-input').value;
       document.getElementById('btn-clear').style.display = val ? 'flex' : 'none';
@@ -795,7 +1786,7 @@
       handleInput();
     }
 
-    // Web Speech API Voice Dictation
+    // Speech Recognition
     function initSpeechRecognition() {
       var Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!Speech) {
@@ -834,11 +1825,17 @@
 
         if (finalTranscript.trim()) {
           var input = document.getElementById('note-input');
+          var minStr = getMatchMinuteString(mobileClock.seconds, mobileClock.period);
           var prefix = selectedTag ? selectedTag + ' - ' : '';
+          var timecode = '[' + minStr + '] ';
           var sep = input.value.trim() ? ' ' : '';
           
           if (!input.value.includes(finalTranscript.trim())) {
-            input.value = (input.value ? input.value + sep : prefix) + finalTranscript.trim();
+            if (!input.value.trim()) {
+              input.value = timecode + prefix + finalTranscript.trim();
+            } else {
+              input.value = input.value + sep + finalTranscript.trim();
+            }
           }
           handleInput();
         }
@@ -912,7 +1909,7 @@
       }
     }
 
-    // Send Live Note to Cloud Firestore
+    // Send Live Note to Cloud Firestore (With Match Minute Timestamp)
     async function sendLiveNote() {
       var input = document.getElementById('note-input');
       var text = input.value.trim();
@@ -931,12 +1928,23 @@
       sendBtn.disabled = true;
 
       try {
-        // Stop recording if active
         if (isRecording) stopSpeech();
 
+        var matchMinStr = getMatchMinuteString(mobileClock.seconds, mobileClock.period);
+
+        // Prepend match minute tag [MM'] if not already present
+        var fullText = text;
+        if (!fullText.startsWith('[')) {
+          fullText = '[' + matchMinStr + '] ' + fullText;
+        }
+
         var entryData = {
-          text: text,
+          text: fullText,
+          rawText: text,
           tag: selectedTag || 'Note',
+          matchTime: matchMinStr,
+          matchSeconds: mobileClock.seconds,
+          matchPeriod: mobileClock.period,
           source: 'iPhone',
           timestamp: firebase.firestore.FieldValue.serverTimestamp()
         };
@@ -952,15 +1960,14 @@
           .doc(sessionId)
           .set({
             lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
-            lastNote: text
+            lastNote: fullText
           }, { merge: true });
 
-        // Haptic feedback if available
         if (navigator.vibrate) {
           navigator.vibrate(50);
         }
 
-        showToast('✓ Sent to Match Report!');
+        showToast('✓ Stamped [' + matchMinStr + '] & Sent!');
         clearInput();
 
       } catch(err) {

@@ -32,7 +32,7 @@
     .header-spacer{flex:1;}
     .btn-back{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text-muted);font-size:12px;font-weight:600;padding:6px 14px;border-radius:8px;cursor:pointer;transition:all 0.15s;}
     .btn-back:hover{background:rgba(255,255,255,0.09);color:#fff;}
-    .app-body{height:calc(100vh - 58px);display:grid;grid-template-columns:420px 1fr;overflow:hidden;width:100%;}
+    .app-body{height:calc(100vh - 58px);display:grid;grid-template-columns:1fr 1fr;overflow:hidden;width:100%;}
     .left-panel{background:var(--bg-surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;min-width:0;width:100%;}
     .panel-scroll{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:16px;min-width:0;width:100%;}
     .panel-scroll::-webkit-scrollbar{width:5px;} .panel-scroll::-webkit-scrollbar-track{background:transparent;} .panel-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:4px;}
@@ -145,6 +145,478 @@
     .sync-dot-pulse{width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;box-shadow:0 0 6px var(--green);animation:pulse-dot 1.6s infinite;}
     @keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.3;transform:scale(0.8);}}
 
+    /* ════════════════════════════════════════════════════════════
+       MATCH TIMER & CLOCK STYLES
+       ════════════════════════════════════════════════════════════ */
+    .match-clock-card {
+      background: linear-gradient(180deg, var(--bg-card) 0%, #0d1522 100%);
+      border: 1px solid rgba(0, 229, 255, 0.25);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+    .clock-display-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 14px;
+      background: rgba(4, 8, 14, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: var(--radius);
+      margin-bottom: 10px;
+    }
+    .clock-digits-box {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .clock-digits {
+      font-family: var(--font-mono);
+      font-size: 26px;
+      font-weight: 800;
+      color: #00e5ff;
+      letter-spacing: 1.5px;
+      text-shadow: 0 0 14px rgba(0, 229, 255, 0.4);
+    }
+    .clock-minute-tag {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--green);
+      background: rgba(0, 230, 118, 0.15);
+      border: 1px solid rgba(0, 230, 118, 0.3);
+      padding: 2px 7px;
+      border-radius: 6px;
+    }
+    .clock-period-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 800;
+      color: #ffd600;
+      background: rgba(255, 214, 0, 0.12);
+      border: 1px solid rgba(255, 214, 0, 0.3);
+      padding: 3px 8px;
+      border-radius: 12px;
+      letter-spacing: 0.5px;
+    }
+    .clock-controls-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .clock-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .clock-btn:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+    .clock-btn.play-pause {
+      background: linear-gradient(135deg, rgba(0, 230, 118, 0.2), rgba(0, 176, 255, 0.2));
+      border-color: var(--green);
+      color: var(--green);
+      padding: 6px 14px;
+      font-size: 13px;
+    }
+    .clock-btn.play-pause.running {
+      background: rgba(255, 69, 105, 0.2);
+      border-color: var(--rose);
+      color: var(--rose);
+    }
+    .clock-periods-bar {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 5px;
+    }
+    .period-btn {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 2px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-muted);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+    }
+    .period-btn:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
+    .period-btn.active {
+      background: rgba(0, 229, 255, 0.15);
+      border-color: #00e5ff;
+      color: #00e5ff;
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       TACTICAL FORMATION PITCH & SQUAD STUDIO
+       ════════════════════════════════════════════════════════════ */
+    .squad-toolbar-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .formation-select {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-accent);
+      border-radius: 6px;
+      color: var(--green);
+      font-weight: 800;
+      font-size: 12px;
+      padding: 4px 8px;
+      outline: none;
+      cursor: pointer;
+    }
+    .formation-select option {
+      background: #0f1724;
+      color: #fff;
+    }
+    .view-toggle-pills {
+      display: flex;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2px;
+      gap: 2px;
+    }
+    .view-pill {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .view-pill:hover { color: #fff; }
+    .view-pill.active {
+      background: rgba(0, 230, 118, 0.2);
+      color: var(--green);
+    }
+
+    .left-panel-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      width: 100%;
+      align-items: stretch;
+    }
+
+    .tactical-pitch-container {
+      background: #07130b;
+      border: 1px solid rgba(0, 230, 118, 0.25);
+      border-radius: var(--radius);
+      padding: 12px;
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 14px;
+      align-items: stretch;
+      margin-bottom: 8px;
+    }
+    .tactical-pitch-field {
+      position: relative;
+      width: 100%;
+      height: 380px;
+      background: linear-gradient(180deg, #0a2113 0%, #11341c 50%, #0a2113 100%);
+      border: 1.5px solid rgba(255, 255, 255, 0.35);
+      border-radius: 10px;
+      overflow: hidden;
+      background-size: 100% 36px;
+      background-image: repeating-linear-gradient(0deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 18px, transparent 18px, transparent 36px);
+    }
+    .pitch-marking {
+      position: absolute;
+      pointer-events: none;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+    .pitch-marking.halfway-line {
+      left: 0; right: 0; top: 50%;
+      height: 0;
+      border-top: 1.5px solid rgba(255, 255, 255, 0.25);
+    }
+    .pitch-marking.center-circle {
+      left: 50%; top: 50%;
+      width: 68px; height: 68px;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .pitch-marking.center-spot {
+      left: 50%; top: 50%;
+      width: 4px; height: 4px;
+      background: rgba(255, 255, 255, 0.6);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .pitch-marking.penalty-box.top {
+      left: 50%; top: 0;
+      width: 52%; height: 50px;
+      border-top: none;
+      transform: translateX(-50%);
+    }
+    .pitch-marking.penalty-box.bottom {
+      left: 50%; bottom: 0;
+      width: 52%; height: 50px;
+      border-bottom: none;
+      transform: translateX(-50%);
+    }
+    .pitch-marking.goal-box.top {
+      left: 50%; top: 0;
+      width: 26%; height: 20px;
+      border-top: none;
+      transform: translateX(-50%);
+    }
+    .pitch-marking.goal-box.bottom {
+      left: 50%; bottom: 0;
+      width: 26%; height: 20px;
+      border-bottom: none;
+      transform: translateX(-50%);
+    }
+
+    .pitch-player-node {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 10;
+    }
+    .pitch-player-node:hover {
+      transform: translate(-50%, -50%) scale(1.18);
+      z-index: 20;
+    }
+    .pitch-jersey-badge {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #1e293b;
+      border: 1.5px solid #fff;
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.6);
+    }
+    .pitch-jersey-badge.role-GK { background: linear-gradient(135deg, #ff9100, #ff5722); border-color: #ffe0b2; color: #fff; }
+    .pitch-jersey-badge.role-DEF { background: linear-gradient(135deg, #00b0ff, #0055ff); border-color: #b3e5fc; color: #fff; }
+    .pitch-jersey-badge.role-MID { background: linear-gradient(135deg, #00e676, #008744); border-color: #b9f6ca; color: #021a08; }
+    .pitch-jersey-badge.role-FWD { background: linear-gradient(135deg, #ff1744, #b71c1c); border-color: #ffcdd2; color: #fff; }
+
+    .pitch-player-label {
+      background: rgba(6, 12, 20, 0.88);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      padding: 1px 5px;
+      border-radius: 10px;
+      font-size: 9px;
+      font-weight: 700;
+      color: #fff;
+      white-space: nowrap;
+      max-width: 68px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+    .pitch-player-pos-tag {
+      font-size: 8px;
+      font-weight: 800;
+      color: rgba(255, 255, 255, 0.6);
+      text-transform: uppercase;
+    }
+
+    /* Right half: Substitutes & Game Changers */
+    .pitch-bench-section {
+      display: flex;
+      flex-direction: column;
+      height: 380px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 10px;
+      overflow: hidden;
+      margin-top: 0;
+      border-top: none;
+    }
+    .bench-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .bench-title {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 0;
+    }
+    .bench-count-badge {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--green);
+      background: rgba(0, 230, 118, 0.15);
+      border: 1px solid rgba(0, 230, 118, 0.3);
+      padding: 2px 7px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+    }
+    .bench-chips-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+      overflow-y: auto;
+      max-height: none;
+      padding-right: 4px;
+    }
+    .bench-chips-wrap::-webkit-scrollbar {
+      width: 4px;
+    }
+    .bench-chips-wrap::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+    }
+    .bench-player-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 7px 9px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+    .bench-player-card:hover {
+      background: rgba(0, 230, 118, 0.1);
+      border-color: rgba(0, 230, 118, 0.35);
+      transform: translateX(2px);
+    }
+    .bench-card-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      flex: 1;
+    }
+    .bench-card-name {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .bench-card-pos {
+      font-size: 9px;
+      font-weight: 800;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.06);
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+    }
+    .bench-card-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .bench-action-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .bench-action-btn:hover {
+      background: var(--green);
+      color: #031407;
+      border-color: var(--green);
+    }
+    .bench-chip {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 3px 8px;
+      font-size: 10.5px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .bench-chip:hover {
+      background: rgba(255, 255, 255, 0.09);
+      border-color: var(--green);
+      color: #fff;
+    }
+    .bench-chip .bench-num {
+      font-family: var(--font-mono);
+      font-weight: 800;
+      color: var(--green);
+      font-size: 9.5px;
+    }
+
+    .lineup-cards-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 360px;
+      overflow-y: auto;
+    }
+    .lineup-group-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 8px 10px;
+    }
+    .lineup-group-title {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--green);
+      margin-bottom: 6px;
+    }
+    .lineup-group-players {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    @media (max-width: 1280px) {
+      .tactical-pitch-container { grid-template-columns: 1fr; }
+      .pitch-bench-section { height: auto; max-height: 240px; }
+      .left-panel-grid-2 { grid-template-columns: 1fr; }
+    }
+
     @media (max-width: 900px) {
       body { overflow-y: auto; height: auto; min-height: 100vh; }
       .app-body { display: flex; flex-direction: column; height: auto; overflow: visible; }
@@ -172,98 +644,234 @@
   <div class="app-body">
     <div class="left-panel">
       <div class="panel-scroll" id="panel-scroll">
-        <div class="card">
-          <div class="card-label"><span class="dot" style="background:#00b0ff;"></span>Gemini AI Setup</div>
-          <div class="field-group" style="margin-bottom:8px;">
-            <div class="field-label">API Key <span style="color:#546070;">(synced across all your devices)</span></div>
-            <div class="api-key-row">
-              <input type="password" class="api-key-input" id="api-key-input" placeholder="Paste your Gemini API key here..." autocomplete="off">
-              <button class="btn-save-key" onclick="saveApiKey()">Save</button>
+        <!-- ROW 1: MATCH DETAILS & SCOREBOARD (LEFT) + MATCH TIMER & LIVE SYNC (RIGHT) -->
+        <div class="left-panel-grid-2">
+          <!-- Card: Match Details & Scoreboard -->
+          <div class="card" style="display:flex;flex-direction:column;justify-content:space-between;">
+            <div>
+              <div class="card-label"><span class="dot" style="background:#ffab00;"></span>Match Scoreboard &amp; Details</div>
+              <div class="field-group" style="margin-bottom:10px;">
+                <div class="field-label">Score</div>
+                <div class="score-row">
+                  <input type="text" class="team-name" id="home-team" placeholder="Home Team">
+                  <input type="number" class="score-input" id="home-score" placeholder="0" min="0" max="99">
+                  <span class="vs-sep">&ndash;</span>
+                  <input type="number" class="score-input" id="away-score" placeholder="0" min="0" max="99">
+                  <input type="text" class="team-name" id="away-team" placeholder="Away Team">
+                </div>
+              </div>
+              <div class="match-grid" style="gap:8px;">
+                <div class="field-group">
+                  <div class="field-label">Date</div>
+                  <input type="date" class="field-input" id="match-date">
+                </div>
+                <div class="field-group">
+                  <div class="field-label">Competition</div>
+                  <input type="text" class="field-input" id="competition" placeholder="Competition">
+                </div>
+                <div class="field-group">
+                  <div class="field-label">Venue</div>
+                  <input type="text" class="field-input" id="venue" placeholder="Stadium / Venue">
+                </div>
+                <div class="field-group">
+                  <div class="field-label">Formation Used</div>
+                  <input type="text" class="field-input" id="formation" placeholder="e.g. 4-3-3">
+                </div>
+              </div>
             </div>
           </div>
-          <div class="api-status" id="api-status" style="display:none;"></div>
-          <div style="font-size:11px;color:#546070;margin-top:6px;">Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#00b0ff;text-decoration:none;">aistudio.google.com/apikey</a></div>
+
+          <!-- Card: Match Timer & iPhone Sync -->
+          <div class="card match-clock-card" style="display:flex;flex-direction:column;justify-content:space-between;">
+            <div>
+              <div class="card-label" style="display:flex;justify-content:space-between;align-items:center;">
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <span class="dot" style="background:#00e5ff;"></span>
+                  <span>Match Timer &amp; Clock</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <span class="clock-period-badge" id="clock-period-badge">1ST HALF</span>
+                  <button type="button" class="btn-mobile-sync" id="btn-mobile-sync" onclick="openMobileSyncModal()" title="Connect iPhone to dictate or type live notes via QR code or link" style="padding:3px 8px;font-size:10px;">
+                    <span class="sync-dot-pulse" id="sync-dot-pulse" style="display:none;"></span>
+                    <span>📱</span> <span id="mobile-sync-btn-text">iPhone</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="clock-display-wrap" style="margin-bottom:10px;">
+                <div class="clock-digits-box" onclick="promptSetMatchMinute()" title="Click to set minute directly">
+                  <div class="clock-digits" id="clock-digits">00:00</div>
+                  <div class="clock-minute-tag" id="clock-minute-tag">0'</div>
+                </div>
+                <div class="clock-controls-group">
+                  <button class="clock-btn play-pause" id="btn-clock-toggle" onclick="toggleMatchClock()" title="Start / Pause Clock">
+                    <span id="clock-play-icon">▶</span>
+                  </button>
+                  <button class="clock-btn" onclick="adjustMatchClock(60)" title="+1 Minute">+1'</button>
+                  <button class="clock-btn" onclick="adjustMatchClock(-60)" title="-1 Minute">-1'</button>
+                  <button class="clock-btn" onclick="resetMatchClock()" title="Reset Timer">↺</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="clock-periods-bar">
+              <button class="period-btn active" id="btn-period-1h" onclick="setMatchPeriod('1H')">1H (00')</button>
+              <button class="period-btn" id="btn-period-ht" onclick="setMatchPeriod('HT')">HT (45')</button>
+              <button class="period-btn" id="btn-period-2h" onclick="setMatchPeriod('2H')">2H (45')</button>
+              <button class="period-btn" id="btn-period-et" onclick="setMatchPeriod('ET')">ET (90')</button>
+              <button class="period-btn" id="btn-period-ft" onclick="setMatchPeriod('FT')">FT (90')</button>
+            </div>
+          </div>
         </div>
-        <div class="card">
-          <div class="card-label"><span class="dot" style="background:#ffab00;"></span>Match Details</div>
-          <div class="field-group" style="margin-bottom:12px;">
-            <div class="field-label">Score</div>
-            <div class="score-row">
-              <input type="text" class="team-name" id="home-team" placeholder="Home Team">
-              <input type="number" class="score-input" id="home-score" placeholder="0" min="0" max="99">
-              <span class="vs-sep">&ndash;</span>
-              <input type="number" class="score-input" id="away-score" placeholder="0" min="0" max="99">
-              <input type="text" class="team-name" id="away-team" placeholder="Away Team">
-            </div>
-          </div>
-          <div class="match-grid">
-            <div class="field-group">
-              <div class="field-label">Date</div>
-              <input type="date" class="field-input" id="match-date">
-            </div>
-            <div class="field-group">
-              <div class="field-label">Competition</div>
-              <input type="text" class="field-input" id="competition" placeholder="">
-            </div>
-            <div class="field-group">
-              <div class="field-label">Venue</div>
-              <input type="text" class="field-input" id="venue" placeholder="">
-            </div>
-            <div class="field-group">
-              <div class="field-label">Formation Used</div>
-              <input type="text" class="field-input" id="formation" placeholder="">
-            </div>
-          </div>
-          <div class="field-group" style="margin-top:12px;">
-            <div class="field-label" style="display:flex;justify-content:space-between;align-items:center;">
-              <span>Team Squad &amp; Lineup</span>
-              <span id="squad-badge" style="font-size:10px;color:var(--green);font-weight:700;letter-spacing:0.3px;"></span>
-            </div>
-            <textarea class="field-input" id="team-squad" rows="3" style="resize:vertical;font-size:12px;line-height:1.5;min-height:68px;" placeholder="Auto-loaded from squad/lineup or type players (e.g. Starting XI: Player 1 [GK] #1, Player 2 [CB] #4... Subs: Player 12 #12)..."></textarea>
-          </div>
-        </div>
-        <div class="card">
+
+        <!-- ROW 2: SQUAD & TACTICAL FORMATION STUDIO (FULL WIDTH, INTERNALLY SPLIT 50/50) -->
+        <div class="card squad-formation-card">
           <div class="card-label" style="display:flex;justify-content:space-between;align-items:center;">
-            <div style="display:flex;align-items:center;gap:6px;"><span class="dot" style="background:#00e676;"></span>Coach Notes</div>
-            <button class="btn-mobile-sync" id="btn-mobile-sync" onclick="openMobileSyncModal()" title="Connect iPhone to dictate or type live notes via QR code or link">
-              <span class="sync-dot-pulse" id="sync-dot-pulse" style="display:none;"></span>
-              <span>📱</span> <span id="mobile-sync-btn-text">Connect iPhone (QR)</span>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="dot" style="background:#00e676;"></span>
+              <span>Team Squad &amp; Tactical Formation</span>
+            </div>
+            <span id="squad-badge" style="font-size:10px;color:var(--green);font-weight:700;">✓ Ready</span>
+          </div>
+
+          <!-- Formation Bar & View Switcher -->
+          <div class="squad-toolbar-row">
+            <div style="display:flex;align-items:center;gap:6px;flex:1;">
+              <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Formation:</span>
+              <select class="formation-select" id="formation-selector" onchange="changeFormationFromSelect(this.value)">
+                <option value="4-3-3">4-3-3</option>
+                <option value="4-2-3-1">4-2-3-1</option>
+                <option value="4-4-2">4-4-2</option>
+                <option value="3-5-2">3-5-2</option>
+                <option value="3-4-3">3-4-3</option>
+                <option value="5-3-2">5-3-2</option>
+                <option value="4-1-4-1">4-1-4-1</option>
+                <option value="5-4-1">5-4-1</option>
+              </select>
+            </div>
+
+            <!-- View Toggle: Pitch | Cards | Raw Text -->
+            <div class="view-toggle-pills">
+              <button class="view-pill active" id="btn-view-pitch" onclick="switchSquadView('pitch')">🏟️ Pitch</button>
+              <button class="view-pill" id="btn-view-cards" onclick="switchSquadView('cards')">📋 Cards</button>
+              <button class="view-pill" id="btn-view-text" onclick="switchSquadView('text')">✏️ Text</button>
+            </div>
+          </div>
+
+          <!-- View 1: Tactical Football Pitch (Left 55%) + Substitutes & Game Changers (Right 45%) -->
+          <div class="tactical-pitch-container" id="tactical-pitch-container">
+            <!-- Left Side: Vertical Tactical Pitch -->
+            <div class="tactical-pitch-field" id="tactical-pitch-field">
+              <!-- Pitch Lines -->
+              <div class="pitch-marking halfway-line"></div>
+              <div class="pitch-marking center-circle"></div>
+              <div class="pitch-marking center-spot"></div>
+              <div class="pitch-marking penalty-box top"></div>
+              <div class="pitch-marking penalty-box bottom"></div>
+              <div class="pitch-marking goal-box top"></div>
+              <div class="pitch-marking goal-box bottom"></div>
+
+              <!-- Starting XI Player Nodes rendered dynamically -->
+              <div id="pitch-players-layer"></div>
+            </div>
+
+            <!-- Right Side: Substitutes & Game Changers Panel -->
+            <div class="pitch-bench-section" id="pitch-bench-section">
+              <div class="bench-title-row">
+                <div class="bench-title">
+                  <span>⚡ Substitutes &amp; Game Changers</span>
+                </div>
+                <span class="bench-count-badge" id="bench-count-badge">7 Subs</span>
+              </div>
+              <div class="bench-chips-wrap" id="pitch-bench-chips"></div>
+            </div>
+          </div>
+
+          <!-- View 2: Grouped Lineup Cards -->
+          <div class="lineup-cards-container" id="lineup-cards-container" style="display:none;">
+            <div id="lineup-groups-list"></div>
+          </div>
+
+          <!-- View 3: Raw Text Editor (synced with Gemini AI generator) -->
+          <div class="squad-raw-text-container" id="squad-raw-text-container" style="display:none;">
+            <textarea class="field-input" id="team-squad" rows="6" style="resize:vertical;font-size:12px;line-height:1.5;" placeholder="Auto-loaded from squad/lineup or type players..."></textarea>
+            <div style="font-size:10px;color:var(--text-dim);margin-top:4px;">Edits here sync back to the visual formation and Gemini AI match report generator.</div>
+          </div>
+        </div>
+
+        <!-- ROW 3: COACH NOTES (LEFT) & AI REPORT OPTIONS + GENERATOR (RIGHT) -->
+        <div class="left-panel-grid-2">
+          <!-- Left: Coach Notes -->
+          <div class="card" style="display:flex;flex-direction:column;">
+            <div class="card-label" style="display:flex;justify-content:space-between;align-items:center;">
+              <div style="display:flex;align-items:center;gap:6px;"><span class="dot" style="background:#00e676;"></span>Coach Notes</div>
+              <button type="button" class="clock-btn" onclick="insertCurrentTimecodeIntoNotes()" title="Insert current match minute into notes" style="padding:3px 8px;font-size:10px;background:rgba(0,229,255,0.1);border-color:rgba(0,229,255,0.3);color:#00e5ff;">
+                <span>⏱️ <span id="notes-stamp-lbl">Stamp 0'</span></span>
+              </button>
+            </div>
+            <div class="voice-bar" style="margin-bottom:8px;">
+              <button class="btn-mic" id="btn-mic" onclick="toggleVoiceRecording()" title="Tap to dictate notes">&#x1F399;&#xFE0F;</button>
+              <div class="voice-status">
+                <div id="voice-status-text">Dictate notes with match minute stamps</div>
+                <div style="color:var(--text);font-style:italic;display:none;" id="voice-live-text"></div>
+              </div>
+            </div>
+            <textarea class="notes-area" id="coach-notes" rows="9" style="flex:1;min-height:160px;"
+              placeholder="Jot down match observations (automatically stamped with match minute)...&#10;&#10; [12'] Team shape and pressing triggers&#10; [28'] ⚽ Goal - Cutback from right wing&#10; [45+1'] Key tactical moments&#10; [64'] 🔄 Sub - Tactical change"></textarea>
+          </div>
+
+          <!-- Right: AI Options & Generate Button -->
+          <div class="card" style="display:flex;flex-direction:column;justify-content:space-between;">
+            <div>
+              <div class="card-label" style="display:flex;justify-content:space-between;align-items:center;">
+                <div style="display:flex;align-items:center;gap:6px;"><span class="dot" style="background:#c77dff;"></span>AI Report Options</div>
+                <div class="api-status" id="api-status" style="display:none;"></div>
+              </div>
+
+              <!-- Report Style -->
+              <div style="margin-bottom:10px;">
+                <div class="field-label" style="margin-bottom:5px;">Report Style</div>
+                <div style="display:flex;gap:6px;">
+                  <button class="style-btn active" id="style-professional" onclick="setStyle('professional')">Professional</button>
+                  <button class="style-btn" id="style-brief" onclick="setStyle('brief')">Brief Summary</button>
+                  <button class="style-btn" id="style-detailed" onclick="setStyle('detailed')">In-Depth</button>
+                </div>
+              </div>
+
+              <!-- Sections to Include -->
+              <div style="margin-bottom:10px;">
+                <div class="field-label" style="margin-bottom:5px;">Sections to Include</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                  <label class="toggle-opt"><input type="checkbox" checked id="chk-squad"> Squad &amp; Lineup</label>
+                  <label class="toggle-opt"><input type="checkbox" checked id="chk-tactics"> Tactical Analysis</label>
+                  <label class="toggle-opt"><input type="checkbox" checked id="chk-players"> Player Ratings</label>
+                  <label class="toggle-opt"><input type="checkbox" checked id="chk-stats"> Key Statistics</label>
+                  <label class="toggle-opt"><input type="checkbox" checked id="chk-moments"> Key Moments</label>
+                  <label class="toggle-opt"><input type="checkbox" id="chk-setpieces"> Set Pieces</label>
+                  <label class="toggle-opt"><input type="checkbox" checked id="chk-improvements"> Improvements</label>
+                </div>
+              </div>
+
+              <!-- Gemini API Key Compact Row -->
+              <div style="margin-bottom:12px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:8px;padding:8px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                  <span class="field-label">Gemini API Key</span>
+                  <a href="https://aistudio.google.com/apikey" target="_blank" style="font-size:10px;color:#00b0ff;text-decoration:none;">Get free key</a>
+                </div>
+                <div class="api-key-row">
+                  <input type="password" class="api-key-input" id="api-key-input" placeholder="Paste Gemini API key..." autocomplete="off">
+                  <button class="btn-save-key" onclick="saveApiKey()">Save</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Generate Button -->
+            <button class="btn-generate" id="btn-generate" onclick="generateReport()" style="margin-top:auto;">
+              <div class="spinner-sm" id="gen-spinner"></div>
+              <span id="gen-btn-text">&#x2726; Generate Match Report</span>
             </button>
           </div>
-          <div class="voice-bar" style="margin-bottom:10px;">
-            <button class="btn-mic" id="btn-mic" onclick="toggleVoiceRecording()" title="Tap to dictate notes">&#x1F399;&#xFE0F;</button>
-            <div class="voice-status">
-              <div id="voice-status-text">Tap mic to dictate match notes (voice to text)</div>
-              <div style="color:var(--text);font-style:italic;display:none;" id="voice-live-text"></div>
-            </div>
-          </div>
-          <textarea class="notes-area" id="coach-notes" rows="9"
-            placeholder="Jot down match observations...&#10;&#10; Team shape and pressing triggers&#10; Key tactical moments&#10; Individual player performances&#10; Goals and how they were scored/conceded&#10; Set-piece effectiveness&#10; Areas for improvement&#10; Fitness and intensity levels"></textarea>
         </div>
-        <div class="card">
-          <div class="card-label"><span class="dot" style="background:#c77dff;"></span>Sections to Include</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-            <label class="toggle-opt"><input type="checkbox" checked id="chk-squad"> Team Squad &amp; Lineup</label>
-            <label class="toggle-opt"><input type="checkbox" checked id="chk-tactics"> Tactical Analysis</label>
-            <label class="toggle-opt"><input type="checkbox" checked id="chk-players"> Player Ratings</label>
-            <label class="toggle-opt"><input type="checkbox" checked id="chk-stats"> Key Statistics</label>
-            <label class="toggle-opt"><input type="checkbox" checked id="chk-moments"> Key Moments</label>
-            <label class="toggle-opt"><input type="checkbox" id="chk-setpieces"> Set Pieces</label>
-            <label class="toggle-opt"><input type="checkbox" checked id="chk-improvements"> Areas to Improve</label>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-label"><span class="dot" style="background:#ff4569;"></span>Report Style</div>
-          <div style="display:flex;gap:8px;">
-            <button class="style-btn active" id="style-professional" onclick="setStyle('professional')">Professional</button>
-            <button class="style-btn" id="style-brief" onclick="setStyle('brief')">Brief Summary</button>
-            <button class="style-btn" id="style-detailed" onclick="setStyle('detailed')">In-Depth</button>
-          </div>
-        </div>
-        <button class="btn-generate" id="btn-generate" onclick="generateReport()">
-          <div class="spinner-sm" id="gen-spinner"></div>
-          <span id="gen-btn-text">&#x2726; Generate Match Report</span>
-        </button>
         <div style="height:8px;"></div>
       </div>
     </div>
@@ -410,6 +1018,528 @@
     var processedLiveEntryIds = new Set();
     var liveNotesCount = 0;
 
+    // ════════════════════════════════════════════════════════════
+    // MATCH TIMER & CLOCK STATE
+    // ════════════════════════════════════════════════════════════
+    var matchClock = {
+      seconds: 0,
+      running: false,
+      period: '1H', // '1H' | 'HT' | '2H' | 'ET' | 'FT'
+      intervalId: null
+    };
+
+    function initMatchClock() {
+      updateMatchClockUI();
+    }
+
+    function toggleMatchClock() {
+      if (matchClock.running) {
+        pauseMatchClock();
+      } else {
+        startMatchClock();
+      }
+      updateLiveSessionMetadata();
+    }
+
+    function startMatchClock() {
+      if (matchClock.running) return;
+      matchClock.running = true;
+      if (matchClock.intervalId) clearInterval(matchClock.intervalId);
+      matchClock.intervalId = setInterval(function() {
+        matchClock.seconds++;
+        updateMatchClockUI();
+      }, 1000);
+      updateMatchClockUI();
+    }
+
+    function pauseMatchClock() {
+      matchClock.running = false;
+      if (matchClock.intervalId) {
+        clearInterval(matchClock.intervalId);
+        matchClock.intervalId = null;
+      }
+      updateMatchClockUI();
+    }
+
+    function resetMatchClock() {
+      pauseMatchClock();
+      matchClock.seconds = 0;
+      matchClock.period = '1H';
+      updateMatchClockUI();
+      updateLiveSessionMetadata();
+      showToast('Match timer reset to 00:00', 'success');
+    }
+
+    function adjustMatchClock(deltaSec) {
+      matchClock.seconds = Math.max(0, matchClock.seconds + deltaSec);
+      updateMatchClockUI();
+      updateLiveSessionMetadata();
+    }
+
+    function setMatchPeriod(period) {
+      matchClock.period = period;
+      if (period === '1H') {
+        matchClock.seconds = 0;
+      } else if (period === 'HT') {
+        matchClock.seconds = 45 * 60;
+        pauseMatchClock();
+      } else if (period === '2H') {
+        matchClock.seconds = 45 * 60;
+      } else if (period === 'ET') {
+        matchClock.seconds = 90 * 60;
+      } else if (period === 'FT') {
+        matchClock.seconds = 90 * 60;
+        pauseMatchClock();
+      }
+      updateMatchClockUI();
+      updateLiveSessionMetadata();
+    }
+
+    function promptSetMatchMinute() {
+      var curMin = Math.floor(matchClock.seconds / 60);
+      var res = prompt('Enter match minute (e.g. 15, 45, 68):', curMin);
+      if (res !== null) {
+        var num = parseInt(res, 10);
+        if (!isNaN(num) && num >= 0 && num <= 150) {
+          matchClock.seconds = num * 60;
+          if (num >= 90) matchClock.period = 'ET';
+          else if (num >= 45) matchClock.period = '2H';
+          else matchClock.period = '1H';
+          updateMatchClockUI();
+          updateLiveSessionMetadata();
+        }
+      }
+    }
+
+    function getMatchMinuteString(seconds, period) {
+      var totalMin = Math.floor(seconds / 60);
+      if (period === '1H') {
+        if (totalMin < 45) return (totalMin + 1) + "'";
+        var added = totalMin - 45;
+        return added > 0 ? ("45+" + added + "'") : "45'";
+      } else if (period === 'HT') {
+        return "HT (45')";
+      } else if (period === '2H') {
+        if (totalMin < 90) return (totalMin + 1) + "'";
+        var added = totalMin - 90;
+        return added > 0 ? ("90+" + added + "'") : "90'";
+      } else if (period === 'ET') {
+        if (totalMin < 120) return (totalMin + 1) + "'";
+        var added = totalMin - 120;
+        return added > 0 ? ("120+" + added + "'") : "120'";
+      } else if (period === 'FT') {
+        return "FT (90')";
+      }
+      return (totalMin + 1) + "'";
+    }
+
+    function syncMatchClockFromRemote(clockData) {
+      if (!clockData) return;
+      if (typeof clockData.seconds === 'number') {
+        matchClock.seconds = clockData.seconds;
+      }
+      if (clockData.period) {
+        matchClock.period = clockData.period;
+      }
+      if (clockData.running) {
+        startMatchClock();
+      } else {
+        pauseMatchClock();
+      }
+      updateMatchClockUI();
+    }
+
+    function updateMatchClockUI() {
+      var sec = matchClock.seconds || 0;
+      var mm = String(Math.floor(sec / 60)).padStart(2, '0');
+      var ss = String(sec % 60).padStart(2, '0');
+      var digitsEl = document.getElementById('clock-digits');
+      if (digitsEl) digitsEl.textContent = mm + ':' + ss;
+
+      var minStr = getMatchMinuteString(sec, matchClock.period);
+      var tagEl = document.getElementById('clock-minute-tag');
+      if (tagEl) tagEl.textContent = minStr;
+
+      var stampLbl = document.getElementById('notes-stamp-lbl');
+      if (stampLbl) stampLbl.textContent = 'Stamp ' + minStr;
+
+      var badgeEl = document.getElementById('clock-period-badge');
+      if (badgeEl) {
+        var pLabels = { '1H': '1ST HALF', 'HT': 'HALF TIME', '2H': '2ND HALF', 'ET': 'EXTRA TIME', 'FT': 'FULL TIME' };
+        badgeEl.textContent = pLabels[matchClock.period] || matchClock.period;
+      }
+
+      var toggleBtn = document.getElementById('btn-clock-toggle');
+      var playIcon = document.getElementById('clock-play-icon');
+      if (toggleBtn && playIcon) {
+        toggleBtn.classList.toggle('running', matchClock.running);
+        playIcon.textContent = matchClock.running ? '⏸' : '▶';
+      }
+
+      ['1h', 'ht', '2h', 'et', 'ft'].forEach(function(pid) {
+        var btn = document.getElementById('btn-period-' + pid);
+        if (btn) btn.classList.toggle('active', pid.toUpperCase() === matchClock.period);
+      });
+    }
+
+    function insertCurrentTimecodeIntoNotes() {
+      var notes = document.getElementById('coach-notes');
+      if (!notes) return;
+      var timeStr = '[' + getMatchMinuteString(matchClock.seconds, matchClock.period) + '] ';
+      var sep = notes.value.trim() ? '\n' : '';
+      notes.value = notes.value + sep + timeStr;
+      notes.focus();
+      notes.scrollTop = notes.scrollHeight;
+      showToast('Inserted match stamp ' + timeStr.trim(), 'success');
+    }
+
+    // ════════════════════════════════════════════════════════════
+    // TACTICAL FORMATION & SQUAD STUDIO ENGINE
+    // ════════════════════════════════════════════════════════════
+    var currentFormation = '4-3-3';
+    var currentStartingXI = [];
+    var currentSubstitutes = [];
+
+    var FORMATIONS_MAP = {
+      '4-3-3': [
+        { role: 'GK', label: 'GK', x: 50, y: 88 },
+        { role: 'DEF', label: 'LB', x: 16, y: 72 },
+        { role: 'DEF', label: 'CB', x: 38, y: 74 },
+        { role: 'DEF', label: 'CB', x: 62, y: 74 },
+        { role: 'DEF', label: 'RB', x: 84, y: 72 },
+        { role: 'MID', label: 'DM', x: 50, y: 56 },
+        { role: 'MID', label: 'LCM', x: 30, y: 46 },
+        { role: 'MID', label: 'RCM', x: 70, y: 46 },
+        { role: 'FWD', label: 'LW', x: 18, y: 22 },
+        { role: 'FWD', label: 'ST', x: 50, y: 16 },
+        { role: 'FWD', label: 'RW', x: 82, y: 22 }
+      ],
+      '4-2-3-1': [
+        { role: 'GK', label: 'GK', x: 50, y: 88 },
+        { role: 'DEF', label: 'LB', x: 16, y: 72 },
+        { role: 'DEF', label: 'CB', x: 38, y: 74 },
+        { role: 'DEF', label: 'CB', x: 62, y: 74 },
+        { role: 'DEF', label: 'RB', x: 84, y: 72 },
+        { role: 'MID', label: 'LDM', x: 36, y: 58 },
+        { role: 'MID', label: 'RDM', x: 64, y: 58 },
+        { role: 'MID', label: 'LAM', x: 20, y: 38 },
+        { role: 'MID', label: 'CAM', x: 50, y: 36 },
+        { role: 'MID', label: 'RAM', x: 80, y: 38 },
+        { role: 'FWD', label: 'ST', x: 50, y: 16 }
+      ],
+      '4-4-2': [
+        { role: 'GK', label: 'GK', x: 50, y: 88 },
+        { role: 'DEF', label: 'LB', x: 16, y: 72 },
+        { role: 'DEF', label: 'CB', x: 38, y: 74 },
+        { role: 'DEF', label: 'CB', x: 62, y: 74 },
+        { role: 'DEF', label: 'RB', x: 84, y: 72 },
+        { role: 'MID', label: 'LM', x: 16, y: 48 },
+        { role: 'MID', label: 'CM', x: 38, y: 50 },
+        { role: 'MID', label: 'CM', x: 62, y: 50 },
+        { role: 'MID', label: 'RM', x: 84, y: 48 },
+        { role: 'FWD', label: 'ST', x: 38, y: 18 },
+        { role: 'FWD', label: 'ST', x: 62, y: 18 }
+      ],
+      '3-5-2': [
+        { role: 'GK', label: 'GK', x: 50, y: 88 },
+        { role: 'DEF', label: 'LCB', x: 26, y: 74 },
+        { role: 'DEF', label: 'CB', x: 50, y: 76 },
+        { role: 'DEF', label: 'RCB', x: 74, y: 74 },
+        { role: 'MID', label: 'LWB', x: 12, y: 48 },
+        { role: 'MID', label: 'CM', x: 34, y: 52 },
+        { role: 'MID', label: 'DM', x: 50, y: 58 },
+        { role: 'MID', label: 'CM', x: 66, y: 52 },
+        { role: 'MID', label: 'RWB', x: 88, y: 48 },
+        { role: 'FWD', label: 'ST', x: 38, y: 18 },
+        { role: 'FWD', label: 'ST', x: 62, y: 18 }
+      ],
+      '3-4-3': [
+        { role: 'GK', label: 'GK', x: 50, y: 88 },
+        { role: 'DEF', label: 'LCB', x: 26, y: 74 },
+        { role: 'DEF', label: 'CB', x: 50, y: 76 },
+        { role: 'DEF', label: 'RCB', x: 74, y: 74 },
+        { role: 'MID', label: 'LM', x: 14, y: 48 },
+        { role: 'MID', label: 'CM', x: 38, y: 52 },
+        { role: 'MID', label: 'CM', x: 62, y: 52 },
+        { role: 'MID', label: 'RM', x: 86, y: 48 },
+        { role: 'FWD', label: 'LW', x: 20, y: 20 },
+        { role: 'FWD', label: 'ST', x: 50, y: 16 },
+        { role: 'FWD', label: 'RW', x: 80, y: 20 }
+      ],
+      '5-3-2': [
+        { role: 'GK', label: 'GK', x: 50, y: 88 },
+        { role: 'DEF', label: 'LWB', x: 12, y: 68 },
+        { role: 'DEF', label: 'LCB', x: 31, y: 75 },
+        { role: 'DEF', label: 'CB', x: 50, y: 76 },
+        { role: 'DEF', label: 'RCB', x: 69, y: 75 },
+        { role: 'DEF', label: 'RWB', x: 88, y: 68 },
+        { role: 'MID', label: 'LCM', x: 32, y: 48 },
+        { role: 'MID', label: 'CM', x: 50, y: 52 },
+        { role: 'MID', label: 'RCM', x: 68, y: 48 },
+        { role: 'FWD', label: 'ST', x: 38, y: 18 },
+        { role: 'FWD', label: 'ST', x: 62, y: 18 }
+      ],
+      '4-1-4-1': [
+        { role: 'GK', label: 'GK', x: 50, y: 88 },
+        { role: 'DEF', label: 'LB', x: 16, y: 72 },
+        { role: 'DEF', label: 'CB', x: 38, y: 74 },
+        { role: 'DEF', label: 'CB', x: 62, y: 74 },
+        { role: 'DEF', label: 'RB', x: 84, y: 72 },
+        { role: 'MID', label: 'DM', x: 50, y: 60 },
+        { role: 'MID', label: 'LM', x: 16, y: 42 },
+        { role: 'MID', label: 'CM', x: 38, y: 44 },
+        { role: 'MID', label: 'CM', x: 62, y: 44 },
+        { role: 'MID', label: 'RM', x: 84, y: 42 },
+        { role: 'FWD', label: 'ST', x: 50, y: 16 }
+      ],
+      '5-4-1': [
+        { role: 'GK', label: 'GK', x: 50, y: 88 },
+        { role: 'DEF', label: 'LWB', x: 12, y: 68 },
+        { role: 'DEF', label: 'LCB', x: 31, y: 75 },
+        { role: 'DEF', label: 'CB', x: 50, y: 76 },
+        { role: 'DEF', label: 'RCB', x: 69, y: 75 },
+        { role: 'DEF', label: 'RWB', x: 88, y: 68 },
+        { role: 'MID', label: 'LM', x: 16, y: 44 },
+        { role: 'MID', label: 'CM', x: 38, y: 48 },
+        { role: 'MID', label: 'CM', x: 62, y: 48 },
+        { role: 'MID', label: 'RM', x: 84, y: 44 },
+        { role: 'FWD', label: 'ST', x: 50, y: 16 }
+      ]
+    };
+
+    function initSquadAndFormation(matchCtx, vidSquad, formSync) {
+      currentFormation = matchCtx.formation || (formSync && formSync.formation) || document.getElementById('formation').value || '4-3-3';
+      if (!FORMATIONS_MAP[currentFormation]) currentFormation = '4-3-3';
+
+      var formSelect = document.getElementById('formation-selector');
+      if (formSelect) formSelect.value = currentFormation;
+      document.getElementById('formation').value = currentFormation;
+
+      // Extract players
+      if (matchCtx.startingXI && matchCtx.startingXI.length) {
+        currentStartingXI = matchCtx.startingXI.slice();
+        currentSubstitutes = (matchCtx.substitutes || []).slice();
+      } else if (matchCtx.squad && matchCtx.squad.length) {
+        currentStartingXI = matchCtx.squad.slice(0, 11);
+        currentSubstitutes = matchCtx.squad.slice(11);
+      } else if (vidSquad.players && vidSquad.players.length) {
+        currentStartingXI = vidSquad.players.slice(0, 11);
+        currentSubstitutes = vidSquad.players.slice(11);
+      } else if (formSync.players && formSync.players.length) {
+        currentStartingXI = formSync.players.slice(0, 11);
+        currentSubstitutes = formSync.players.slice(11);
+      } else {
+        // High-end default fallback squad (Madrid baseline)
+        currentStartingXI = [
+          { name: 'T. Courtois', position: 'GK', jersey: '1' },
+          { name: 'D. Carvajal', position: 'RB', jersey: '2' },
+          { name: 'E. Militão', position: 'CB', jersey: '3' },
+          { name: 'D. Alaba', position: 'CB', jersey: '4' },
+          { name: 'F. Mendy', position: 'LB', jersey: '23' },
+          { name: 'F. Valverde', position: 'CM', jersey: '8' },
+          { name: 'A. Tchouaméni', position: 'DM', jersey: '14' },
+          { name: 'J. Bellingham', position: 'AM', jersey: '5' },
+          { name: 'Rodrygo', position: 'RW', jersey: '11' },
+          { name: 'K. Mbappé', position: 'ST', jersey: '9' },
+          { name: 'Vinicius Jr', position: 'LW', jersey: '7' }
+        ];
+        currentSubstitutes = [
+          { name: 'L. Modrić', position: 'CM', jersey: '10' },
+          { name: 'E. Camavinga', position: 'CM', jersey: '6' },
+          { name: 'Brahim Díaz', position: 'RW', jersey: '21' },
+          { name: 'Endrick', position: 'ST', jersey: '16' },
+          { name: 'A. Lunin', position: 'GK', jersey: '13' }
+        ];
+      }
+
+      renderTacticalPitch();
+      renderBenchChips();
+      renderLineupCards();
+      updateRawSquadTextarea();
+
+      var badge = document.getElementById('squad-badge');
+      if (badge) {
+        badge.textContent = '✓ ' + (currentStartingXI.length + currentSubstitutes.length) + ' players (' + currentFormation + ')';
+      }
+    }
+
+    function renderTacticalPitch() {
+      var layer = document.getElementById('pitch-players-layer');
+      if (!layer) return;
+
+      var slots = FORMATIONS_MAP[currentFormation] || FORMATIONS_MAP['4-3-3'];
+      layer.innerHTML = '';
+
+      slots.forEach(function(slot, idx) {
+        var player = currentStartingXI[idx] || { name: slot.label, position: slot.role, jersey: String(idx + 1) };
+        var num = player.jersey || player.number || (idx + 1);
+        var role = slot.role;
+
+        var node = document.createElement('div');
+        node.className = 'pitch-player-node';
+        node.style.left = slot.x + '%';
+        node.style.top = slot.y + '%';
+        node.title = '#' + num + ' ' + player.name + ' (' + (player.position || slot.label) + ')';
+        node.onclick = function() {
+          insertPlayerIntoNotes(player.name, num);
+        };
+
+        node.innerHTML = 
+          '<div class="pitch-jersey-badge role-' + role + '">' + num + '</div>' +
+          '<div class="pitch-player-label">' + player.name + '</div>' +
+          '<div class="pitch-player-pos-tag">' + (player.position || slot.label) + '</div>';
+
+        layer.appendChild(node);
+      });
+    }
+
+    function renderBenchChips() {
+      var container = document.getElementById('pitch-bench-chips');
+      if (!container) return;
+      container.innerHTML = '';
+
+      var countEl = document.getElementById('bench-count-badge');
+      if (countEl) {
+        countEl.textContent = (currentSubstitutes ? currentSubstitutes.length : 0) + ' Subs';
+      }
+
+      if (!currentSubstitutes || !currentSubstitutes.length) {
+        container.innerHTML = '<div style="padding:16px;text-align:center;font-size:11px;color:var(--text-dim);border:1px dashed rgba(255,255,255,0.1);border-radius:8px;">No substitutes listed.<br><span style="font-size:10px;">Auto-loads from team squad or type in text view.</span></div>';
+        return;
+      }
+
+      currentSubstitutes.forEach(function(sub) {
+        var num = sub.jersey || sub.number || '-';
+        var pos = sub.position || 'SUB';
+        var posUpper = pos.toUpperCase();
+
+        var roleClass = 'role-MID';
+        if (posUpper === 'GK') roleClass = 'role-GK';
+        else if (['CB', 'LB', 'RB', 'LWB', 'RWB', 'DEF'].includes(posUpper)) roleClass = 'role-DEF';
+        else if (['ST', 'CF', 'LW', 'RW', 'FWD'].includes(posUpper)) roleClass = 'role-FWD';
+
+        var card = document.createElement('div');
+        card.className = 'bench-player-card';
+        card.title = 'Click to tag #' + num + ' ' + sub.name + ' in notes';
+
+        card.innerHTML = 
+          '<div class="bench-card-left">' +
+            '<div class="pitch-jersey-badge ' + roleClass + '" style="width:22px;height:22px;font-size:9px;flex-shrink:0;">' + escapeHtml(num) + '</div>' +
+            '<div style="min-width:0;flex:1;">' +
+              '<div class="bench-card-name">' + escapeHtml(sub.name) + '</div>' +
+              '<div style="display:flex;align-items:center;gap:4px;margin-top:1px;">' +
+                '<span class="bench-card-pos">' + escapeHtml(pos) + '</span>' +
+                '<span style="font-size:9px;color:var(--green);font-weight:700;">⚡ Game Changer</span>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="bench-card-actions">' +
+            '<button type="button" class="bench-action-btn" onclick="event.stopPropagation();insertPlayerIntoNotes(\'' + escapeHtml(sub.name.replace(/'/g, "\\'")) + '\',\'' + escapeHtml(num) + '\')" title="Tag in notes">+ Tag</button>' +
+            '<button type="button" class="bench-action-btn" onclick="event.stopPropagation();insertSubEventIntoNotes(\'' + escapeHtml(sub.name.replace(/'/g, "\\'")) + '\',\'' + escapeHtml(num) + '\')" title="Record substitution event">🔄 Sub</button>' +
+          '</div>';
+
+        card.onclick = function() {
+          insertPlayerIntoNotes(sub.name, num);
+        };
+
+        container.appendChild(card);
+      });
+    }
+
+    function insertSubEventIntoNotes(name, num) {
+      var notes = document.getElementById('coach-notes');
+      if (!notes) return;
+      var timeStr = getMatchMinuteString(matchClock.seconds, matchClock.period);
+      var subText = '[' + timeStr + '] 🔄 Sub: ON #' + (num || '') + ' ' + name;
+      var sep = notes.value.trim() ? '\n' : '';
+      notes.value = notes.value + sep + subText;
+      notes.focus();
+      notes.scrollTop = notes.scrollHeight;
+      showToast('Recorded sub for ' + name, 'success');
+    }
+
+    function renderLineupCards() {
+      var container = document.getElementById('lineup-groups-list');
+      if (!container) return;
+      container.innerHTML = '';
+
+      var groups = {
+        'Goalkeepers': currentStartingXI.filter(function(p){ return p.position === 'GK'; }),
+        'Defenders': currentStartingXI.filter(function(p){ return ['CB', 'LB', 'RB', 'LWB', 'RWB', 'DEF'].includes(p.position); }),
+        'Midfielders': currentStartingXI.filter(function(p){ return ['CM', 'DM', 'AM', 'LM', 'RM', 'MID'].includes(p.position); }),
+        'Forwards': currentStartingXI.filter(function(p){ return ['ST', 'CF', 'LW', 'RW', 'FWD'].includes(p.position) || (!['GK', 'CB', 'LB', 'RB', 'LWB', 'RWB', 'DEF', 'CM', 'DM', 'AM', 'LM', 'RM', 'MID'].includes(p.position)); }),
+        'Substitutes & Bench': currentSubstitutes
+      };
+
+      Object.keys(groups).forEach(function(gName) {
+        var pList = groups[gName];
+        if (!pList || !pList.length) return;
+
+        var card = document.createElement('div');
+        card.className = 'lineup-group-card';
+        var html = '<div class="lineup-group-title">' + gName + ' (' + pList.length + ')</div><div class="lineup-group-players">';
+        pList.forEach(function(p) {
+          var num = p.jersey || p.number || '-';
+          html += '<div class="bench-chip" onclick="insertPlayerIntoNotes(\'' + p.name.replace(/'/g, "\\'") + '\',\'' + num + '\')"><span class="bench-num">#' + num + '</span> ' + p.name + ' <span style="font-size:9px;color:var(--text-dim);">' + (p.position || '') + '</span></div>';
+        });
+        html += '</div>';
+        card.innerHTML = html;
+        container.appendChild(card);
+      });
+    }
+
+    function switchSquadView(view) {
+      document.querySelectorAll('.view-pill').forEach(function(p){ p.classList.remove('active'); });
+      var btn = document.getElementById('btn-view-' + view);
+      if (btn) btn.classList.add('active');
+
+      document.getElementById('tactical-pitch-container').style.display = (view === 'pitch') ? 'block' : 'none';
+      document.getElementById('lineup-cards-container').style.display = (view === 'cards') ? 'flex' : 'none';
+      document.getElementById('squad-raw-text-container').style.display = (view === 'text') ? 'block' : 'none';
+    }
+
+    function changeFormationFromSelect(formKey) {
+      if (!FORMATIONS_MAP[formKey]) return;
+      currentFormation = formKey;
+      document.getElementById('formation').value = formKey;
+      renderTacticalPitch();
+      updateRawSquadTextarea();
+      updateLiveSessionMetadata();
+      showToast('Tactical formation changed to ' + formKey, 'success');
+    }
+
+    function updateRawSquadTextarea() {
+      var textarea = document.getElementById('team-squad');
+      if (!textarea) return;
+
+      var lines = [];
+      lines.push('Starting Lineup (' + currentFormation + '):');
+      var xiList = currentStartingXI.map(function(p){
+        return p.name + (p.position ? ' [' + p.position + ']' : '') + (p.jersey || p.number ? ' #' + (p.jersey || p.number) : '');
+      }).join(', ');
+      lines.push(xiList);
+
+      if (currentSubstitutes && currentSubstitutes.length) {
+        lines.push('\nSubstitutes:');
+        var subList = currentSubstitutes.map(function(p){
+          return p.name + (p.position ? ' [' + p.position + ']' : '') + (p.jersey || p.number ? ' #' + (p.jersey || p.number) : '');
+        }).join(', ');
+        lines.push(subList);
+      }
+
+      textarea.value = lines.join('\n');
+    }
+
+    function insertPlayerIntoNotes(name, num) {
+      var notes = document.getElementById('coach-notes');
+      if (!notes) return;
+      var tag = '#' + (num || '') + ' ' + name;
+      var sep = notes.value.trim() ? ' ' : '';
+      notes.value = notes.value + sep + tag + ' ';
+      notes.focus();
+      showToast('Tagged ' + tag, 'success');
+    }
+
     // Initialize Firebase & Firestore
     try {
       if (typeof firebase !== 'undefined') {
@@ -478,54 +1608,16 @@
         if (matchCtx.formation) document.getElementById('formation').value = matchCtx.formation;
         else if (formSync.formation) document.getElementById('formation').value = formSync.formation;
 
-        // Auto-populate Squad & Lineup
-        var squadParts = [];
-        var totalLoaded = 0;
+        // Initialize Structured Squad and Tactical Pitch
+        initSquadAndFormation(matchCtx, vidSquad, formSync);
 
-        if (matchCtx.startingXI && matchCtx.startingXI.length) {
-          var xiList = matchCtx.startingXI.map(function(p){
-            return p.name + (p.position ? ' [' + p.position + ']' : '') + (p.jersey ? ' #' + p.jersey : '');
-          }).join(', ');
-          var formLabel = matchCtx.formation || document.getElementById('formation').value || '11-a-side';
-          squadParts.push('Starting Lineup (' + formLabel + '): ' + xiList);
-          totalLoaded += matchCtx.startingXI.length;
-
-          if (matchCtx.substitutes && matchCtx.substitutes.length) {
-            var subList = matchCtx.substitutes.map(function(p){
-              return p.name + (p.position ? ' [' + p.position + ']' : '') + (p.jersey ? ' #' + p.jersey : '');
-            }).join(', ');
-            squadParts.push('Substitutes: ' + subList);
-            totalLoaded += matchCtx.substitutes.length;
-          }
-        } else if (matchCtx.squad && matchCtx.squad.length) {
-          var sList = matchCtx.squad.map(function(p){
-            return p.name + (p.position ? ' [' + p.position + ']' : '') + (p.jersey ? ' #' + p.jersey : '');
-          }).join(', ');
-          squadParts.push('Team Squad: ' + sList);
-          totalLoaded = matchCtx.squad.length;
-        } else if (vidSquad.players && vidSquad.players.length) {
-          var vList = vidSquad.players.map(function(p){
-            return p.name + (p.position ? ' [' + p.position + ']' : '') + (p.number && p.number !== '-' ? ' #' + p.number : '');
-          }).join(', ');
-          squadParts.push('Team Squad: ' + vList);
-          totalLoaded = vidSquad.players.length;
-        } else if (formSync.players && formSync.players.length) {
-          var fList = formSync.players.map(function(p){
-            return p.name + (p.position ? ' [' + p.position + ']' : '') + (p.number && p.number !== '-' ? ' #' + p.number : '');
-          }).join(', ');
-          squadParts.push('Team Squad: ' + fList);
-          totalLoaded = formSync.players.length;
-        }
-
-        var squadEl = document.getElementById('team-squad');
-        if (squadEl && squadParts.length) {
-          squadEl.value = squadParts.join('\n');
-          var squadBadge = document.getElementById('squad-badge');
-          if (squadBadge) squadBadge.textContent = '\u2713 ' + totalLoaded + ' players auto-loaded';
-        }
       } catch(e) {
         console.warn('Error reading squad/match context:', e);
       }
+
+      // Initialize Match Clock & Timer
+      initMatchClock();
+
       if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
         document.getElementById('voice-status-text').textContent = 'Voice input not supported in this browser (use Chrome)';
         document.getElementById('btn-mic').disabled = true;
@@ -536,7 +1628,7 @@
       initLiveNotesSession();
 
       // Listen for fixture edits to update mobile title in real-time
-      ['home-team', 'away-team', 'competition'].forEach(function(id) {
+      ['home-team', 'away-team', 'competition', 'formation'].forEach(function(id) {
         var el = document.getElementById(id);
         if (el) el.addEventListener('input', debounce(updateLiveSessionMetadata, 800));
       });
@@ -579,6 +1671,15 @@
         homeTeam: home,
         awayTeam: away,
         competition: comp,
+        formation: currentFormation,
+        startingXI: currentStartingXI,
+        substitutes: currentSubstitutes,
+        matchClock: {
+          seconds: matchClock.seconds,
+          running: matchClock.running,
+          period: matchClock.period,
+          updatedAt: Date.now()
+        },
         updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
         hostPlatform: 'Desktop'
       }, { merge: true }).catch(function(e) { console.warn('Sync session metadata warning:', e); });
@@ -591,6 +1692,19 @@
         liveNotesListenerUnsub = null;
       }
 
+      // Listen to root session doc to sync clock if phone started/paused it
+      db.collection('match_live_notes').doc(liveNotesSessionId).onSnapshot(function(docSnap) {
+        if (docSnap.exists) {
+          var data = docSnap.data();
+          if (data.matchClock && data.hostPlatform === 'iPhone') {
+            syncMatchClockFromRemote(data.matchClock);
+          }
+        }
+      }, function(err) {
+        console.warn('Live session root listener warning:', err);
+      });
+
+      // Listen to entries subcollection
       liveNotesListenerUnsub = db.collection('match_live_notes')
         .doc(liveNotesSessionId)
         .collection('entries')
@@ -621,17 +1735,18 @@
 
       var appendText = '';
       entries.forEach(function(item) {
-        var timePrefix = '';
-        if (item.timestamp && item.timestamp.toDate) {
-          var d = item.timestamp.toDate();
-          timePrefix = '[' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') + '] ';
+        var cleanText = (item.text || '').trim();
+        var line = '';
+
+        // If text already has match minute prefix e.g. [24'], preserve it
+        if (/^\[\d+[':]/.test(cleanText) || /^\[\d+\+\d+'\]/.test(cleanText)) {
+          line = cleanText;
         } else {
-          timePrefix = '[' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + '] ';
+          var timeStr = item.matchTime || getMatchMinuteString(matchClock.seconds, matchClock.period);
+          line = '[' + timeStr + '] ' + cleanText;
         }
 
-        var line = timePrefix + (item.text || '').trim();
         appendText += (appendText ? '\n' : '') + line;
-
         updateModalIncomingPreview(line);
       });
 
@@ -843,7 +1958,10 @@
       speechRecognition.onend = function() {
         var notes = document.getElementById('coach-notes');
         var sep = notes.value.trim() ? '\n\n' : '';
-        if (finalTranscript.trim()) notes.value += sep + finalTranscript.trim();
+        if (finalTranscript.trim()) {
+          var timeStr = '[' + getMatchMinuteString(matchClock.seconds, matchClock.period) + '] ';
+          notes.value += sep + timeStr + finalTranscript.trim();
+        }
         resetVoiceUI();
       };
       speechRecognition.onerror = function(e) {

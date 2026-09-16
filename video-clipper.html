@@ -10,6 +10,15 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <!-- High-Performance MP4 Muxer for WebCodecs Hardware Export -->
+  <script src="mp4-muxer.min.js"></script>
+  <script>
+    if (typeof Mp4Muxer === 'undefined') {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.2/build/mp4-muxer.min.js';
+      document.head.appendChild(s);
+    }
+  </script>
 
   <style>
     :root {
@@ -325,6 +334,27 @@
       position: relative;
       width: 100%;
       user-select: none;
+      padding-top: 18px;
+    }
+
+    .scrubber-hover-tooltip {
+      position: absolute;
+      top: -2px;
+      left: 0%;
+      transform: translateX(-50%);
+      background: rgba(8, 12, 20, 0.95);
+      border: 1px solid var(--accent-green);
+      color: var(--accent-green);
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+      pointer-events: none;
+      display: none;
+      z-index: 20;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
     }
 
     .scrubber-track {
@@ -338,6 +368,18 @@
       overflow: hidden;
       display: flex;
       align-items: center;
+    }
+
+    .scrubber-hover-line {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--accent-green);
+      box-shadow: 0 0 6px rgba(0, 230, 118, 0.85);
+      pointer-events: none;
+      display: none;
+      z-index: 6;
     }
 
     .scrubber-in-out-highlight {
@@ -471,6 +513,31 @@
     }
     .btn-ctl.out-btn:hover {
       background: rgba(0, 176, 255, 0.15);
+    }
+
+    .speed-dropdown {
+      background: #10192a;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: var(--radius-md);
+      color: #00e676;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      height: 34px;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+    .speed-dropdown:hover, .speed-dropdown:focus {
+      border-color: var(--accent-green);
+      background: #142036;
+      box-shadow: 0 0 10px rgba(0, 230, 118, 0.25);
+    }
+    .speed-dropdown option {
+      background: #0d1524;
+      color: #f8fafc;
+      padding: 6px;
     }
 
     .cut-actions-cluster {
@@ -630,6 +697,12 @@
       flex-shrink: 0;
     }
 
+    .clip-tag-pill.rendered {
+      background: rgba(0, 176, 255, 0.18);
+      color: var(--accent-blue);
+      border-color: rgba(0, 176, 255, 0.4);
+    }
+
     .clip-meta-row {
       display: flex;
       align-items: center;
@@ -640,37 +713,126 @@
     }
 
     .clip-btn-row {
-      display: flex;
-      align-items: center;
+      display: grid;
+      grid-template-columns: 2.2fr 1fr 1fr 1fr 0.8fr;
       gap: 6px;
-      margin-top: 4px;
+      margin-top: 6px;
     }
 
     .btn-clip-sub {
-      flex: 1;
+      height: 32px;
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.12);
       color: var(--text-main);
-      padding: 5px 8px;
+      padding: 0 4px;
       border-radius: 6px;
-      font-size: 11px;
+      font-size: 13px;
       font-weight: 600;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 4px;
       transition: all 0.15s ease;
+      user-select: none;
+      box-sizing: border-box;
     }
 
     .btn-clip-sub:hover {
       background: rgba(255, 255, 255, 0.12);
     }
 
-    .btn-clip-sub.del:hover {
+    .btn-clip-sub.render-btn {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent-green);
+      letter-spacing: 0.2px;
+    }
+
+    .btn-clip-sub.render-btn:hover {
+      background: rgba(0, 230, 118, 0.15);
+      border-color: var(--accent-green);
+      color: #fff;
+    }
+
+    .btn-clip-sub.render-btn.is-rendered {
+      color: var(--accent-blue);
+      border-color: rgba(0, 176, 255, 0.35);
+      background: rgba(0, 176, 255, 0.08);
+    }
+
+    .btn-clip-sub.render-btn.is-rendered:hover {
+      background: rgba(0, 176, 255, 0.22);
+      border-color: var(--accent-blue);
+      color: #fff;
+    }
+
+    .btn-clip-sub.play-btn {
+      color: var(--accent-green);
+      font-size: 13px;
+    }
+
+    .btn-clip-sub.play-btn:hover {
+      background: rgba(0, 230, 118, 0.18);
+      border-color: var(--accent-green);
+      color: #fff;
+    }
+
+    .btn-clip-sub.stop-btn {
+      background: rgba(255, 23, 68, 0.22);
+      border-color: #ff1744;
+      color: #ff1744;
+      font-size: 12px;
+      animation: pulsePlayBorder 1.5s infinite;
+    }
+
+    .btn-clip-sub.stop-btn:hover {
+      background: rgba(255, 23, 68, 0.4);
+      color: #fff;
+    }
+
+    .btn-clip-sub.save-btn {
+      color: var(--text-main);
+      font-size: 13px;
+    }
+
+    .btn-clip-sub.save-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+    }
+
+    .btn-clip-sub.analyzer-btn {
+      color: var(--accent-blue);
+      font-size: 13px;
+    }
+
+    .btn-clip-sub.analyzer-btn:hover {
+      background: rgba(213, 0, 249, 0.18);
+      border-color: #d500f9;
+      color: #fff;
+    }
+
+    .btn-clip-sub.del-btn {
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .btn-clip-sub.del-btn:hover {
       background: rgba(255, 23, 68, 0.2);
       color: #ff5252;
       border-color: #ff5252;
+    }
+
+    @keyframes pulsePlayBorder {
+      0% { box-shadow: 0 0 0 0 rgba(255, 23, 68, 0.6); }
+      70% { box-shadow: 0 0 0 6px rgba(255, 23, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(255, 23, 68, 0); }
+    }
+
+    .clip-card.active-loop-card {
+      border-color: rgba(0, 230, 118, 0.45);
+      background: rgba(0, 230, 118, 0.06);
+      box-shadow: 0 0 16px rgba(0, 230, 118, 0.12);
     }
 
     /* Export Progress Modal */
@@ -740,16 +902,12 @@
     </a>
 
     <div class="header-actions">
-      <label class="btn-header" title="Upload match video from computer">
-        <span>📤 Open Match Video</span>
+      <label class="btn-header primary" title="Upload match video from computer" style="cursor:pointer;">
+        <span>📤 Upload Match Video</span>
         <input type="file" id="match-file-input" accept="video/mp4,video/webm,video/quicktime,video/*" style="display:none;" onchange="handleMatchFileSelect(this)">
       </label>
 
-      <button class="btn-header" onclick="loadSampleMatchVideo()" title="Load Sample Match Video to test trimming">
-        <span>🎬 Load Sample Clip</span>
-      </button>
-
-      <a href="video-analyzer.html" target="_blank" class="btn-header primary" title="Open Telestration &amp; Tactical Analyzer">
+      <a href="video-analyzer.html" target="_blank" class="btn-header" title="Open Telestration &amp; Tactical Analyzer">
         <span>📹 Open Video Analyzer ↗</span>
       </a>
     </div>
@@ -773,13 +931,12 @@
 
           <!-- Empty Video Placeholder Dropzone -->
           <div class="empty-video-placeholder" id="empty-placeholder">
-            <label class="upload-dropzone" for="match-file-input" id="dropzone-area">
+            <label class="upload-dropzone" for="match-file-input" id="dropzone-area" style="cursor:pointer;">
               <div class="dropzone-icon">⚽ ✂️</div>
-              <div class="dropzone-title">Upload Full Match Video to Clip</div>
+              <div class="dropzone-title">Upload Match Video to Clip</div>
               <div class="dropzone-hint">Drag &amp; drop MP4, WebM or MOV match file here, or click to browse.</div>
               <div style="margin-top: 10px; display: flex; gap: 8px;">
-                <span class="btn-header primary" style="pointer-events: none;">Browse File</span>
-                <button type="button" class="btn-header" onclick="event.preventDefault(); loadSampleMatchVideo();">Load Sample</button>
+                <span class="btn-header primary" style="pointer-events: none;">📁 Upload Match Video</span>
               </div>
             </label>
           </div>
@@ -792,10 +949,12 @@
         
         <!-- Interactive Scrubber -->
         <div class="scrubber-zone" id="scrubber-zone">
+          <div class="scrubber-hover-tooltip" id="scrubber-hover-tooltip">00:00:00.00</div>
           <div class="scrubber-track" id="scrubber-track" onclick="handleScrubberClick(event)">
             <div class="scrubber-progress-fill" id="scrubber-progress"></div>
             <div class="scrubber-in-out-highlight" id="scrubber-in-out-highlight"></div>
             <div class="scrubber-playhead" id="scrubber-playhead"></div>
+            <div class="scrubber-hover-line" id="scrubber-hover-line"></div>
           </div>
         </div>
 
@@ -824,12 +983,31 @@
 
           <!-- Transport Buttons -->
           <div class="transport-buttons">
+            <button class="btn-ctl" onclick="stepTime(-10)" title="Rewind 10s (Key: J)">« -10s</button>
             <button class="btn-ctl" onclick="stepTime(-5)" title="Rewind 5s">« -5s</button>
             <button class="btn-ctl" onclick="stepFrame(-1)" title="Back 1 Frame (Arrow Left)">‹ Frame</button>
             <button class="btn-ctl play" id="btn-play-pause" onclick="togglePlay()" title="Play / Pause (Space)">▶ Play</button>
             <button class="btn-ctl" onclick="stepFrame(1)" title="Forward 1 Frame (Arrow Right)">Frame ›</button>
             <button class="btn-ctl" onclick="stepTime(5)" title="Forward 5s">+5s »</button>
+            <button class="btn-ctl" onclick="stepTime(10)" title="Forward 10s (Key: L)">+10s »</button>
             
+            <div style="width:1px;height:22px;background:rgba(255,255,255,0.1);margin:0 4px;"></div>
+
+            <!-- Playback Speed Toggler -->
+            <div style="display:inline-flex;align-items:center;gap:5px;">
+              <span style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">Speed:</span>
+              <select id="playback-speed-select" class="speed-dropdown" onchange="changePlaybackSpeed(this.value)" title="Playback Speed for Analysis">
+                <option value="0.25">0.25x Slow-Mo</option>
+                <option value="0.5">0.5x Slow</option>
+                <option value="0.75">0.75x</option>
+                <option value="1.0" selected>1.0x Normal</option>
+                <option value="1.25">1.25x Fast</option>
+                <option value="1.5">1.5x Faster</option>
+                <option value="1.75">1.75x Rapid</option>
+                <option value="2.0">2.0x 2x Speed</option>
+              </select>
+            </div>
+
             <div style="width:1px;height:22px;background:rgba(255,255,255,0.1);margin:0 4px;"></div>
 
             <!-- In / Out Setters -->
@@ -894,6 +1072,29 @@
     </div>
   </div>
 
+  <!-- Rendered Clip Smooth Player Modal -->
+  <div class="modal-backdrop" id="rendered-clip-modal" style="display:none;" onclick="if(event.target===this)closeRenderedClipModal()">
+    <div class="export-modal-box" style="width:740px;max-width:92vw;">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div class="modal-title" id="rendered-clip-title">Smooth Rendered Clip</div>
+        <button class="btn-header" onclick="closeRenderedClipModal()" style="padding:4px 10px;font-size:12px;">✕ Close</button>
+      </div>
+      <div style="position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:var(--radius-md);overflow:hidden;border:1px solid rgba(255,255,255,0.15);">
+        <video id="rendered-modal-player" controls autoplay loop playsinline style="width:100%;height:100%;object-fit:contain;"></video>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+        <span style="font-size:12px;color:var(--accent-green);font-weight:700;display:flex;align-items:center;gap:6px;">
+          <span style="width:8px;height:8px;border-radius:50%;background:var(--accent-green);box-shadow:0 0 8px var(--accent-green);"></span>
+          Zero-Lag Smooth MP4 Render
+        </span>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-action-cut download" id="rendered-modal-download-btn">⬇ Download Clip</button>
+          <button class="btn-action-cut send-analyzer" id="rendered-modal-analyzer-btn">🚀 Send to Analyzer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     /* ==========================================================================
        TACTICAL VIDEO CLIPPER ENGINE
@@ -905,16 +1106,20 @@
     const tcIn = document.getElementById('tc-in');
     const tcOut = document.getElementById('tc-out');
     const tcDur = document.getElementById('tc-dur');
+    const scrubberZone = document.getElementById('scrubber-zone');
     const scrubberTrack = document.getElementById('scrubber-track');
     const scrubberProgress = document.getElementById('scrubber-progress');
     const scrubberPlayhead = document.getElementById('scrubber-playhead');
     const scrubberHighlight = document.getElementById('scrubber-in-out-highlight');
+    const scrubberHoverLine = document.getElementById('scrubber-hover-line');
+    const scrubberHoverTooltip = document.getElementById('scrubber-hover-tooltip');
     const btnPlayPause = document.getElementById('btn-play-pause');
 
     let videoFile = null;
     let inPoint = 0;
     let outPoint = 0;
     let isPreviewingCut = false;
+    let currentActivePlayingClipId = null;
     let clipsQueue = [];
     let isExporting = false;
     let exportCancelled = false;
@@ -959,23 +1164,10 @@
         outPoint = Math.min(video.duration, 15); // Default 15s clip
         updateTimeDisplays();
         video.currentTime = 0;
+        video.playbackRate = currentPlaybackSpeed;
       };
     }
 
-    function loadSampleMatchVideo() {
-      // High speed professional match sample
-      const sampleUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4';
-      video.src = sampleUrl;
-      videoFile = { name: 'sample-breakout-match.mp4' };
-      emptyPlaceholder.classList.add('hidden');
-
-      video.onloadedmetadata = () => {
-        inPoint = 0;
-        outPoint = Math.min(video.duration, 12);
-        updateTimeDisplays();
-        video.currentTime = 0;
-      };
-    }
 
     // Drag & Drop Setup
     const dropzone = document.getElementById('dropzone-area');
@@ -1009,6 +1201,10 @@
         video.pause();
         btnPlayPause.textContent = '▶ Play';
         isPreviewingCut = false;
+        if (currentActivePlayingClipId) {
+          currentActivePlayingClipId = null;
+          if (typeof renderClipsQueue === 'function') renderClipsQueue();
+        }
       }
     }
 
@@ -1017,7 +1213,49 @@
     });
     video.addEventListener('pause', () => {
       btnPlayPause.textContent = '▶ Play';
+      if (currentActivePlayingClipId) {
+        currentActivePlayingClipId = null;
+        isPreviewingCut = false;
+        if (typeof renderClipsQueue === 'function') renderClipsQueue();
+      }
     });
+
+    // Hover time display on video timeline
+    function updateScrubberHover(e) {
+      if (!video || !video.duration) {
+        if (scrubberHoverLine) scrubberHoverLine.style.display = 'none';
+        if (scrubberHoverTooltip) scrubberHoverTooltip.style.display = 'none';
+        return;
+      }
+      const rect = scrubberTrack.getBoundingClientRect();
+      const trackX = e.clientX - rect.left;
+      const pct = Math.max(0, Math.min(1, trackX / rect.width));
+      const hoverTime = pct * video.duration;
+
+      if (scrubberHoverLine) {
+        scrubberHoverLine.style.display = 'block';
+        scrubberHoverLine.style.left = (pct * 100) + '%';
+      }
+
+      if (scrubberHoverTooltip) {
+        scrubberHoverTooltip.style.display = 'block';
+        scrubberHoverTooltip.textContent = formatTimecode(hoverTime);
+
+        const zoneRect = scrubberZone ? scrubberZone.getBoundingClientRect() : rect;
+        const tooltipX = e.clientX - zoneRect.left;
+        const clampedX = Math.max(38, Math.min(zoneRect.width - 38, tooltipX));
+        scrubberHoverTooltip.style.left = clampedX + 'px';
+      }
+    }
+
+    if (scrubberTrack) {
+      scrubberTrack.addEventListener('mousemove', updateScrubberHover);
+      scrubberTrack.addEventListener('mouseenter', updateScrubberHover);
+      scrubberTrack.addEventListener('mouseleave', () => {
+        if (scrubberHoverLine) scrubberHoverLine.style.display = 'none';
+        if (scrubberHoverTooltip) scrubberHoverTooltip.style.display = 'none';
+      });
+    }
 
     // Time update & scrubber sync
     video.addEventListener('timeupdate', () => {
@@ -1052,15 +1290,43 @@
       scrubberHighlight.style.width = widthPct + '%';
     }
 
-    // Step controls
+    let currentPlaybackSpeed = 1.0;
+
+    function changePlaybackSpeed(val) {
+      const spd = parseFloat(val) || 1.0;
+      currentPlaybackSpeed = spd;
+      if (video) {
+        video.playbackRate = spd;
+      }
+    }
+
+    // Step controls with auto-pause
     function stepTime(seconds) {
       if (!video.duration) return;
+      if (!video.paused) {
+        video.pause();
+        btnPlayPause.textContent = '▶ Play';
+      }
+      isPreviewingCut = false;
+      if (currentActivePlayingClipId) {
+        currentActivePlayingClipId = null;
+        if (typeof renderClipsQueue === 'function') renderClipsQueue();
+      }
       video.currentTime = Math.max(0, Math.min(video.duration, video.currentTime + seconds));
     }
 
     function stepFrame(frames) {
       if (!video.duration) return;
-      // Assume approx 30fps
+      if (!video.paused) {
+        video.pause();
+        btnPlayPause.textContent = '▶ Play';
+      }
+      isPreviewingCut = false;
+      if (currentActivePlayingClipId) {
+        currentActivePlayingClipId = null;
+        if (typeof renderClipsQueue === 'function') renderClipsQueue();
+      }
+      // Precise frame duration (1/30s)
       const frameDuration = 1 / 30;
       video.currentTime = Math.max(0, Math.min(video.duration, video.currentTime + (frames * frameDuration)));
     }
@@ -1088,11 +1354,17 @@
       if (!video.duration) return;
       isPreviewingCut = true;
       video.currentTime = inPoint;
+      video.playbackRate = currentPlaybackSpeed;
       video.play();
     }
 
     function handleScrubberClick(e) {
       if (!video.duration) return;
+      if (currentActivePlayingClipId) {
+        currentActivePlayingClipId = null;
+        isPreviewingCut = false;
+        if (typeof renderClipsQueue === 'function') renderClipsQueue();
+      }
       const rect = scrubberTrack.getBoundingClientRect();
       const clickX = e.clientX - rect.left;
       const pct = Math.max(0, Math.min(1, clickX / rect.width));
@@ -1125,10 +1397,24 @@
         setOutPoint();
       } else if (e.code === 'ArrowLeft') {
         e.preventDefault();
-        stepFrame(-1);
+        if (e.shiftKey) {
+          stepTime(-5);
+        } else {
+          stepFrame(-1);
+        }
       } else if (e.code === 'ArrowRight') {
         e.preventDefault();
-        stepFrame(1);
+        if (e.shiftKey) {
+          stepTime(5);
+        } else {
+          stepFrame(1);
+        }
+      } else if (e.key === 'j' || e.key === 'J') {
+        e.preventDefault();
+        stepTime(-10);
+      } else if (e.key === 'l' || e.key === 'L') {
+        e.preventDefault();
+        stepTime(10);
       }
     }, { capture: true });
 
@@ -1144,6 +1430,37 @@
     /* ==========================================================================
        CLIP QUEUE & PLAYLIST MANAGEMENT
     ========================================================================== */
+    let currentModalClip = null;
+
+    function playRenderedClipInModal(clip) {
+      currentModalClip = clip;
+      const modal = document.getElementById('rendered-clip-modal');
+      const player = document.getElementById('rendered-modal-player');
+      const title = document.getElementById('rendered-clip-title');
+      const dlBtn = document.getElementById('rendered-modal-download-btn');
+      const anBtn = document.getElementById('rendered-modal-analyzer-btn');
+
+      title.textContent = `${clip.title} (${formatDuration(clip.duration)})`;
+      player.src = clip.renderedUrl;
+      player.playbackRate = currentPlaybackSpeed;
+      modal.style.display = 'flex';
+      player.play().catch(e => console.warn('Modal player play:', e));
+
+      dlBtn.onclick = () => downloadRenderedClipBlob(clip);
+      anBtn.onclick = () => sendRenderedClipToAnalyzer(clip);
+    }
+
+    function closeRenderedClipModal() {
+      const modal = document.getElementById('rendered-clip-modal');
+      const player = document.getElementById('rendered-modal-player');
+      if (player) {
+        player.pause();
+        player.src = '';
+      }
+      if (modal) modal.style.display = 'none';
+      currentModalClip = null;
+    }
+
     function saveCurrentCutToQueue() {
       if (!video.duration) {
         alert('Please open or load a video first.');
@@ -1162,10 +1479,42 @@
         inPoint: inPoint,
         outPoint: outPoint,
         duration: durSecs,
-        tag: 'TRANSITION'
+        tag: 'TRANSITION',
+        isRendered: false,
+        blob: null,
+        renderedUrl: null,
+        isMp4: true
       };
 
       clipsQueue.push(clip);
+      renderClipsQueue();
+    }
+
+    function togglePlayClip(id) {
+      const c = clipsQueue.find(item => item.id === id);
+      if (!c) return;
+
+      // If this exact clip is already playing/looping in stage, STOP it!
+      if (currentActivePlayingClipId === id && isPreviewingCut && !video.paused) {
+        stopClipPlayback();
+        return;
+      }
+
+      currentActivePlayingClipId = id;
+      inPoint = c.inPoint;
+      outPoint = c.outPoint;
+      updateTimeDisplays();
+      previewSelectedCut();
+      renderClipsQueue();
+    }
+
+    function stopClipPlayback() {
+      if (video && !video.paused) {
+        video.pause();
+      }
+      isPreviewingCut = false;
+      currentActivePlayingClipId = null;
+      btnPlayPause.textContent = '▶ Play';
       renderClipsQueue();
     }
 
@@ -1185,24 +1534,36 @@
         return;
       }
 
-      container.innerHTML = clipsQueue.map((c, idx) => `
-        <div class="clip-card" id="${c.id}">
+      container.innerHTML = clipsQueue.map((c, idx) => {
+        const isPlayingThisClip = (currentActivePlayingClipId === c.id && isPreviewingCut && !video.paused);
+        return `
+        <div class="clip-card ${isPlayingThisClip ? 'active-loop-card' : ''}" id="${c.id}">
           <div class="clip-card-header">
             <input type="text" class="clip-title-input" value="${escapeHtml(c.title)}" onchange="updateClipTitle('${c.id}', this.value)">
-            <span class="clip-tag-pill">${c.tag}</span>
+            <span class="clip-tag-pill ${c.isRendered ? 'rendered' : ''}" ${c.isRendered ? `onclick="playRenderedClipInModal('${c.id}')" style="cursor:pointer;" title="Click to open Zero-Lag Modal Player"` : ''}>${c.isRendered ? '✅ RENDERED (SMOOTH)' : c.tag}</span>
           </div>
           <div class="clip-meta-row">
             <span>⏱ ${formatTimecode(c.inPoint).slice(3, 11)} → ${formatTimecode(c.outPoint).slice(3, 11)}</span>
             <span style="color:var(--accent-amber);font-weight:700;">${formatDuration(c.duration)}</span>
           </div>
           <div class="clip-btn-row">
-            <button class="btn-clip-sub" onclick="loadClipIntoStage('${c.id}')" title="Seek to this clip">▶ Play</button>
-            <button class="btn-clip-sub" onclick="downloadSpecificClip('${c.id}')" title="Download to PC">⬇ Save</button>
-            <button class="btn-clip-sub" onclick="sendSpecificClipToAnalyzer('${c.id}')" title="Send to Video Analyzer" style="color:var(--accent-blue);">🚀 Analyzer</button>
-            <button class="btn-clip-sub del" onclick="deleteClip('${c.id}')" title="Delete Clip">✕</button>
+            ${c.isRendered ? `
+              <button class="btn-clip-sub render-btn is-rendered" onclick="playRenderedClipInModal('${c.id}')" title="Zero-Lag Render Ready! Click to open modal player">⚡ Render</button>
+            ` : `
+              <button class="btn-clip-sub render-btn" onclick="renderSpecificClip('${c.id}')" title="Render this clip to guarantee zero lag">⚡ Render</button>
+            `}
+            ${isPlayingThisClip ? `
+              <button class="btn-clip-sub stop-btn" onclick="togglePlayClip('${c.id}')" title="Stop Clip Loop">⏹</button>
+            ` : `
+              <button class="btn-clip-sub play-btn" onclick="togglePlayClip('${c.id}')" title="Play Cut in Loop">▶</button>
+            `}
+            <button class="btn-clip-sub save-btn" onclick="downloadSpecificClip('${c.id}')" title="${c.isRendered ? 'Instant Download MP4' : 'Render & Download MP4'}">⬇</button>
+            <button class="btn-clip-sub analyzer-btn" onclick="sendSpecificClipToAnalyzer('${c.id}')" title="Send to Video Analyzer">🚀</button>
+            <button class="btn-clip-sub del-btn" onclick="deleteClip('${c.id}')" title="Delete Clip">✕</button>
           </div>
         </div>
-      `).join('');
+      `;
+      }).join('');
     }
 
     function escapeHtml(str) {
@@ -1215,15 +1576,42 @@
     }
 
     function loadClipIntoStage(id) {
+      togglePlayClip(id);
+    }
+
+    async function renderSpecificClip(id) {
       const c = clipsQueue.find(item => item.id === id);
       if (!c) return;
-      inPoint = c.inPoint;
-      outPoint = c.outPoint;
-      updateTimeDisplays();
-      previewSelectedCut();
+      showExportModal(`Rendering "${c.title}" to Smooth MP4...`);
+      try {
+        const { blob, isMp4 } = await extractClipBlob(c.inPoint, c.outPoint, (pct) => {
+          updateExportModal(pct, `Rendering frames: ${pct}%`);
+        });
+        if (c.renderedUrl) {
+          try { URL.revokeObjectURL(c.renderedUrl); } catch(e){}
+        }
+        c.blob = blob;
+        c.isMp4 = isMp4;
+        c.renderedUrl = URL.createObjectURL(blob);
+        c.isRendered = true;
+        closeExportModal();
+        renderClipsQueue();
+      } catch (err) {
+        closeExportModal();
+        if (err.message !== 'Export cancelled by user.') {
+          alert('Render note: ' + err.message);
+        }
+      }
     }
 
     function deleteClip(id) {
+      if (currentActivePlayingClipId === id) {
+        stopClipPlayback();
+      }
+      const c = clipsQueue.find(item => item.id === id);
+      if (c && c.renderedUrl) {
+        try { URL.revokeObjectURL(c.renderedUrl); } catch(e){}
+      }
       clipsQueue = clipsQueue.filter(item => item.id !== id);
       renderClipsQueue();
     }
@@ -1231,6 +1619,10 @@
     function clearAllClips() {
       if (clipsQueue.length === 0) return;
       if (confirm('Clear all clips from the playlist?')) {
+        stopClipPlayback();
+        clipsQueue.forEach(c => {
+          if (c.renderedUrl) try { URL.revokeObjectURL(c.renderedUrl); } catch(e){}
+        });
         clipsQueue = [];
         renderClipsQueue();
       }
@@ -1386,7 +1778,161 @@
       throw new Error('Video stream capture is not supported in this browser. Please use Google Chrome, Safari 14.1+, or Microsoft Edge.');
     }
 
+    /* ==========================================================================
+       DIRECT FRAME-ACCURATE WEBCODECS + MP4-MUXER RENDERING ENGINE
+       Renders exact frames with zero frame drops, zero lag, and instant fast-start
+    ========================================================================== */
     async function extractClipBlob(startTime, endTime, onProgress) {
+      const hasWebCodecs = (typeof VideoEncoder !== 'undefined' && typeof Mp4Muxer !== 'undefined');
+      if (hasWebCodecs) {
+        try {
+          return await extractClipBlobWebCodecs(startTime, endTime, onProgress);
+        } catch (wcErr) {
+          console.warn('WebCodecs render failed, falling back to MediaRecorder:', wcErr);
+          if (exportCancelled) throw wcErr;
+        }
+      }
+      return await extractClipBlobFallback(startTime, endTime, onProgress);
+    }
+
+    async function extractClipBlobWebCodecs(startTime, endTime, onProgress) {
+      const origTime = video.currentTime;
+      const wasPlaying = !video.paused;
+      video.pause();
+
+      // Ensure dimensions are even numbers (requirement for H.264 AVC codecs)
+      let w = video.videoWidth || 1920;
+      let h = video.videoHeight || 1080;
+      if (w > 1920) {
+        h = Math.round((h * 1920) / w);
+        w = 1920;
+      }
+      if (w % 2 !== 0) w--;
+      if (h % 2 !== 0) h--;
+
+      const fps = 30;
+      const frameDurationUs = Math.round(1_000_000 / fps);
+      const totalDuration = Math.max(0.1, endTime - startTime);
+      const totalFrames = Math.max(1, Math.round(totalDuration * fps));
+
+      const compCanvas = document.createElement('canvas');
+      compCanvas.width = w;
+      compCanvas.height = h;
+      const compCtx = compCanvas.getContext('2d', { alpha: false });
+      compCtx.imageSmoothingEnabled = true;
+      compCtx.imageSmoothingQuality = 'high';
+
+      const muxer = new Mp4Muxer.Muxer({
+        target: new Mp4Muxer.ArrayBufferTarget(),
+        video: {
+          codec: 'avc',
+          width: w,
+          height: h
+        },
+        fastStart: 'in-memory',
+        firstTimestampBehavior: 'offset'
+      });
+
+      let encoderError = null;
+      const encoder = new VideoEncoder({
+        output: (chunk, meta) => {
+          if (muxer) muxer.addVideoChunk(chunk, meta);
+        },
+        error: (err) => {
+          console.error('WebCodecs VideoEncoder error:', err);
+          encoderError = err;
+        }
+      });
+
+      let chosenCodec = 'avc1.4d002a'; // H.264 Main Profile
+      if (typeof VideoEncoder.isConfigSupported === 'function') {
+        try {
+          const high = await VideoEncoder.isConfigSupported({
+            codec: 'avc1.640028',
+            width: w,
+            height: h,
+            bitrate: 6000000
+          });
+          if (high && high.supported) chosenCodec = 'avc1.640028';
+        } catch(e){}
+      }
+
+      encoder.configure({
+        codec: chosenCodec,
+        width: w,
+        height: h,
+        bitrate: 6000000,
+        framerate: fps,
+        hardwareAcceleration: 'prefer-hardware',
+        avc: { format: 'avc' }
+      });
+
+      const waitForVideoSeek = (targetSec) => {
+        return new Promise(resolve => {
+          let done = false;
+          const onSeek = () => {
+            if (done) return;
+            done = true;
+            video.removeEventListener('seeked', onSeek);
+            resolve();
+          };
+          video.addEventListener('seeked', onSeek, { once: true });
+          video.currentTime = targetSec;
+          setTimeout(onSeek, 90);
+        });
+      };
+
+      let outputFrameIdx = 0;
+      for (let f = 0; f < totalFrames; f++) {
+        if (exportCancelled) {
+          try { encoder.close(); } catch(e){}
+          video.currentTime = origTime;
+          throw new Error('Export cancelled by user.');
+        }
+        if (encoderError) {
+          throw new Error('Encoder error: ' + encoderError.message);
+        }
+
+        const t = startTime + (f / fps);
+        const clampedT = Math.max(0, Math.min((video.duration || 999999) - 0.001, t));
+        await waitForVideoSeek(clampedT);
+
+        // Draw crystal-clear video frame onto composition canvas
+        compCtx.drawImage(video, 0, 0, w, h);
+
+        const timestampUs = outputFrameIdx * frameDurationUs;
+        const isKeyFrame = (outputFrameIdx % (fps * 2) === 0);
+
+        const vFrame = new VideoFrame(compCanvas, {
+          timestamp: timestampUs,
+          duration: frameDurationUs
+        });
+        encoder.encode(vFrame, { keyFrame: isKeyFrame });
+        vFrame.close();
+        outputFrameIdx++;
+
+        if (onProgress && (outputFrameIdx % 2 === 0 || outputFrameIdx === totalFrames)) {
+          const pct = Math.min(99, Math.round((outputFrameIdx / totalFrames) * 100));
+          onProgress(pct);
+        }
+      }
+
+      if (onProgress) onProgress(99);
+      await encoder.flush();
+      encoder.close();
+      muxer.finalize();
+
+      video.currentTime = origTime;
+      if (wasPlaying) {
+        video.play().catch(e => {});
+      }
+
+      const buffer = muxer.target.buffer;
+      const blob = new Blob([buffer], { type: 'video/mp4' });
+      return { blob, isMp4: true };
+    }
+
+    async function extractClipBlobFallback(startTime, endTime, onProgress) {
       return new Promise(async (resolve, reject) => {
         let streamInfo = null;
         let animFrameId = null;
@@ -1418,7 +1964,6 @@
             resolve({ blob, isMp4 });
           };
 
-          // Prepare playback
           video.pause();
           video.currentTime = startTime;
 
@@ -1430,45 +1975,17 @@
               video.removeEventListener('seeked', onSeek);
               r();
             };
-            video.addEventListener('seeked', onSeek);
-            setTimeout(onSeek, 600);
+            video.addEventListener('seeked', onSeek, { once: true });
+            setTimeout(onSeek, 400);
           });
 
-          // Draw first frame if using canvas pipeline
           if (streamInfo.isCanvas && streamInfo.renderFrame) {
             streamInfo.renderFrame();
           }
 
-          // Start video playback and WAIT until playback is actually advancing!
-          const playPromise = video.play();
-          if (playPromise && typeof playPromise.catch === 'function') {
-            playPromise.catch(e => console.warn('video.play() notice:', e));
-          }
-
-          await new Promise(res => {
-            let begun = false;
-            const onTimeUpdate = () => {
-              if (begun) return;
-              if (video.currentTime > startTime + 0.015) {
-                begun = true;
-                video.removeEventListener('timeupdate', onTimeUpdate);
-                res();
-              }
-            };
-            video.addEventListener('timeupdate', onTimeUpdate);
-            setTimeout(() => {
-              if (!begun) {
-                begun = true;
-                try { video.removeEventListener('timeupdate', onTimeUpdate); } catch(e){}
-                res();
-              }
-            }, 800);
-          });
-
-          // START RECORDER EXACTLY AS VIDEO BEGINS PLAYING - ZERO START DELAY!
           recorder.start(100);
+          video.play().catch(e => console.warn('video.play notice:', e));
 
-          // Smooth canvas rendering loop for Mac / Safari
           if (streamInfo.isCanvas && streamInfo.renderFrame) {
             const drawLoop = () => {
               if (recorder.state === 'recording') {
@@ -1504,9 +2021,7 @@
               if (onProgress) onProgress(pct);
             }
 
-            // STOP IMMEDIATELY ON COMPLETION - ZERO TAIL FREEZE!
-            const isDone = (cur >= endTime) || video.ended || (wallElapsed >= totalDuration + 0.35);
-
+            const isDone = (cur >= endTime) || video.ended || (wallElapsed >= totalDuration + 0.2);
             if (isDone) {
               clearInterval(checkInterval);
               if (animFrameId) cancelAnimationFrame(animFrameId);
@@ -1517,7 +2032,7 @@
                 }
               } catch(e){}
             }
-          }, 40);
+          }, 30);
 
         } catch (err) {
           if (animFrameId) cancelAnimationFrame(animFrameId);
@@ -1538,11 +2053,11 @@
         return;
       }
 
-      showExportModal('Extracting & Downloading Clip...');
+      showExportModal('Rendering & Downloading Smooth Clip...');
 
       try {
         const { blob, isMp4 } = await extractClipBlob(inPoint, outPoint, (pct) => {
-          updateExportModal(pct, `Recording segment: ${pct}%`);
+          updateExportModal(pct, `Rendering frames: ${pct}%`);
         });
 
         const ext = isMp4 ? 'mp4' : 'webm';
@@ -1570,13 +2085,56 @@
       }
     }
 
+    function downloadRenderedClipBlob(c) {
+      const ext = c.isMp4 ? 'mp4' : 'webm';
+      const cleanTitle = (c.title || 'clip').replace(/[^a-zA-Z0-9_-]/g, '_');
+      const filename = `${cleanTitle}_${Math.round(c.inPoint)}s-${Math.round(c.outPoint)}s.${ext}`;
+      const url = c.renderedUrl || URL.createObjectURL(c.blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.style.position = 'fixed';
+      a.style.left = '-9999px';
+      a.style.opacity = '0';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        try { document.body.removeChild(a); } catch(e){}
+        if (!c.renderedUrl) URL.revokeObjectURL(url);
+      }, 10000);
+    }
+
     async function downloadSpecificClip(id) {
       const c = clipsQueue.find(item => item.id === id);
       if (!c) return;
+
+      if (c.isRendered && c.blob) {
+        downloadRenderedClipBlob(c);
+        return;
+      }
+
       inPoint = c.inPoint;
       outPoint = c.outPoint;
       updateTimeDisplays();
-      await downloadCurrentCutDirectly();
+
+      showExportModal(`Rendering "${c.title}" for download...`);
+      try {
+        const { blob, isMp4 } = await extractClipBlob(inPoint, outPoint, (pct) => {
+          updateExportModal(pct, `Rendering frames: ${pct}%`);
+        });
+        c.blob = blob;
+        c.isMp4 = isMp4;
+        c.renderedUrl = URL.createObjectURL(blob);
+        c.isRendered = true;
+        closeExportModal();
+        renderClipsQueue();
+        downloadRenderedClipBlob(c);
+      } catch (err) {
+        closeExportModal();
+        if (err.message !== 'Export cancelled by user.') {
+          alert('Error extracting clip: ' + err.message);
+        }
+      }
     }
 
     // 1-Click Send to Video Analyzer
@@ -1586,11 +2144,11 @@
         return;
       }
 
-      showExportModal('Preparing Clip for Video Analyzer...');
+      showExportModal('Rendering Smooth Clip for Video Analyzer...');
 
       try {
         const { blob, isMp4 } = await extractClipBlob(inPoint, outPoint, (pct) => {
-          updateExportModal(pct, `Transferring clip: ${pct}%`);
+          updateExportModal(pct, `Rendering frames: ${pct}%`);
         });
 
         // Store into IndexedDB for Video Analyzer pickup
@@ -1608,13 +2166,32 @@
       }
     }
 
-    function sendSpecificClipToAnalyzer(id) {
+    async function sendRenderedClipToAnalyzer(c) {
+      if (!c.blob) return;
+      showExportModal('Transferring Clip to Video Analyzer...');
+      try {
+        await storeClipInIndexedDB(c.blob, c.isMp4 ? 'mp4' : 'webm');
+        closeExportModal();
+        window.open('video-analyzer.html?source=clipper_handoff', '_blank');
+      } catch(err) {
+        closeExportModal();
+        alert('Transfer error: ' + err.message);
+      }
+    }
+
+    async function sendSpecificClipToAnalyzer(id) {
       const c = clipsQueue.find(item => item.id === id);
       if (!c) return;
+
+      if (c.isRendered && c.blob) {
+        await sendRenderedClipToAnalyzer(c);
+        return;
+      }
+
       inPoint = c.inPoint;
       outPoint = c.outPoint;
       updateTimeDisplays();
-      sendCutDirectlyToAnalyzer();
+      await sendCutDirectlyToAnalyzer();
     }
 
     // IndexedDB Transfer Store
