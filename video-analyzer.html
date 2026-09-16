@@ -9865,6 +9865,7 @@
         });
         canvas.add(textObject);
         canvas.setActiveObject(textObject);
+        canvas.renderAll();
         updateContextualControls(textObject);
         showFloatingTextToolbar(textObject);
         saveCurrentCanvasToActiveKeyframe();
@@ -10183,7 +10184,7 @@
         toolbar.style.display = 'none';
         return;
       }
-      const canvasEl = document.getElementById('telestration-canvas');
+      const canvasEl = canvas.upperCanvasEl || canvas.lowerCanvasEl || document.getElementById('telestration-canvas');
       const stage = document.getElementById('player-stage');
       if (!canvasEl || !stage) return;
 
@@ -10191,17 +10192,18 @@
       const stageRect = stage.getBoundingClientRect();
 
       obj.setCoords();
-      const objRect = obj.getBoundingRect(true);
-      const scaleX = canvasRect.width / (canvas.width || 1);
-      const scaleY = canvasRect.height / (canvas.height || 1);
+      // Use getBoundingRect(false) to get coordinates in canvas element display pixels (accounting for zoom and transforms)
+      const objRect = obj.getBoundingRect(false);
 
       const stageCanvasOffsetX = canvasRect.left - stageRect.left;
       const stageCanvasOffsetY = canvasRect.top - stageRect.top;
 
-      const objScreenLeft = stageCanvasOffsetX + (objRect.left * scaleX);
-      const objScreenTop = stageCanvasOffsetY + (objRect.top * scaleY);
-      const objScreenWidth = objRect.width * scaleX;
-      const objScreenHeight = objRect.height * scaleY;
+      const textLeft = stageCanvasOffsetX + objRect.left;
+      const textTop = stageCanvasOffsetY + objRect.top;
+      const textWidth = objRect.width;
+      const textHeight = objRect.height;
+      const textCenterX = textLeft + (textWidth / 2);
+      const textBottom = textTop + textHeight;
 
       // Ensure toolbar is visible and accurately dimensioned
       toolbar.style.display = 'flex';
@@ -10222,14 +10224,18 @@
         return;
       }
 
-      // Center horizontally relative to object center
-      let left = objScreenLeft + (objScreenWidth / 2) - (toolbarWidth / 2);
-      // Place above the text object with 12px margin
-      let top = objScreenTop - toolbarHeight - 12;
+      // Horizontally center above the text object
+      let left = textCenterX - (toolbarWidth / 2);
+      // BY DEFAULT: Position directly ABOVE the text note with 12px gap
+      let top = textTop - toolbarHeight - 12;
 
-      // If positioned too close to the top of stage, place below the text box
+      // Only flip below if the text note is placed so close to the top of stage that toolbar would be clipped off-screen
       if (top < margin) {
-        top = objScreenTop + objScreenHeight + 12;
+        if (textBottom + toolbarHeight + 12 <= stageRect.height - margin) {
+          top = textBottom + 12;
+        } else {
+          top = margin;
+        }
       }
 
       // Clamp strictly inside stage boundaries so it NEVER goes off screen
@@ -10904,6 +10910,7 @@
         });
         canvas.add(textObject);
         canvas.setActiveObject(textObject);
+        canvas.renderAll();
         updateContextualControls(textObject);
         textObject.enterEditing();
         textObject.selectAll();
