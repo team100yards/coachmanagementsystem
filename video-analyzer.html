@@ -2534,6 +2534,19 @@
       gap: 10px;
     }
 
+    /* Draggable & Resizable On-Stage Watermark */
+    #stage-watermark-overlay:hover {
+      outline: 1.5px dashed rgba(0, 230, 118, 0.8);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
+    #stage-watermark-overlay:hover #stage-watermark-resize-handle {
+      display: block !important;
+    }
+    #stage-watermark-overlay:hover #stage-watermark-studio-btn {
+      display: flex !important;
+    }
+
     /* Keyboard Shortcuts Modal */
     .modal-overlay {
       position: fixed;
@@ -3737,12 +3750,20 @@
             </div>
           </div>
 
-          <!-- On-Stage Watermark Display Badge (Synchronized with Watermark State) -->
-          <div id="stage-watermark-overlay" onclick="openWatermarkModal()"
-            title="Watermark Branding (Click to customize)"
-            style="display:none;position:absolute;pointer-events:auto;cursor:pointer;z-index:40;transition:opacity 0.2s ease;">
-            <img id="stage-watermark-img" src="" alt="Watermark"
-              style="width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.7));">
+          <!-- On-Stage Watermark Display Badge (Draggable & Resizable anywhere on screen) -->
+          <div id="stage-watermark-overlay"
+            title="Watermark Branding (Drag anywhere on stage, drag corner handle to resize, click ⚙️ for Studio)"
+            style="display:none;position:absolute;pointer-events:auto;cursor:grab;z-index:40;user-select:none;touch-action:none;transition:opacity 0.2s ease;">
+            <img id="stage-watermark-img" src="" alt="Watermark" draggable="false"
+              style="width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.7));pointer-events:none;">
+            <!-- Resize Corner Grip Handle -->
+            <div id="stage-watermark-resize-handle"
+              title="Drag to resize watermark size"
+              style="position:absolute;bottom:-4px;right:-4px;width:12px;height:12px;background:#00e676;border:1.5px solid #000;border-radius:2px;cursor:nwse-resize;display:none;z-index:42;"></div>
+            <!-- Quick Studio Button -->
+            <button type="button" id="stage-watermark-studio-btn"
+              title="Open Watermark Studio" onclick="event.stopPropagation(); openWatermarkModal();"
+              style="display:none;position:absolute;top:-8px;right:-8px;width:18px;height:18px;border-radius:50%;background:#0b1220;border:1px solid var(--accent-green);color:var(--accent-green);font-size:10px;line-height:1;align-items:center;justify-content:center;cursor:pointer;z-index:43;">⚙️</button>
           </div>
 
           <!-- Live Recording HUD Badge on Stage -->
@@ -4742,6 +4763,7 @@
       enabled: true,
       showOnStage: true,
       position: 'bottom-right',
+      customPos: null, // { xPct, yPct } when dragged anywhere on stage
       opacity: 0.50,
       scalePx: 160, // 70px to 360px on 1080p canvas
       layout: 'mascot-text', // 'mascot-text', 'mascot-only', 'original'
@@ -4790,6 +4812,7 @@
           enabled: watermarkSettings.enabled,
           showOnStage: watermarkSettings.showOnStage,
           position: watermarkSettings.position,
+          customPos: watermarkSettings.customPos || null,
           opacity: watermarkSettings.opacity,
           scalePx: watermarkSettings.scalePx,
           layout: watermarkSettings.layout,
@@ -4921,8 +4944,11 @@
 
     // Update Screen Corner Position
     function updateWatermarkPosition(pos) {
-      if (!['top-right', 'bottom-right', 'top-left', 'bottom-left'].includes(pos)) return;
+      if (!['top-right', 'bottom-right', 'top-left', 'bottom-left', 'custom', 'center'].includes(pos)) return;
       watermarkSettings.position = pos;
+      if (pos !== 'custom') {
+        watermarkSettings.customPos = null;
+      }
       saveWatermarkSettings();
       syncAllWatermarkUIs();
       updateStageWatermarkDisplay();
@@ -5000,7 +5026,25 @@
       if (mOpLbl) mOpLbl.textContent = opPct + '%';
 
       const mPosSel = document.getElementById('modal-watermark-pos-select');
-      if (mPosSel) mPosSel.value = watermarkSettings.position;
+      if (mPosSel) {
+        if (!mPosSel.querySelector('option[value="custom"]')) {
+          const opt = document.createElement('option');
+          opt.value = 'custom';
+          opt.textContent = 'Custom Placement 📍 (Drag on screen)';
+          opt.style.background = '#1a2236';
+          opt.style.color = '#00e676';
+          mPosSel.appendChild(opt);
+        }
+        if (!mPosSel.querySelector('option[value="center"]')) {
+          const opt2 = document.createElement('option');
+          opt2.value = 'center';
+          opt2.textContent = 'Center';
+          opt2.style.background = '#1a2236';
+          opt2.style.color = '#e2e8f0';
+          mPosSel.appendChild(opt2);
+        }
+        mPosSel.value = watermarkSettings.position;
+      }
 
       // Text line style toggle buttons
       const btnTxtLines = document.getElementById('btn-text-style-lines');
@@ -5096,7 +5140,25 @@
       }
 
       const expPos = document.getElementById('watermark-position-select');
-      if (expPos) expPos.value = watermarkSettings.position;
+      if (expPos) {
+        if (!expPos.querySelector('option[value="custom"]')) {
+          const opt = document.createElement('option');
+          opt.value = 'custom';
+          opt.textContent = 'Custom Placement 📍';
+          opt.style.background = '#1a2236';
+          opt.style.color = '#00e676';
+          expPos.appendChild(opt);
+        }
+        if (!expPos.querySelector('option[value="center"]')) {
+          const opt2 = document.createElement('option');
+          opt2.value = 'center';
+          opt2.textContent = 'Center';
+          opt2.style.background = '#1a2236';
+          opt2.style.color = '#e2e8f0';
+          expPos.appendChild(opt2);
+        }
+        expPos.value = watermarkSettings.position;
+      }
 
       const expOpSlider = document.getElementById('watermark-opacity-slider');
       if (expOpSlider) expOpSlider.value = opPct;
@@ -5575,24 +5637,32 @@
       let x = targetW - drawW - margin;
       let y = margin;
 
-      switch (watermarkSettings.position) {
-        case 'top-left':
-          x = margin;
-          y = margin;
-          break;
-        case 'bottom-right':
-          x = targetW - drawW - margin;
-          y = targetH - drawH - margin;
-          break;
-        case 'bottom-left':
-          x = margin;
-          y = targetH - drawH - margin;
-          break;
-        case 'top-right':
-        default:
-          x = targetW - drawW - margin;
-          y = margin;
-          break;
+      if (watermarkSettings.position === 'custom' && watermarkSettings.customPos) {
+        x = Math.round(watermarkSettings.customPos.xPct * targetW);
+        y = Math.round(watermarkSettings.customPos.yPct * targetH);
+      } else if (watermarkSettings.position === 'center') {
+        x = Math.round((targetW - drawW) / 2);
+        y = Math.round((targetH - drawH) / 2);
+      } else {
+        switch (watermarkSettings.position) {
+          case 'top-left':
+            x = margin;
+            y = margin;
+            break;
+          case 'bottom-right':
+            x = targetW - drawW - margin;
+            y = targetH - drawH - margin;
+            break;
+          case 'bottom-left':
+            x = margin;
+            y = targetH - drawH - margin;
+            break;
+          case 'top-right':
+          default:
+            x = targetW - drawW - margin;
+            y = margin;
+            break;
+        }
       }
 
       targetCtx.save();
@@ -5632,26 +5702,138 @@
       el.style.left = '';
       el.style.right = '';
 
-      const pad = '18px';
-      switch (watermarkSettings.position) {
-        case 'top-left':
-          el.style.top = pad;
-          el.style.left = pad;
-          break;
-        case 'bottom-right':
-          el.style.bottom = pad;
-          el.style.right = pad;
-          break;
-        case 'bottom-left':
-          el.style.bottom = pad;
-          el.style.left = pad;
-          break;
-        case 'top-right':
-        default:
-          el.style.top = pad;
-          el.style.right = pad;
-          break;
+      if (watermarkSettings.position === 'custom' && watermarkSettings.customPos) {
+        el.style.left = (watermarkSettings.customPos.xPct * 100) + '%';
+        el.style.top = (watermarkSettings.customPos.yPct * 100) + '%';
+        el.style.transform = 'none';
+      } else if (watermarkSettings.position === 'center') {
+        el.style.left = '50%';
+        el.style.top = '50%';
+        el.style.transform = 'translate(-50%, -50%)';
+      } else {
+        el.style.transform = 'none';
+        const pad = '18px';
+        switch (watermarkSettings.position) {
+          case 'top-left':
+            el.style.top = pad;
+            el.style.left = pad;
+            break;
+          case 'bottom-right':
+            el.style.bottom = pad;
+            el.style.right = pad;
+            break;
+          case 'bottom-left':
+            el.style.bottom = pad;
+            el.style.left = pad;
+            break;
+          case 'top-right':
+          default:
+            el.style.top = pad;
+            el.style.right = pad;
+            break;
+        }
       }
+    }
+
+    // Drag & Drop Free Positioning and Live Resize for On-Stage Watermark
+    let _isWatermarkDragInitialized = false;
+    function initDraggableStageWatermark() {
+      if (_isWatermarkDragInitialized) return;
+      const el = document.getElementById('stage-watermark-overlay');
+      const handle = document.getElementById('stage-watermark-resize-handle');
+      if (!el) return;
+      _isWatermarkDragInitialized = true;
+
+      let isDragging = false;
+      let isResizing = false;
+      let startX = 0, startY = 0;
+      let startLeft = 0, startTop = 0;
+      let startScale = 160;
+      let hasMoved = false;
+
+      el.addEventListener('pointerdown', (e) => {
+        if (e.target === handle || (e.target.id && e.target.id === 'stage-watermark-studio-btn')) return;
+        isDragging = true;
+        hasMoved = false;
+        el.style.cursor = 'grabbing';
+        try { el.setPointerCapture(e.pointerId); } catch (err) { }
+
+        const stage = document.getElementById('player-stage') || el.parentElement;
+        const stageRect = stage.getBoundingClientRect();
+        const elRect = el.getBoundingClientRect();
+
+        startX = e.clientX;
+        startY = e.clientY;
+        startLeft = elRect.left - stageRect.left;
+        startTop = elRect.top - stageRect.top;
+      });
+
+      if (handle) {
+        handle.addEventListener('pointerdown', (e) => {
+          e.stopPropagation();
+          isResizing = true;
+          hasMoved = false;
+          try { handle.setPointerCapture(e.pointerId); } catch (err) { }
+          startX = e.clientX;
+          startScale = watermarkSettings.scalePx || 160;
+        });
+      }
+
+      window.addEventListener('pointermove', (e) => {
+        const stage = document.getElementById('player-stage') || (el ? el.parentElement : null);
+        if (!stage) return;
+        const stageRect = stage.getBoundingClientRect();
+
+        if (isDragging) {
+          const dx = e.clientX - startX;
+          const dy = e.clientY - startY;
+          if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMoved = true;
+
+          const maxL = Math.max(0, stageRect.width - el.offsetWidth);
+          const maxT = Math.max(0, stageRect.height - el.offsetHeight);
+          const newLeft = Math.max(0, Math.min(maxL, startLeft + dx));
+          const newTop = Math.max(0, Math.min(maxT, startTop + dy));
+
+          el.style.left = newLeft + 'px';
+          el.style.top = newTop + 'px';
+          el.style.right = '';
+          el.style.bottom = '';
+          el.style.transform = 'none';
+
+          const xPct = stageRect.width > 0 ? (newLeft / stageRect.width) : 0;
+          const yPct = stageRect.height > 0 ? (newTop / stageRect.height) : 0;
+          watermarkSettings.position = 'custom';
+          watermarkSettings.customPos = { xPct, yPct };
+        } else if (isResizing) {
+          const dx = e.clientX - startX;
+          if (Math.abs(dx) > 3) hasMoved = true;
+          const stageRatio = Math.max(0.4, Math.min(1.0, stageRect.width / 1920));
+          const deltaScale = dx / stageRatio;
+          const newScale = Math.max(70, Math.min(480, Math.round(startScale + deltaScale)));
+          watermarkSettings.scalePx = newScale;
+          updateWatermarkScale(newScale);
+        }
+      });
+
+      window.addEventListener('pointerup', (e) => {
+        if (isDragging) {
+          isDragging = false;
+          el.style.cursor = 'grab';
+          saveWatermarkSettings();
+          syncAllWatermarkUIs();
+        }
+        if (isResizing) {
+          isResizing = false;
+          saveWatermarkSettings();
+          syncAllWatermarkUIs();
+        }
+      });
+
+      // Double-clicking on watermark opens Branding Studio
+      el.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        openWatermarkModal();
+      });
     }
 
     // Squad Database State (Feature 3)
@@ -16191,6 +16373,7 @@
       setExportFormat(selectedExportFormat);
       checkClipperHandoff();
       initWatermarkUIFromState();
+      initDraggableStageWatermark();
 
       // Local video media state event listeners for rock-solid sync with transport UI
       const localVid = document.getElementById('local-video-element');
