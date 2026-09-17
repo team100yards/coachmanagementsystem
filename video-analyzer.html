@@ -4163,98 +4163,98 @@
     </div>
   </div>
 
-  <!-- Direct Video Export & Download Modal (Window-Fitted & Scroll-Protected) -->
+  <!-- Direct Video Export & Download Modal (Compact & Zero-Scroll) -->
   <div class="modal-overlay" id="export-video-modal" style="display:none;"
     onclick="if(event.target===this)closeExportVideoModal()">
     <div class="modal-card"
-      style="max-width: 580px; width: 94%; max-height: 88vh; display: flex; flex-direction: column; overflow: hidden; padding: 0; border: 1px solid rgba(0,230,118,0.3); box-shadow: 0 20px 60px rgba(0,0,0,0.85);">
+      style="max-width: 530px; width: 92%; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; padding: 0; border: 1px solid rgba(0,230,118,0.3); border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.85);">
 
       <!-- Pinned Header -->
       <div class="modal-header"
-        style="padding: 14px 18px 12px; margin-bottom: 0; border-bottom: 1px solid var(--border-subtle); flex-shrink: 0;">
-        <h3 style="font-size: 15px; font-weight: 800; display: flex; align-items: center; gap: 8px; margin: 0;">
-          <span style="color:var(--accent-green);">⬇️</span> Export Video Clip (Direct Download)
+        style="padding: 10px 16px; margin-bottom: 0; border-bottom: 1px solid var(--border-subtle); flex-shrink: 0;">
+        <h3 style="font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 8px; margin: 0;">
+          <span style="color:var(--accent-green);">⬇️</span> Export Video Clip
         </h3>
         <button onclick="closeExportVideoModal()"
-          style="background:none;border:none;color:var(--text-muted);font-size:22px;cursor:pointer;line-height:1;"
+          style="background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer;line-height:1;"
           title="Close">✕</button>
       </div>
 
-      <!-- Scrollable Body with Sleek Padding -->
+      <!-- Compact Body (Zero vertical scroll needed on 768p/1080p) -->
       <div class="modal-body"
-        style="padding: 12px 16px; display: flex; flex-direction: column; gap: 9px; overflow-y: auto; flex: 1; min-height: 0; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.2) transparent;">
+        style="padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; flex: 1; min-height: 0; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.2) transparent;">
 
         <!-- Source Notice Badge -->
         <div id="export-source-notice"
-          style="background:rgba(0,230,118,0.06);border:1px solid rgba(0,230,118,0.25);border-radius:8px;padding:8px 12px;font-size:11px;line-height:1.4;">
+          style="background:rgba(0,230,118,0.06);border:1px solid rgba(0,230,118,0.25);border-radius:6px;padding:5px 10px;font-size:10.5px;line-height:1.35;">
           <!-- Dynamically populated based on active video type -->
         </div>
 
         <!-- Range Selection -->
         <div
-          style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;">
+          style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:6px;">
           <div
-            style="font-size:11.5px;font-weight:700;color:var(--text-main);display:flex;justify-content:space-between;align-items:center;">
+            style="font-size:11px;font-weight:700;color:var(--text-main);display:flex;justify-content:space-between;align-items:center;">
             <span>⏱ Clip Export Range</span>
             <span id="export-calc-duration"
-              style="color:var(--accent-amber);font-family:var(--font-mono);font-size:11px;">Duration: 00:00.00</span>
+              style="color:var(--accent-amber);font-family:var(--font-mono);font-size:10.5px;">Duration: 00:00.00</span>
           </div>
 
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
             <div>
               <label
-                style="font-size:9.5px;font-weight:700;color:var(--text-dim);text-transform:uppercase;display:block;margin-bottom:3px;">Start
-                Time (MM:SS)</label>
+                style="font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;display:block;margin-bottom:2px;">Start
+                (MM:SS)</label>
               <div style="display:flex;gap:4px;">
                 <input type="text" id="export-in-input" value="00:00"
-                  style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:5px 8px;color:#fff;font-family:var(--font-mono);font-size:11.5px;"
+                  style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);border-radius:5px;padding:4px 7px;color:#fff;font-family:var(--font-mono);font-size:11px;"
                   oninput="recalcExportDuration()">
                 <button type="button" class="btn-secondary" onclick="setExportInFromCurrent()"
-                  style="padding:3px 7px;font-size:10px;" title="Set Start to current playhead">🎯 Here</button>
+                  style="padding:2px 6px;font-size:9.5px;" title="Set Start to current playhead">🎯 Here</button>
               </div>
             </div>
 
             <div>
               <label
-                style="font-size:9.5px;font-weight:700;color:var(--text-dim);text-transform:uppercase;display:block;margin-bottom:3px;">End
-                Time (MM:SS)</label>
+                style="font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;display:block;margin-bottom:2px;">End
+                (MM:SS)</label>
               <div style="display:flex;gap:4px;">
                 <input type="text" id="export-out-input" value="00:15"
-                  style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:5px 8px;color:#fff;font-family:var(--font-mono);font-size:11.5px;"
+                  style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);border-radius:5px;padding:4px 7px;color:#fff;font-family:var(--font-mono);font-size:11px;"
                   oninput="recalcExportDuration()">
                 <button type="button" class="btn-secondary" onclick="setExportOutFromCurrent()"
-                  style="padding:3px 7px;font-size:10px;" title="Set End to current playhead">🎯 Here</button>
+                  style="padding:2px 6px;font-size:9.5px;" title="Set End to current playhead">🎯 Here</button>
               </div>
             </div>
           </div>
 
           <!-- Quick presets row -->
-          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding-top:2px;">
+          <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
             <button type="button" class="btn-secondary" onclick="setExportFullVideo()"
-              style="padding:3px 7px;font-size:10.5px;">Full Video</button>
+              style="padding:2px 6px;font-size:10px;">Full Video</button>
             <button type="button" class="btn-secondary" onclick="setExportKeyframeRange()"
-              style="padding:3px 7px;font-size:10.5px;" title="Fit to earliest and latest pinned drawing">📌 Pin Frame
+              style="padding:2px 6px;font-size:10px;" title="Fit to earliest and latest pinned drawing">📌 Pin Frame
               Range</button>
             <button type="button" class="btn-secondary" onclick="setExportCurrent10s()"
-              style="padding:3px 7px;font-size:10.5px;">10s Around Playhead</button>
+              style="padding:2px 6px;font-size:10px;">10s Around Playhead</button>
           </div>
         </div>
 
         <!-- 2-Column Row: Format Selection & Tactical Holds -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          <!-- Format Selection (MP4 vs WebM) -->
+          <!-- Format Selection -->
           <div
-            style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:5px;">
-            <span style="font-size:11px;font-weight:700;color:var(--text-main);">🎬 Export Format:</span>
-            <div style="display:flex;gap:6px;">
+            style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:8px;padding:7px 10px;display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-size:10.5px;font-weight:700;color:var(--text-main);">🎬 Format:</span>
+            <div style="display:flex;gap:4px;">
               <label class="export-format-pill active" id="export-format-pill-mp4" onclick="setExportFormat('mp4')"
-                title="Best for WhatsApp, mobile & presentations" style="padding:4px 8px;font-size:11px;">
+                title="Best for WhatsApp, mobile & presentations" style="padding:3px 7px;font-size:10.5px;cursor:pointer;">
                 <input type="radio" name="export-video-format" id="export-format-mp4" value="mp4" checked
                   style="display:none;">
                 <span>⭐ MP4</span>
               </label>
               <label class="export-format-pill" id="export-format-pill-webm" onclick="setExportFormat('webm')"
-                title="Standard browser web format" style="padding:4px 8px;font-size:11px;">
+                title="Standard browser web format" style="padding:3px 7px;font-size:10.5px;cursor:pointer;">
                 <input type="radio" name="export-video-format" id="export-format-webm" value="webm"
                   style="display:none;">
                 <span>WebM</span>
@@ -4264,31 +4264,27 @@
 
           <!-- Tactical Auto-Pause Holds Option -->
           <div
-            style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:4px;">
-            <div style="display:flex;align-items:center;justify-content:space-between;">
-              <span style="font-size:11px;font-weight:700;color:var(--text-main);">⏳ Canvas Auto-Pause:</span>
-              <label
-                style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:10.5px;font-weight:700;color:var(--accent-green);">
-                <input type="checkbox" id="export-autopause-enable" checked onchange="recalcExportDuration()"
-                  style="accent-color:var(--accent-green);cursor:pointer;width:13px;height:13px;">
-                <span id="export-autopause-label-text">Include Holds</span>
-              </label>
-            </div>
-            <div id="export-autopause-desc" style="font-size:9.5px;color:var(--text-dim);line-height:1.3;">
-              Preserves exact keyframe auto-pause hold times as configured on your canvas.
-            </div>
+            style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:8px;padding:7px 10px;display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-size:10.5px;font-weight:700;color:var(--text-main);">⏳ Holds:</span>
+            <label
+              style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:10.5px;font-weight:700;color:var(--accent-green);">
+              <input type="checkbox" id="export-autopause-enable" checked onchange="recalcExportDuration()"
+                style="accent-color:var(--accent-green);cursor:pointer;width:13px;height:13px;">
+              <span id="export-autopause-label-text">Include Holds</span>
+            </label>
+            <div id="export-autopause-desc" style="display:none;">Preserves exact keyframe auto-pause hold times.</div>
           </div>
         </div>
 
-        <!-- Custom Watermark Overlay Cluster (Compact) -->
+        <!-- Watermark & Branding Strip (Ultra-Compact) -->
         <div
-          style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:8px;padding:9px 12px;display:flex;flex-direction:column;gap:7px;">
+          style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:8px;padding:7px 10px;display:flex;flex-direction:column;gap:6px;">
           <div style="display:flex;align-items:center;justify-content:space-between;">
             <div style="display:flex;align-items:center;gap:6px;">
-              <span style="font-size:12px;">🦅</span>
-              <span style="font-size:11.5px;font-weight:700;color:var(--text-main);">Watermark &amp; Branding</span>
+              <span style="font-size:11px;">🦅</span>
+              <span style="font-size:11px;font-weight:700;color:var(--text-main);">Watermark &amp; Branding</span>
               <span id="export-watermark-layout-badge"
-                style="font-size:9.5px;background:rgba(0,230,118,0.15);color:var(--accent-green);padding:1px 6px;border-radius:8px;font-weight:700;">Mascot
+                style="font-size:9.5px;background:rgba(0,230,118,0.15);color:var(--accent-green);padding:1px 6px;border-radius:6px;font-weight:700;">Mascot
                 + 100 YARDS</span>
             </div>
             <label
@@ -4301,132 +4297,98 @@
           </div>
 
           <div id="watermark-controls-container"
-            style="display:flex;flex-direction:column;gap:7px;transition:opacity 0.2s ease;">
-            <!-- Logo Preview and Studio Link Row -->
-            <div
-              style="display:flex;gap:10px;align-items:center;background:rgba(0,0,0,0.3);padding:6px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);">
-              <!-- Logo Thumbnail Preview -->
-              <div onclick="openWatermarkModal()" title="Open Watermark Studio"
-                style="position:relative;width:40px;height:40px;border-radius:5px;background:repeating-conic-gradient(rgba(255,255,255,0.06) 0% 25%, transparent 0% 50%) 50% / 10px 10px, #0b111c;border:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;cursor:pointer;">
-                <img id="watermark-preview-img" src="default-watermark.png" alt="Watermark Preview"
-                  style="max-width:90%;max-height:90%;object-fit:contain;">
-                <div id="watermark-processing-spinner"
-                  style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;font-size:9px;color:var(--accent-green);">
-                  ⏳</div>
-              </div>
-
-              <!-- Actions & Studio button -->
-              <div style="flex:1;display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap;">
-                <div style="display:flex;gap:5px;align-items:center;">
-                  <button type="button" class="btn-action" onclick="openWatermarkModal()"
-                    style="padding:3px 8px;font-size:10.5px;font-weight:700;display:inline-flex;align-items:center;gap:4px;background:linear-gradient(135deg,#00e676,#00b0ff);color:#05080e;">
-                    <span>⚙️ Branding Studio...</span>
-                  </button>
-                  <button type="button" class="btn-secondary" onclick="loadDefaultMascotWatermark()"
-                    style="padding:3px 7px;font-size:10px;" title="Reset logo">
-                    <span>🦅 Reset</span>
-                  </button>
-                </div>
-                <span id="watermark-status-badge" style="font-size:9.5px;color:var(--accent-green);">White
-                  outline</span>
-              </div>
+            style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(0,0,0,0.25);padding:5px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);transition:opacity 0.2s ease;">
+            <!-- Logo Thumbnail -->
+            <div onclick="openWatermarkModal()" title="Open Watermark Studio"
+              style="position:relative;width:30px;height:30px;border-radius:4px;background:repeating-conic-gradient(rgba(255,255,255,0.06) 0% 25%, transparent 0% 50%) 50% / 8px 8px, #0b111c;border:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;cursor:pointer;">
+              <img id="watermark-preview-img" src="default-watermark.png" alt="Watermark Preview"
+                style="max-width:90%;max-height:90%;object-fit:contain;">
+              <div id="watermark-processing-spinner"
+                style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;font-size:8px;color:var(--accent-green);">
+                ⏳</div>
             </div>
 
-            <!-- Position, Opacity, and Scale Controls in 3-col grid -->
-            <div style="display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:8px;align-items:center;">
-              <div>
-                <label
-                  style="font-size:9px;color:var(--text-dim);font-weight:700;display:block;margin-bottom:2px;">Position:</label>
-                <select id="watermark-position-select" onchange="updateWatermarkPosition(this.value)"
-                  style="width:100%;background:#1a2236;border:1px solid rgba(255,255,255,0.25);border-radius:5px;padding:3px 5px;color:#e2e8f0;font-size:10.5px;cursor:pointer;">
-                  <option value="top-right" style="background:#1a2236;color:#e2e8f0;">Top Right</option>
-                  <option value="bottom-right" style="background:#1a2236;color:#e2e8f0;">Bottom Right</option>
-                  <option value="top-left" style="background:#1a2236;color:#e2e8f0;">Top Left</option>
-                  <option value="bottom-left" style="background:#1a2236;color:#e2e8f0;">Bottom Left</option>
-                </select>
-              </div>
-
-              <div>
-                <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
-                  <label style="font-size:9px;color:var(--text-dim);font-weight:700;">Opacity:</label>
-                  <span id="watermark-opacity-label"
-                    style="font-size:9.5px;color:var(--accent-green);font-family:var(--font-mono);">50%</span>
-                </div>
-                <input type="range" id="watermark-opacity-slider" min="15" max="100" value="50"
-                  oninput="updateWatermarkOpacity(this.value)"
-                  style="width:100%;accent-color:var(--accent-green);cursor:pointer;height:4px;">
-              </div>
-
-              <div>
-                <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
-                  <label style="font-size:9px;color:var(--text-dim);font-weight:700;">Scale:</label>
-                  <span id="watermark-scale-label"
-                    style="font-size:9.5px;color:var(--accent-green);font-family:var(--font-mono);">160px</span>
-                </div>
-                <input type="range" id="watermark-scale-slider" min="70" max="360" value="160"
-                  oninput="updateWatermarkScale(this.value)"
-                  style="width:100%;accent-color:var(--accent-green);cursor:pointer;height:4px;">
-              </div>
+            <!-- Position selector inline -->
+            <div style="display:flex;align-items:center;gap:5px;">
+              <span style="font-size:9.5px;color:var(--text-dim);font-weight:700;">Corner:</span>
+              <select id="watermark-position-select" onchange="updateWatermarkPosition(this.value)"
+                style="background:#1a2236;border:1px solid rgba(255,255,255,0.25);border-radius:5px;padding:3px 6px;color:#e2e8f0;font-size:10px;cursor:pointer;">
+                <option value="top-right" style="background:#1a2236;color:#e2e8f0;">Top Right</option>
+                <option value="bottom-right" style="background:#1a2236;color:#e2e8f0;">Bottom Right</option>
+                <option value="top-left" style="background:#1a2236;color:#e2e8f0;">Top Left</option>
+                <option value="bottom-left" style="background:#1a2236;color:#e2e8f0;">Bottom Left</option>
+              </select>
             </div>
 
-            <!-- Mode selector: White Outline vs Original Color -->
-            <div
-              style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(255,255,255,0.06);padding-top:4px;font-size:9.5px;">
-              <span style="color:var(--text-dim);">Extraction Mode:</span>
-              <div style="display:flex;gap:5px;">
-                <button type="button" id="btn-watermark-mode-white" onclick="setWatermarkMode('white-outline')"
-                  class="btn-secondary active"
-                  style="font-size:9.5px;padding:2px 6px;border-color:var(--accent-green);color:var(--accent-green);">⭐
-                  White Outline</button>
-                <button type="button" id="btn-watermark-mode-orig" onclick="setWatermarkMode('original')"
-                  class="btn-secondary" style="font-size:9.5px;padding:2px 6px;color:#94a3b8;">Original</button>
-              </div>
+            <!-- Action buttons -->
+            <div style="display:flex;align-items:center;gap:5px;">
+              <button type="button" class="btn-action" onclick="openWatermarkModal()"
+                style="padding:3px 8px;font-size:10px;font-weight:700;display:inline-flex;align-items:center;gap:3px;background:linear-gradient(135deg,#00e676,#00b0ff);color:#05080e;">
+                <span>⚙️ Studio...</span>
+              </button>
+              <button type="button" class="btn-secondary" onclick="loadDefaultMascotWatermark()"
+                style="padding:3px 6px;font-size:9.5px;" title="Reset logo to 100 Yards Mascot">
+                <span>🦅 Reset</span>
+              </button>
+            </div>
+
+            <!-- Hidden elements for JS compatibility -->
+            <div style="display:none;">
+              <span id="watermark-status-badge">White outline</span>
+              <span id="watermark-opacity-label">50%</span>
+              <input type="range" id="watermark-opacity-slider" min="15" max="100" value="50"
+                oninput="updateWatermarkOpacity(this.value)">
+              <span id="watermark-scale-label">160px</span>
+              <input type="range" id="watermark-scale-slider" min="70" max="360" value="160"
+                oninput="updateWatermarkScale(this.value)">
+              <button type="button" id="btn-watermark-mode-white" onclick="setWatermarkMode('white-outline')"></button>
+              <button type="button" id="btn-watermark-mode-orig" onclick="setWatermarkMode('original')"></button>
             </div>
           </div>
         </div>
 
         <!-- Render Specifications -->
         <div
-          style="display:flex;align-items:center;justify-content:space-between;padding:0 2px;font-size:10px;color:var(--text-muted);">
+          style="display:flex;align-items:center;justify-content:space-between;padding:0 2px;font-size:9.5px;color:var(--text-muted);">
           <span>📺 Quality: <b>1080p Full HD</b></span>
           <span>⚡ Direct Canvas Composite</span>
         </div>
 
         <!-- Progress Box (Hidden until export starts) -->
         <div id="export-progress-container"
-          style="display:none;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 12px;flex-direction:column;gap:8px;">
-          <div style="display:flex;justify-content:space-between;font-size:11.5px;font-weight:700;">
+          style="display:none;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 10px;flex-direction:column;gap:6px;">
+          <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;">
             <span id="export-progress-label">Exporting video with drawings...</span>
             <span id="export-progress-pct" style="color:var(--accent-green);font-family:var(--font-mono);">0%</span>
           </div>
-          <div style="width:100%;height:8px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden;">
+          <div style="width:100%;height:6px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden;">
             <div id="export-progress-bar-fill"
               style="width:0%;height:100%;background:linear-gradient(90deg, #00b0ff, #00e676);transition:width 0.1s ease;">
             </div>
           </div>
           <div id="export-progress-helper-row"
-            style="font-size:10px;color:var(--text-dim);display:flex;justify-content:space-between;align-items:center;">
+            style="font-size:9.5px;color:var(--text-dim);display:flex;justify-content:space-between;align-items:center;">
             <span>Please keep this tab open while compositing</span>
             <button type="button" class="btn-secondary" onclick="cancelDirectVideoExport()"
-              style="padding:2px 6px;font-size:9.5px;color:#ff5252;">Cancel Export</button>
+              style="padding:2px 5px;font-size:9px;color:#ff5252;">Cancel Export</button>
           </div>
 
           <!-- Success Download Box -->
           <div id="export-success-box"
-            style="display:none;flex-direction:column;gap:8px;background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.3);border-radius:8px;padding:10px 12px;margin-top:2px;">
+            style="display:none;flex-direction:column;gap:6px;background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.3);border-radius:6px;padding:8px 10px;margin-top:2px;">
             <div
-              style="font-size:12px;font-weight:800;color:var(--accent-green);display:flex;align-items:center;gap:6px;">
+              style="font-size:11.5px;font-weight:800;color:var(--accent-green);display:flex;align-items:center;gap:6px;">
               <span>🎉</span> <span id="export-success-title">Video Export Ready!</span>
             </div>
-            <div id="export-success-detail" style="font-size:10.5px;color:var(--text-muted);word-break:break-all;">
+            <div id="export-success-detail" style="font-size:10px;color:var(--text-muted);word-break:break-all;">
             </div>
             <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
               <a id="export-success-download-btn" href="#" download="" class="btn-action"
-                style="background:linear-gradient(135deg,#00e676,#00b0ff);color:#05080e;font-weight:800;text-decoration:none;padding:6px 14px;border-radius:6px;font-size:11.5px;display:inline-flex;align-items:center;gap:5px;">
+                style="background:linear-gradient(135deg,#00e676,#00b0ff);color:#05080e;font-weight:800;text-decoration:none;padding:5px 12px;border-radius:5px;font-size:11px;display:inline-flex;align-items:center;gap:4px;">
                 💾 Save Video
               </a>
               <button type="button" class="btn-secondary" onclick="closeExportVideoModal()"
-                style="font-size:10.5px;padding:6px 10px;">Close</button>
+                style="font-size:10px;padding:5px 8px;">Close</button>
             </div>
           </div>
         </div>
@@ -4435,16 +4397,16 @@
 
       <!-- Pinned Action Footer (Always Visible at Window Bottom) -->
       <div
-        style="display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:10px 18px;border-top:1px solid var(--border-subtle);flex-shrink:0;background:var(--bg-surface);"
+        style="display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:8px 14px;border-top:1px solid var(--border-subtle);flex-shrink:0;background:var(--bg-surface);"
         id="export-modal-footer">
         <button type="button" class="btn-secondary" onclick="closeExportVideoModal()"
-          style="padding:7px 14px;font-size:11.5px;">Close</button>
+          style="padding:6px 12px;font-size:11px;">Close</button>
         <button type="button" class="btn-secondary" id="btn-export-direct-pitch"
           onclick="startDirectTacticalBoardExport()"
-          style="display:none;font-weight:800;border:1px solid rgba(0,230,118,0.5);color:var(--accent-green);background:rgba(0,230,118,0.1);padding:7px 12px;border-radius:6px;font-size:11.5px;cursor:pointer;"
+          style="display:none;font-weight:800;border:1px solid rgba(0,230,118,0.5);color:var(--accent-green);background:rgba(0,230,118,0.1);padding:6px 10px;border-radius:6px;font-size:11px;cursor:pointer;"
           title="Instant 1080p download of tactical play on UEFA pitch board">🟢 Direct Tactical Video</button>
         <button type="button" class="btn-action" id="btn-start-direct-export" onclick="triggerStartDirectExport()"
-          style="background:linear-gradient(135deg,#00e676,#00b0ff);color:#05080e;font-weight:800;padding:8px 18px;font-size:12px;border-radius:6px;">
+          style="background:linear-gradient(135deg,#00e676,#00b0ff);color:#05080e;font-weight:800;padding:7px 16px;font-size:11.5px;border-radius:6px;">
           <span id="btn-start-export-label">⬇️ Start Direct Export</span>
         </button>
       </div>
@@ -4453,244 +4415,231 @@
   </div>
 
   <!-- ════════════════════════════════════════════════════════════════════════
-       WATERMARK & CLUB BRANDING STUDIO MODAL
-       Direct main app access for custom logo, scalable brand typography & layout
+       WATERMARK & CLUB BRANDING STUDIO MODAL (2-Column Compact Dashboard)
+       Live preview is permanently visible on left with all controls on right (no scrolling!)
   ════════════════════════════════════════════════════════════════════════ -->
   <div class="modal-overlay" id="watermark-branding-modal" style="display:none;"
     onclick="if(event.target===this)closeWatermarkModal()">
     <div class="modal-card"
-      style="max-width: 620px; max-height: 92vh; display:flex; flex-direction:column; overflow:hidden; padding: 0; border: 1px solid rgba(0,230,118,0.25); box-shadow: 0 20px 50px rgba(0,0,0,0.8);">
+      style="max-width: 660px; width: 92%; max-height: 85vh; display:flex; flex-direction:column; overflow:hidden; padding: 0; border: 1px solid rgba(0,230,118,0.25); border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.85);">
       <!-- Modal Header -->
       <div class="modal-header"
-        style="border-bottom:1px solid rgba(255,255,255,0.08); padding:16px 22px; margin-bottom: 0; background: rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: space-between;">
-        <div style="display: flex; align-items: center; gap: 10px;">
+        style="border-bottom:1px solid rgba(255,255,255,0.08); padding:10px 18px; margin-bottom: 0; background: rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;">
+        <div style="display: flex; align-items: center; gap: 8px;">
           <div
-            style="width: 34px; height: 34px; border-radius: 50%; background: rgba(0,230,118,0.15); border: 1px solid rgba(0,230,118,0.35); display: flex; align-items: center; justify-content: center; font-size: 17px;">
+            style="width: 28px; height: 28px; border-radius: 50%; background: rgba(0,230,118,0.15); border: 1px solid rgba(0,230,118,0.35); display: flex; align-items: center; justify-content: center; font-size: 14px;">
             🦅
           </div>
           <div>
-            <h3 style="font-size: 15px; font-weight: 800; margin: 0; color: #fff; letter-spacing: 0.3px;">Watermark
+            <h3 style="font-size: 14px; font-weight: 800; margin: 0; color: #fff; letter-spacing: 0.3px;">Watermark
               &amp; Club Branding Studio</h3>
-            <p style="font-size: 11px; color: var(--text-dim); margin: 2px 0 0 0;">Broadcast logo overlay, custom team
-              typography, layout &amp; screen placement</p>
+            <p style="font-size: 10px; color: var(--text-dim); margin: 1px 0 0 0;">Live broadcast logo overlay, custom team
+              typography &amp; screen placement</p>
           </div>
         </div>
         <button type="button" onclick="closeWatermarkModal()"
-          style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--text-muted);font-size:16px;width:28px;height:28px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s ease;">✕</button>
+          style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--text-muted);font-size:14px;width:24px;height:24px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s ease;">✕</button>
       </div>
 
-      <!-- Modal Body -->
+      <!-- Modal Body (2-Column Zero-Scroll Layout) -->
       <div class="modal-body"
-        style="padding:18px 22px; display:flex; flex-direction:column; gap:14px; overflow-y:auto;">
+        style="padding:10px 16px; display:flex; flex-direction:column; gap:8px; overflow-y:auto; flex:1; min-height: 0;">
 
-        <!-- Live Visibility Master Switches -->
+        <!-- Top Master Switches Row -->
         <div
-          style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:10px;padding:12px 14px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:7px;padding:6px 12px;display:flex;align-items:center;justify-content:space-around;">
           <label
-            style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;font-weight:700;color:var(--text-main);">
+            style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;font-weight:700;color:var(--text-main);">
             <input type="checkbox" id="modal-watermark-enable" checked onchange="setWatermarkMasterEnable(this.checked)"
-              style="accent-color:var(--accent-green);cursor:pointer;width:16px;height:16px;">
+              style="accent-color:var(--accent-green);cursor:pointer;width:14px;height:14px;">
             <span>Enable Watermark</span>
           </label>
+          <div style="width:1px;height:14px;background:rgba(255,255,255,0.1);"></div>
           <label
-            style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;font-weight:700;color:var(--text-main);">
+            style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;font-weight:700;color:var(--text-main);">
             <input type="checkbox" id="modal-watermark-stage-enable" checked
               onchange="setWatermarkStageEnable(this.checked)"
-              style="accent-color:var(--accent-green);cursor:pointer;width:16px;height:16px;">
+              style="accent-color:var(--accent-green);cursor:pointer;width:14px;height:14px;">
             <span>Show on Player Stage</span>
           </label>
         </div>
 
-        <!-- Logo Preview and File Actions Card -->
-        <div
-          style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:12px;">
-          <div style="display:flex;gap:14px;align-items:center;">
-            <!-- Checkerboard Preview Box -->
+        <!-- Main 2-Column Section: Left = Live Preview & Files; Right = Typography, Layout & Positioning -->
+        <div style="display:grid;grid-template-columns:210px 1fr;gap:10px;align-items:start;">
+
+          <!-- LEFT COLUMN: Live Preview & File Actions -->
+          <div
+            style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:9.5px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px;">Live Preview</span>
+              <span id="branding-modal-status-badge"
+                style="font-size:9.5px;color:var(--accent-green);font-weight:600;">White outline</span>
+            </div>
+
+            <!-- Checkerboard Preview Box (Always in view!) -->
             <div
-              style="position:relative;width:96px;height:96px;border-radius:8px;background:repeating-conic-gradient(rgba(255,255,255,0.06) 0% 25%, transparent 0% 50%) 50% / 14px 14px, #070c14;border:1px solid rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;box-shadow:inset 0 2px 6px rgba(0,0,0,0.6);">
+              style="position:relative;width:100%;height:120px;border-radius:6px;background:repeating-conic-gradient(rgba(255,255,255,0.06) 0% 25%, transparent 0% 50%) 50% / 10px 10px, #070c14;border:1px solid rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:inset 0 2px 6px rgba(0,0,0,0.6);">
               <img id="branding-modal-preview-img" src="default-watermark.png" alt="Watermark Preview"
-                style="max-width:92%;max-height:92%;object-fit:contain;filter:drop-shadow(0 2px 5px rgba(0,0,0,0.85));">
+                style="max-width:90%;max-height:90%;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.85));">
               <div id="branding-modal-spinner"
-                style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.75);align-items:center;justify-content:center;font-size:14px;color:var(--accent-green);">
+                style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.75);align-items:center;justify-content:center;font-size:12px;color:var(--accent-green);">
                 ⏳</div>
             </div>
 
-            <!-- Upload & Presets Buttons -->
-            <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
-              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-                <input type="file" id="branding-file-input" accept="image/png,image/svg+xml,image/jpeg,image/webp"
-                  style="display:none;" onchange="handleWatermarkFileSelect(this)">
-                <button type="button" class="btn-action"
-                  onclick="document.getElementById('branding-file-input').click()"
-                  style="padding:6px 12px;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#00e676,#00b0ff);color:#05080e;">
-                  <span>📁 Upload Custom Logo</span>
+            <!-- Logo Upload & Reset Buttons -->
+            <div style="display:flex;flex-direction:column;gap:5px;">
+              <input type="file" id="branding-file-input" accept="image/png,image/svg+xml,image/jpeg,image/webp"
+                style="display:none;" onchange="handleWatermarkFileSelect(this)">
+              <button type="button" class="btn-action"
+                onclick="document.getElementById('branding-file-input').click()"
+                style="width:100%;padding:5px 8px;font-size:10.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:4px;background:linear-gradient(135deg,#00e676,#00b0ff);color:#05080e;">
+                <span>📁 Upload Custom Logo</span>
+              </button>
+              <button type="button" class="btn-secondary" onclick="loadDefaultMascotWatermark()"
+                style="width:100%;padding:4px 8px;font-size:10px;" title="Reset to 100 Yards Eagle mascot logo">
+                <span>🦅 Reset Mascot</span>
+              </button>
+            </div>
+
+            <!-- Extraction Mode Switch -->
+            <div style="display:flex;flex-direction:column;gap:3px;border-top:1px solid rgba(255,255,255,0.06);padding-top:6px;">
+              <span style="font-size:9px;color:var(--text-dim);font-weight:700;">Extraction Mode:</span>
+              <div style="display:flex;gap:4px;">
+                <button type="button" id="btn-modal-mode-white" onclick="setWatermarkMode('white-outline')"
+                  class="btn-secondary active"
+                  style="flex:1;font-size:9.5px;padding:3px 4px;border-color:var(--accent-green);color:var(--accent-green);">⭐ White</button>
+                <button type="button" id="btn-modal-mode-orig" onclick="setWatermarkMode('original')"
+                  class="btn-secondary" style="flex:1;font-size:9.5px;padding:3px 4px;color:#94a3b8;">Original</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT COLUMN: Layout, Typography, Scale, Opacity & Corner -->
+          <div style="display:flex;flex-direction:column;gap:8px;">
+
+            <!-- Layout Mode Selector -->
+            <div
+              style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:5px;">
+              <div
+                style="font-size:9.5px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px;">
+                Logo &amp; Typography Layout</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;">
+                <button type="button" id="btn-layout-mascot-text" onclick="setWatermarkLayout('mascot-text')"
+                  class="btn-secondary active"
+                  style="padding:5px 4px;text-align:center;border-color:var(--accent-green);color:var(--accent-green);font-size:10px;font-weight:700;display:flex;flex-direction:column;gap:2px;align-items:center;">
+                  <span style="font-size:12px;">🦅+🔤</span>
+                  <span>Mascot+Text</span>
                 </button>
-                <button type="button" class="btn-secondary" onclick="loadDefaultMascotWatermark()"
-                  style="padding:6px 10px;font-size:12px;" title="Reset to 100 Yards Eagle mascot logo">
-                  <span>🦅 100 Yards Mascot</span>
+                <button type="button" id="btn-layout-mascot-only" onclick="setWatermarkLayout('mascot-only')"
+                  class="btn-secondary"
+                  style="padding:5px 4px;text-align:center;font-size:10px;font-weight:700;display:flex;flex-direction:column;gap:2px;align-items:center;color:#94a3b8;">
+                  <span style="font-size:12px;">🦅</span>
+                  <span>Mascot Only</span>
+                </button>
+                <button type="button" id="btn-layout-original" onclick="setWatermarkLayout('original')"
+                  class="btn-secondary"
+                  style="padding:5px 4px;text-align:center;font-size:10px;font-weight:700;display:flex;flex-direction:column;gap:2px;align-items:center;color:#94a3b8;">
+                  <span style="font-size:12px;">🖼️</span>
+                  <span>Full Image</span>
                 </button>
               </div>
-              <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
-                <span id="branding-modal-status-badge"
-                  style="font-size:11px;color:var(--accent-green);font-weight:600;">White outline isolated</span>
-                <!-- Extraction Mode Switch -->
+            </div>
+
+            <!-- Brand Text Customizer Card -->
+            <div id="watermark-text-customizer-card"
+              style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:6px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <span
+                  style="font-size:9.5px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px;">Custom
+                  Brand Typography</span>
+                <label
+                  style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:10px;font-weight:700;color:var(--text-main);">
+                  <input type="checkbox" id="modal-watermark-text-enable" checked
+                    onchange="toggleWatermarkTextEnable(this.checked)"
+                    style="accent-color:var(--accent-green);cursor:pointer;width:12px;height:12px;">
+                  <span>Show Text</span>
+                </label>
+              </div>
+
+              <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:8px;align-items:center;">
+                <div>
+                  <input type="text" id="modal-watermark-text-input" value="© 100 Yards"
+                    placeholder="e.g. © 100 Yards, ARSENAL FC" oninput="updateWatermarkCustomText(this.value)"
+                    style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.18);border-radius:5px;padding:4px 8px;color:#fff;font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;">
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;margin-bottom:1px;">
+                    <label style="font-size:9px;font-weight:700;color:var(--text-dim);">Font Size:</label>
+                    <span id="modal-watermark-text-size-lbl"
+                      style="font-size:9.5px;color:var(--accent-green);font-family:var(--font-mono);font-weight:700;">28px</span>
+                  </div>
+                  <input type="range" id="modal-watermark-text-size-slider" min="14" max="54" value="28"
+                    oninput="updateWatermarkTextSize(this.value)"
+                    style="width:100%;accent-color:var(--accent-green);cursor:pointer;height:4px;">
+                </div>
+              </div>
+
+              <div
+                style="display:flex;align-items:center;justify-content:space-between;gap:6px;padding-top:4px;border-top:1px solid rgba(255,255,255,0.06);">
+                <span style="font-size:9px;font-weight:700;color:var(--text-dim);">Text Style:</span>
                 <div style="display:flex;gap:4px;">
-                  <button type="button" id="btn-modal-mode-white" onclick="setWatermarkMode('white-outline')"
-                    class="btn-secondary active"
-                    style="font-size:10px;padding:3px 8px;border-color:var(--accent-green);color:var(--accent-green);">⭐
-                    White Outline</button>
-                  <button type="button" id="btn-modal-mode-orig" onclick="setWatermarkMode('original')"
-                    class="btn-secondary" style="font-size:10px;padding:3px 8px;color:#94a3b8;">Original Colors</button>
+                  <button type="button" id="btn-text-style-lines" class="btn-secondary active"
+                    onclick="setWatermarkTextStyle('line-art')"
+                    style="padding:2px 8px;font-size:9.5px;border-radius:4px;border-color:var(--accent-green);color:var(--accent-green);font-weight:700;"
+                    title="Keep text as lines like that of the eagle mascot">
+                    🦅 Lines
+                  </button>
+                  <button type="button" id="btn-text-style-solid" class="btn-secondary"
+                    onclick="setWatermarkTextStyle('solid')"
+                    style="padding:2px 8px;font-size:9.5px;border-radius:4px;color:#94a3b8;font-weight:600;"
+                    title="Render text with solid white fill">
+                    ⬜ Solid
+                  </button>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
 
-        <!-- Logo & Text Layout Mode (Solves "need more excess to work with logo in the app") -->
-        <div
-          style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:10px;">
-          <div
-            style="font-size:11px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px;">
-            Logo &amp; Typography Layout</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
-            <button type="button" id="btn-layout-mascot-text" onclick="setWatermarkLayout('mascot-text')"
-              class="btn-secondary active"
-              style="padding:8px 6px;text-align:center;border-color:var(--accent-green);color:var(--accent-green);font-size:11px;font-weight:700;display:flex;flex-direction:column;gap:3px;align-items:center;">
-              <span style="font-size:14px;">🦅+🔤</span>
-              <span>Mascot + Text</span>
-            </button>
-            <button type="button" id="btn-layout-mascot-only" onclick="setWatermarkLayout('mascot-only')"
-              class="btn-secondary"
-              style="padding:8px 6px;text-align:center;font-size:11px;font-weight:700;display:flex;flex-direction:column;gap:3px;align-items:center;color:#94a3b8;">
-              <span style="font-size:14px;">🦅</span>
-              <span>Mascot Only</span>
-            </button>
-            <button type="button" id="btn-layout-original" onclick="setWatermarkLayout('original')"
-              class="btn-secondary"
-              style="padding:8px 6px;text-align:center;font-size:11px;font-weight:700;display:flex;flex-direction:column;gap:3px;align-items:center;color:#94a3b8;">
-              <span style="font-size:14px;">🖼️</span>
-              <span>Full Image</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Brand Text Customizer (Addresses "the text in the logo is too small") -->
-        <div id="watermark-text-customizer-card"
-          style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:12px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;">
-            <span
-              style="font-size:11px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px;">Custom
-              Brand Text &amp; Typography Size</span>
-            <label
-              style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;font-weight:700;color:var(--text-main);">
-              <input type="checkbox" id="modal-watermark-text-enable" checked
-                onchange="toggleWatermarkTextEnable(this.checked)"
-                style="accent-color:var(--accent-green);cursor:pointer;width:14px;height:14px;">
-              <span>Show Text</span>
-            </label>
-          </div>
-
-          <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:12px;align-items:center;">
-            <div>
-              <label style="font-size:10px;font-weight:700;color:var(--text-dim);display:block;margin-bottom:3px;">Brand
-                / Team Text:</label>
-              <input type="text" id="modal-watermark-text-input" value="© 100 Yards"
-                placeholder="e.g. © 100 Yards, ARSENAL FC" oninput="updateWatermarkCustomText(this.value)"
-                style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.18);border-radius:6px;padding:7px 10px;color:#fff;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">
-            </div>
-            <div>
-              <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
-                <label style="font-size:10px;font-weight:700;color:var(--text-dim);">Text Font Size:</label>
-                <span id="modal-watermark-text-size-lbl"
-                  style="font-size:10px;color:var(--accent-green);font-family:var(--font-mono);font-weight:700;">28px</span>
+            <!-- Scale, Opacity & Placement Row -->
+            <div
+              style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:8px;padding:8px 10px;display:grid;grid-template-columns:1fr 1fr 1.1fr;gap:8px;align-items:center;">
+              <!-- Scale slider -->
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:1px;">
+                  <label style="font-size:9px;font-weight:700;color:var(--text-dim);">Scale:</label>
+                  <span id="modal-watermark-scale-lbl"
+                    style="font-size:9.5px;color:var(--accent-green);font-family:var(--font-mono);font-weight:700;">160px</span>
+                </div>
+                <input type="range" id="modal-watermark-scale-slider" min="70" max="360" value="160"
+                  oninput="updateWatermarkScale(this.value)"
+                  style="width:100%;accent-color:var(--accent-green);cursor:pointer;height:4px;">
               </div>
-              <input type="range" id="modal-watermark-text-size-slider" min="14" max="54" value="28"
-                oninput="updateWatermarkTextSize(this.value)"
-                style="width:100%;accent-color:var(--accent-green);cursor:pointer;">
-            </div>
-          </div>
-          <div
-            style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:4px;border-top:1px solid rgba(255,255,255,0.08);">
-            <span style="font-size:10px;font-weight:700;color:var(--text-dim);">Text Line Style:</span>
-            <div style="display:flex;gap:6px;">
-              <button type="button" id="btn-text-style-lines" class="btn-secondary active"
-                onclick="setWatermarkTextStyle('line-art')"
-                style="padding:4px 10px;font-size:11px;border-radius:6px;border-color:var(--accent-green);color:var(--accent-green);font-weight:700;"
-                title="Keep text as lines like that of the eagle mascot">
-                🦅 Lines (Like Mascot)
-              </button>
-              <button type="button" id="btn-text-style-solid" class="btn-secondary"
-                onclick="setWatermarkTextStyle('solid')"
-                style="padding:4px 10px;font-size:11px;border-radius:6px;color:#94a3b8;font-weight:600;"
-                title="Render text with solid white fill">
-                ⬜ Solid Fill
-              </button>
-            </div>
-          </div>
 
-          <div style="font-size:10px;color:var(--text-dim);line-height:1.4;">
-            Rendered with authentic line-art strokes matching the eagle mascot contours for a unified, broadcast-grade
-            tactical watermark.
-          </div>
-        </div>
-
-        <!-- Overall Watermark Scale, Opacity & Placement -->
-        <div
-          style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:12px;">
-          <div
-            style="font-size:11px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px;">
-            Scale, Opacity &amp; Screen Position</div>
-
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <!-- Scale slider -->
-            <div>
-              <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
-                <label style="font-size:10px;font-weight:700;color:var(--text-dim);">Logo Width (Scale):</label>
-                <span id="modal-watermark-scale-lbl"
-                  style="font-size:10px;color:var(--accent-green);font-family:var(--font-mono);font-weight:700;">160px</span>
+              <!-- Opacity slider -->
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:1px;">
+                  <label style="font-size:9px;font-weight:700;color:var(--text-dim);">Opacity:</label>
+                  <span id="modal-watermark-opacity-lbl"
+                    style="font-size:9.5px;color:var(--accent-green);font-family:var(--font-mono);font-weight:700;">50%</span>
+                </div>
+                <input type="range" id="modal-watermark-opacity-slider" min="15" max="100" value="50"
+                  oninput="updateWatermarkOpacity(this.value)"
+                  style="width:100%;accent-color:var(--accent-green);cursor:pointer;height:4px;">
               </div>
-              <input type="range" id="modal-watermark-scale-slider" min="70" max="360" value="160"
-                oninput="updateWatermarkScale(this.value)"
-                style="width:100%;accent-color:var(--accent-green);cursor:pointer;">
-              <!-- Quick presets -->
-              <div style="display:flex;gap:4px;margin-top:4px;">
-                <button type="button" class="btn-secondary" onclick="updateWatermarkScale(100)"
-                  style="flex:1;padding:2px 0;font-size:9px;">Small</button>
-                <button type="button" class="btn-secondary" onclick="updateWatermarkScale(160)"
-                  style="flex:1;padding:2px 0;font-size:9px;">Medium</button>
-                <button type="button" class="btn-secondary" onclick="updateWatermarkScale(240)"
-                  style="flex:1;padding:2px 0;font-size:9px;">Large</button>
-                <button type="button" class="btn-secondary" onclick="updateWatermarkScale(320)"
-                  style="flex:1;padding:2px 0;font-size:9px;">XL</button>
-              </div>
-            </div>
-
-            <!-- Opacity slider -->
-            <div>
-              <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
-                <label style="font-size:10px;font-weight:700;color:var(--text-dim);">Opacity:</label>
-                <span id="modal-watermark-opacity-lbl"
-                  style="font-size:10px;color:var(--accent-green);font-family:var(--font-mono);font-weight:700;">50%</span>
-              </div>
-              <input type="range" id="modal-watermark-opacity-slider" min="15" max="100" value="50"
-                oninput="updateWatermarkOpacity(this.value)"
-                style="width:100%;accent-color:var(--accent-green);cursor:pointer;">
 
               <!-- Position dropdown -->
-              <div style="margin-top:4px;">
+              <div>
                 <label
-                  style="font-size:10px;font-weight:700;color:var(--text-dim);display:block;margin-bottom:2px;">Corner
-                  Position:</label>
+                  style="font-size:9px;font-weight:700;color:var(--text-dim);display:block;margin-bottom:1px;">Corner:</label>
                 <select id="modal-watermark-pos-select" onchange="updateWatermarkPosition(this.value)"
-                  style="width:100%;background:#1a2236;border:1px solid rgba(255,255,255,0.28);border-radius:6px;padding:4px 6px;color:#e2e8f0;font-size:11px;cursor:pointer;">
+                  style="width:100%;background:#1a2236;border:1px solid rgba(255,255,255,0.25);border-radius:5px;padding:3px 5px;color:#e2e8f0;font-size:10px;cursor:pointer;">
                   <option value="top-right" style="background:#1a2236;color:#e2e8f0;">Top Right</option>
-                  <option value="bottom-right" selected style="background:#1a2236;color:#e2e8f0;">Bottom Right ⭐ (Default)</option>
+                  <option value="bottom-right" selected style="background:#1a2236;color:#e2e8f0;">Bottom Right ⭐</option>
                   <option value="top-left" style="background:#1a2236;color:#e2e8f0;">Top Left</option>
                   <option value="bottom-left" style="background:#1a2236;color:#e2e8f0;">Bottom Left</option>
                 </select>
               </div>
             </div>
+
           </div>
         </div>
 
@@ -4698,13 +4647,13 @@
 
       <!-- Footer Buttons -->
       <div class="modal-footer"
-        style="padding:12px 22px;border-top:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.25);display:flex;justify-content:space-between;align-items:center;">
+        style="padding:8px 18px;border-top:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.25);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
         <button type="button" class="btn-secondary" onclick="resetWatermarkToDefaults()"
-          style="font-size:11px;color:#94a3b8;">
+          style="font-size:10.5px;padding:5px 10px;color:#94a3b8;">
           ↺ Reset Defaults
         </button>
         <button type="button" class="btn-action" onclick="closeWatermarkModal()"
-          style="background:linear-gradient(135deg,#00e676,#00b0ff);color:#05080e;font-weight:800;padding:8px 22px;font-size:12px;">
+          style="background:linear-gradient(135deg,#00e676,#00b0ff);color:#05080e;font-weight:800;padding:6px 18px;font-size:11.5px;border-radius:5px;">
           ✓ Apply &amp; Close
         </button>
       </div>
@@ -4823,6 +4772,16 @@
         watermarkSettings = Object.assign(watermarkSettings, parsed);
         if (!watermarkSettings.textStyle) watermarkSettings.textStyle = 'line-art';
       }
+      const savedRaw = localStorage.getItem('cms_watermark_raw_source');
+      if (savedRaw) {
+        watermarkSettings.rawSource = savedRaw;
+      }
+      const savedProcessed = localStorage.getItem('cms_watermark_processed');
+      if (savedProcessed) {
+        watermarkSettings.processedDataUrl = savedProcessed;
+        cachedWatermarkImage = new Image();
+        cachedWatermarkImage.src = savedProcessed;
+      }
     } catch (e) { }
 
     function saveWatermarkSettings() {
@@ -4838,9 +4797,17 @@
           showText: watermarkSettings.showText,
           textSize: watermarkSettings.textSize,
           textStyle: watermarkSettings.textStyle || 'line-art',
-          mode: watermarkSettings.mode
+          mode: watermarkSettings.mode,
+          rawSource: (typeof watermarkSettings.rawSource === 'string' && watermarkSettings.rawSource.length < 500000) ? watermarkSettings.rawSource : 'default-watermark.png'
         };
         localStorage.setItem('cms_watermark_settings', JSON.stringify(toSave));
+        if (typeof watermarkSettings.rawSource === 'string' && watermarkSettings.rawSource.length < 2500000) {
+          localStorage.setItem('cms_watermark_raw_source', watermarkSettings.rawSource);
+        }
+        if (watermarkSettings.processedDataUrl && watermarkSettings.processedDataUrl.length < 2500000) {
+          localStorage.setItem('cms_watermark_processed', watermarkSettings.processedDataUrl);
+        }
+        localStorage.setItem('cms_watermark_v', '2.2');
       } catch (e) { }
     }
 
@@ -4863,6 +4830,8 @@
     }
 
     function closeWatermarkModal() {
+      saveWatermarkSettings();
+      syncAllWatermarkUIs();
       const modal = document.getElementById('watermark-branding-modal');
       if (modal) {
         modal.classList.remove('open');
@@ -4984,6 +4953,10 @@
         rawSource: 'default-watermark.png',
         processedDataUrl: null
       };
+      try {
+        localStorage.removeItem('cms_watermark_raw_source');
+        localStorage.removeItem('cms_watermark_processed');
+      } catch (err) { }
       saveWatermarkSettings();
       syncAllWatermarkUIs();
       processWatermarkImage('default-watermark.png', watermarkSettings.mode);
@@ -5498,12 +5471,24 @@
       const reader = new FileReader();
       reader.onload = (e) => {
         const rawDataUrl = e.target.result;
+        watermarkSettings.rawSource = rawDataUrl;
+        try {
+          if (rawDataUrl.length < 2500000) {
+            localStorage.setItem('cms_watermark_raw_source', rawDataUrl);
+          }
+        } catch (err) { }
+        saveWatermarkSettings();
         processWatermarkImage(rawDataUrl, watermarkSettings.mode);
       };
       reader.readAsDataURL(file);
     }
 
     function loadDefaultMascotWatermark() {
+      watermarkSettings.rawSource = 'default-watermark.png';
+      try {
+        localStorage.removeItem('cms_watermark_raw_source');
+      } catch (err) { }
+      saveWatermarkSettings();
       processWatermarkImage('default-watermark.png', watermarkSettings.mode);
     }
 
@@ -5511,14 +5496,14 @@
       syncAllWatermarkUIs();
 
       // Restore saved processed watermark or process default with line-art text
-      const savedProcessed = localStorage.getItem('cms_watermark_processed');
-      const savedVersion = localStorage.getItem('cms_watermark_v');
-      const CURRENT_WM_VER = '2.1';
+      const savedProcessed = localStorage.getItem('cms_watermark_processed') || watermarkSettings.processedDataUrl;
 
-      if (savedProcessed && savedVersion === CURRENT_WM_VER) {
+      if (savedProcessed) {
         watermarkSettings.processedDataUrl = savedProcessed;
-        cachedWatermarkImage = new Image();
-        cachedWatermarkImage.src = savedProcessed;
+        if (!cachedWatermarkImage) {
+          cachedWatermarkImage = new Image();
+          cachedWatermarkImage.src = savedProcessed;
+        }
 
         const prevExp = document.getElementById('watermark-preview-img');
         if (prevExp) prevExp.src = savedProcessed;
@@ -5527,7 +5512,6 @@
 
         updateStageWatermarkDisplay();
       } else {
-        localStorage.setItem('cms_watermark_v', CURRENT_WM_VER);
         processWatermarkImage(watermarkSettings.rawSource || 'default-watermark.png', watermarkSettings.mode);
       }
       updateStageWatermarkDisplay();
@@ -7438,7 +7422,8 @@
 
       pauseVideo();
       setExportFormat(selectedExportFormat);
-      initWatermarkUIFromState();
+      syncAllWatermarkUIs();
+      updateStageWatermarkDisplay();
 
       const modal = document.getElementById('export-video-modal');
       const noticeEl = document.getElementById('export-source-notice');
