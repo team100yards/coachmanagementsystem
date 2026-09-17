@@ -2577,6 +2577,58 @@
       box-shadow: var(--shadow-lg);
     }
 
+    /* Draggable & Resizable Modal Windows */
+    .modal-window-overlay {
+      background: rgba(0, 0, 0, 0.42) !important;
+      backdrop-filter: blur(3px) !important;
+    }
+    .draggable-modal-card {
+      resize: both;
+      overflow: hidden;
+      box-sizing: border-box;
+      transition: none;
+    }
+    .draggable-modal-card.is-maximized {
+      resize: none !important;
+      border-radius: 8px !important;
+    }
+    .modal-drag-header {
+      cursor: grab;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .modal-drag-header:active {
+      cursor: grabbing;
+    }
+    .modal-window-btn:hover {
+      background: rgba(255, 255, 255, 0.15) !important;
+      color: #fff !important;
+      border-color: rgba(255, 255, 255, 0.25) !important;
+    }
+    .modal-resize-handle {
+      position: absolute;
+      right: 2px;
+      bottom: 2px;
+      width: 18px;
+      height: 18px;
+      cursor: nwse-resize;
+      font-size: 13px;
+      line-height: 18px;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.35);
+      user-select: none;
+      -webkit-user-select: none;
+      z-index: 99;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.15s ease;
+      touch-action: none;
+    }
+    .modal-resize-handle:hover {
+      color: var(--accent-green);
+    }
+
     .modal-header {
       display: flex;
       align-items: center;
@@ -4184,21 +4236,26 @@
     </div>
   </div>
 
-  <!-- Direct Video Export & Download Modal (Compact & Zero-Scroll) -->
-  <div class="modal-overlay" id="export-video-modal" style="display:none;"
+  <!-- Direct Video Export & Download Modal (Compact, Draggable & Resizable) -->
+  <div class="modal-overlay modal-window-overlay" id="export-video-modal" style="display:none;"
     onclick="if(event.target===this)closeExportVideoModal()">
-    <div class="modal-card"
-      style="max-width: 530px; width: 92%; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; padding: 0; border: 1px solid rgba(0,230,118,0.3); border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.85);">
+    <div class="modal-card draggable-modal-card" id="export-modal-card"
+      style="width: 530px; max-width: 96vw; min-width: 380px; min-height: 280px; max-height: 94vh; display: flex; flex-direction: column; overflow: hidden; padding: 0; border: 1px solid rgba(0,230,118,0.3); border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.85); position: relative;">
 
-      <!-- Pinned Header -->
-      <div class="modal-header"
-        style="padding: 10px 16px; margin-bottom: 0; border-bottom: 1px solid var(--border-subtle); flex-shrink: 0;">
-        <h3 style="font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 8px; margin: 0;">
+      <!-- Pinned Drag Header -->
+      <div class="modal-header modal-drag-header"
+        style="padding: 10px 16px; margin-bottom: 0; border-bottom: 1px solid var(--border-subtle); flex-shrink: 0; cursor: grab; user-select: none;">
+        <h3 style="font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 8px; margin: 0; pointer-events: none;">
           <span style="color:var(--accent-green);">⬇️</span> Export Video Clip
         </h3>
-        <button onclick="closeExportVideoModal()"
-          style="background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer;line-height:1;"
-          title="Close">✕</button>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <button type="button" class="modal-window-btn modal-max-btn" onclick="toggleModalMaximize(this)"
+            style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--text-muted);font-size:12px;width:26px;height:26px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s ease;"
+            title="Maximize / Restore">⛶</button>
+          <button type="button" onclick="closeExportVideoModal()"
+            style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--text-muted);font-size:14px;width:26px;height:26px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s ease;"
+            title="Close">✕</button>
+        </div>
       </div>
 
       <!-- Compact Body (Zero vertical scroll needed on 768p/1080p) -->
@@ -4432,21 +4489,23 @@
         </button>
       </div>
 
+      <!-- Corner Resize Grip -->
+      <div class="modal-resize-handle" title="Drag to resize window">⤡</div>
     </div>
   </div>
 
   <!-- ════════════════════════════════════════════════════════════════════════
-       WATERMARK & CLUB BRANDING STUDIO MODAL (2-Column Compact Dashboard)
+       WATERMARK & CLUB BRANDING STUDIO MODAL (Draggable & Resizable Window)
        Live preview is permanently visible on left with all controls on right (no scrolling!)
   ════════════════════════════════════════════════════════════════════════ -->
-  <div class="modal-overlay" id="watermark-branding-modal" style="display:none;"
+  <div class="modal-overlay modal-window-overlay" id="watermark-branding-modal" style="display:none;"
     onclick="if(event.target===this)closeWatermarkModal()">
-    <div class="modal-card"
-      style="max-width: 660px; width: 92%; max-height: 85vh; display:flex; flex-direction:column; overflow:hidden; padding: 0; border: 1px solid rgba(0,230,118,0.25); border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.85);">
-      <!-- Modal Header -->
-      <div class="modal-header"
-        style="border-bottom:1px solid rgba(255,255,255,0.08); padding:10px 18px; margin-bottom: 0; background: rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;">
-        <div style="display: flex; align-items: center; gap: 8px;">
+    <div class="modal-card draggable-modal-card" id="watermark-modal-card"
+      style="width: 660px; max-width: 96vw; min-width: 440px; min-height: 320px; max-height: 94vh; display:flex; flex-direction:column; overflow:hidden; padding: 0; border: 1px solid rgba(0,230,118,0.25); border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.85); position: relative;">
+      <!-- Modal Drag Header -->
+      <div class="modal-header modal-drag-header"
+        style="border-bottom:1px solid rgba(255,255,255,0.08); padding:10px 18px; margin-bottom: 0; background: rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; cursor: grab; user-select: none;">
+        <div style="display: flex; align-items: center; gap: 8px; pointer-events: none;">
           <div
             style="width: 28px; height: 28px; border-radius: 50%; background: rgba(0,230,118,0.15); border: 1px solid rgba(0,230,118,0.35); display: flex; align-items: center; justify-content: center; font-size: 14px;">
             🦅
@@ -4458,8 +4517,14 @@
               typography &amp; screen placement</p>
           </div>
         </div>
-        <button type="button" onclick="closeWatermarkModal()"
-          style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--text-muted);font-size:14px;width:24px;height:24px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s ease;">✕</button>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <button type="button" class="modal-window-btn modal-max-btn" onclick="toggleModalMaximize(this)"
+            style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--text-muted);font-size:12px;width:26px;height:26px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s ease;"
+            title="Maximize / Restore">⛶</button>
+          <button type="button" onclick="closeWatermarkModal()"
+            style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--text-muted);font-size:14px;width:26px;height:26px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s ease;"
+            title="Close">✕</button>
+        </div>
       </div>
 
       <!-- Modal Body (2-Column Zero-Scroll Layout) -->
@@ -4486,7 +4551,7 @@
         </div>
 
         <!-- Main 2-Column Section: Left = Live Preview & Files; Right = Typography, Layout & Positioning -->
-        <div style="display:grid;grid-template-columns:210px 1fr;gap:10px;align-items:start;">
+        <div style="display:grid;grid-template-columns:minmax(210px, 32%) 1fr;gap:10px;align-items:start;">
 
           <!-- LEFT COLUMN: Live Preview & File Actions -->
           <div
@@ -4497,9 +4562,9 @@
                 style="font-size:9.5px;color:var(--accent-green);font-weight:600;">White outline</span>
             </div>
 
-            <!-- Checkerboard Preview Box (Always in view!) -->
+            <!-- Checkerboard Preview Box (Scales with window!) -->
             <div
-              style="position:relative;width:100%;height:120px;border-radius:6px;background:repeating-conic-gradient(rgba(255,255,255,0.06) 0% 25%, transparent 0% 50%) 50% / 10px 10px, #070c14;border:1px solid rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:inset 0 2px 6px rgba(0,0,0,0.6);">
+              style="position:relative;width:100%;height:130px;min-height:100px;border-radius:6px;background:repeating-conic-gradient(rgba(255,255,255,0.06) 0% 25%, transparent 0% 50%) 50% / 10px 10px, #070c14;border:1px solid rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:inset 0 2px 6px rgba(0,0,0,0.6);">
               <img id="branding-modal-preview-img" src="default-watermark.png" alt="Watermark Preview"
                 style="max-width:90%;max-height:90%;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.85));">
               <div id="branding-modal-spinner"
@@ -4678,6 +4743,9 @@
           ✓ Apply &amp; Close
         </button>
       </div>
+
+      <!-- Corner Resize Grip -->
+      <div class="modal-resize-handle" title="Drag to resize window">⤡</div>
     </div>
   </div>
 
@@ -4849,6 +4917,11 @@
         syncWatermarkModalUI();
         modal.classList.add('open');
         modal.style.display = 'flex';
+        const card = document.getElementById('watermark-modal-card');
+        if (card) {
+          setupModalWindow(card);
+          restoreModalWindowState(card);
+        }
       }
     }
 
@@ -5834,6 +5907,270 @@
         e.stopPropagation();
         openWatermarkModal();
       });
+    }
+
+    /* ==========================================================================
+       DRAGGABLE & RESIZABLE MODAL WINDOW ENGINE
+       Enables free positioning anywhere on screen, corner resizing in width/height,
+       desktop maximize/restore toggles, and state persistence.
+    ========================================================================== */
+    function initDraggableResizableModals() {
+      const modalCards = document.querySelectorAll('.draggable-modal-card');
+      modalCards.forEach(card => setupModalWindow(card));
+
+      window.addEventListener('resize', () => {
+        document.querySelectorAll('.draggable-modal-card').forEach(card => clampModalInViewport(card));
+      });
+    }
+
+    function setupModalWindow(card) {
+      if (card._modalWindowInitialized) return;
+      card._modalWindowInitialized = true;
+
+      const header = card.querySelector('.modal-drag-header') || card.querySelector('.modal-header');
+      const resizeHandle = card.querySelector('.modal-resize-handle');
+
+      let isDragging = false;
+      let isResizing = false;
+      let startX = 0, startY = 0;
+      let startLeft = 0, startTop = 0;
+      let startW = 0, startH = 0;
+
+      // 1. Header Dragging anywhere on screen
+      if (header) {
+        header.addEventListener('pointerdown', (e) => {
+          if (e.target.closest('button, input, select, textarea, a, .modal-resize-handle')) return;
+          if (card.classList.contains('is-maximized')) return;
+
+          isDragging = true;
+          header.style.cursor = 'grabbing';
+          try { header.setPointerCapture(e.pointerId); } catch (err) { }
+
+          ensureFixedPositioning(card);
+          const rect = card.getBoundingClientRect();
+          startX = e.clientX;
+          startY = e.clientY;
+          startLeft = rect.left;
+          startTop = rect.top;
+
+          e.preventDefault();
+        });
+
+        header.addEventListener('pointermove', (e) => {
+          if (!isDragging) return;
+          const dx = e.clientX - startX;
+          const dy = e.clientY - startY;
+
+          const cardW = card.offsetWidth;
+          const maxLeft = Math.max(0, window.innerWidth - 60);
+          const minLeft = -(cardW - 60);
+          const maxTop = Math.max(0, window.innerHeight - 40);
+          const minTop = 0;
+
+          const newLeft = Math.max(minLeft, Math.min(maxLeft, startLeft + dx));
+          const newTop = Math.max(minTop, Math.min(maxTop, startTop + dy));
+
+          card.style.left = newLeft + 'px';
+          card.style.top = newTop + 'px';
+          card.style.margin = '0';
+        });
+
+        const stopDragging = (e) => {
+          if (!isDragging) return;
+          isDragging = false;
+          header.style.cursor = 'grab';
+          try { if (e && e.pointerId) header.releasePointerCapture(e.pointerId); } catch (err) { }
+          saveModalWindowState(card);
+        };
+
+        header.addEventListener('pointerup', stopDragging);
+        header.addEventListener('pointercancel', stopDragging);
+
+        // Double click header to toggle Maximize / Restore
+        header.addEventListener('dblclick', (e) => {
+          if (e.target.closest('button, input, select, textarea, a')) return;
+          const maxBtn = card.querySelector('.modal-max-btn');
+          if (maxBtn) toggleModalMaximize(maxBtn);
+        });
+      }
+
+      // 2. Corner Handle Resizing (Touch & Mouse friendly)
+      if (resizeHandle) {
+        resizeHandle.addEventListener('pointerdown', (e) => {
+          if (card.classList.contains('is-maximized')) return;
+          isResizing = true;
+          try { resizeHandle.setPointerCapture(e.pointerId); } catch (err) { }
+
+          ensureFixedPositioning(card);
+          const rect = card.getBoundingClientRect();
+          startX = e.clientX;
+          startY = e.clientY;
+          startW = rect.width;
+          startH = rect.height;
+
+          e.preventDefault();
+          e.stopPropagation();
+        });
+
+        resizeHandle.addEventListener('pointermove', (e) => {
+          if (!isResizing) return;
+          const dx = e.clientX - startX;
+          const dy = e.clientY - startY;
+
+          const minW = parseInt(card.style.minWidth, 10) || 380;
+          const minH = parseInt(card.style.minHeight, 10) || 240;
+          const maxW = window.innerWidth - 20;
+          const maxH = window.innerHeight - 20;
+
+          const newW = Math.max(minW, Math.min(maxW, startW + dx));
+          const newH = Math.max(minH, Math.min(maxH, startH + dy));
+
+          card.style.width = newW + 'px';
+          card.style.height = newH + 'px';
+        });
+
+        const stopResizing = (e) => {
+          if (!isResizing) return;
+          isResizing = false;
+          try { if (e && e.pointerId) resizeHandle.releasePointerCapture(e.pointerId); } catch (err) { }
+          saveModalWindowState(card);
+        };
+
+        resizeHandle.addEventListener('pointerup', stopResizing);
+        resizeHandle.addEventListener('pointercancel', stopResizing);
+      }
+
+      // 3. Monitor Native CSS Resizing
+      if (window.ResizeObserver) {
+        const ro = new ResizeObserver(() => {
+          if (!card.classList.contains('is-maximized')) {
+            saveModalWindowState(card);
+          }
+        });
+        ro.observe(card);
+      }
+    }
+
+    function ensureFixedPositioning(card) {
+      if (card.style.position === 'fixed') return;
+      const rect = card.getBoundingClientRect();
+      card.style.position = 'fixed';
+      card.style.left = Math.round(rect.left) + 'px';
+      card.style.top = Math.round(rect.top) + 'px';
+      card.style.width = Math.round(rect.width) + 'px';
+      card.style.height = Math.round(rect.height) + 'px';
+      card.style.margin = '0';
+      card.style.transform = 'none';
+    }
+
+    function clampModalInViewport(card) {
+      if (card.style.position !== 'fixed' || card.classList.contains('is-maximized')) return;
+      const rect = card.getBoundingClientRect();
+      const maxLeft = Math.max(0, window.innerWidth - 80);
+      const minLeft = 0;
+      const maxTop = Math.max(0, window.innerHeight - 50);
+      const minTop = 0;
+
+      let curLeft = parseFloat(card.style.left);
+      let curTop = parseFloat(card.style.top);
+      if (isNaN(curLeft)) curLeft = rect.left;
+      if (isNaN(curTop)) curTop = rect.top;
+
+      if (curLeft > maxLeft) card.style.left = maxLeft + 'px';
+      if (curLeft < minLeft) card.style.left = '0px';
+      if (curTop > maxTop) card.style.top = maxTop + 'px';
+      if (curTop < minTop) card.style.top = '0px';
+
+      if (card.offsetWidth > window.innerWidth) card.style.width = (window.innerWidth - 20) + 'px';
+      if (card.offsetHeight > window.innerHeight) card.style.height = (window.innerHeight - 20) + 'px';
+    }
+
+    function toggleModalMaximize(btn) {
+      const card = btn.closest('.draggable-modal-card');
+      if (!card) return;
+
+      if (card.classList.contains('is-maximized')) {
+        // Restore to previous normal geometry
+        card.classList.remove('is-maximized');
+        const geom = card._savedGeometry;
+        if (geom) {
+          card.style.position = geom.position || 'fixed';
+          card.style.left = geom.left || '';
+          card.style.top = geom.top || '';
+          card.style.width = geom.width || '';
+          card.style.height = geom.height || '';
+          card.style.maxWidth = geom.maxWidth || '';
+          card.style.maxHeight = geom.maxHeight || '';
+          card.style.margin = geom.margin || '0';
+        } else {
+          card.style.position = '';
+          card.style.left = '';
+          card.style.top = '';
+          card.style.width = '';
+          card.style.height = '';
+          card.style.maxWidth = '';
+          card.style.maxHeight = '';
+          card.style.margin = '';
+        }
+        clampModalInViewport(card);
+        btn.innerHTML = '⛶';
+        btn.title = 'Maximize window';
+      } else {
+        // Save current geometry and Maximize to 96vw x 94vh
+        ensureFixedPositioning(card);
+        card._savedGeometry = {
+          position: card.style.position,
+          left: card.style.left,
+          top: card.style.top,
+          width: card.style.width,
+          height: card.style.height,
+          maxWidth: card.style.maxWidth,
+          maxHeight: card.style.maxHeight,
+          margin: card.style.margin
+        };
+        card.classList.add('is-maximized');
+        card.style.position = 'fixed';
+        card.style.left = '16px';
+        card.style.top = '16px';
+        card.style.width = 'calc(100vw - 32px)';
+        card.style.height = 'calc(100vh - 32px)';
+        card.style.maxWidth = 'calc(100vw - 32px)';
+        card.style.maxHeight = 'calc(100vh - 32px)';
+        card.style.margin = '0';
+        btn.innerHTML = '❐';
+        btn.title = 'Restore window size';
+      }
+    }
+
+    function saveModalWindowState(card) {
+      if (!card.id || card.classList.contains('is-maximized')) return;
+      try {
+        const geom = {
+          left: card.style.left,
+          top: card.style.top,
+          width: card.style.width,
+          height: card.style.height
+        };
+        localStorage.setItem('cms_geom_' + card.id, JSON.stringify(geom));
+      } catch (e) { }
+    }
+
+    function restoreModalWindowState(card) {
+      if (!card || !card.id) return;
+      try {
+        const raw = localStorage.getItem('cms_geom_' + card.id);
+        if (!raw) return;
+        const geom = JSON.parse(raw);
+        if (geom && geom.left && geom.top) {
+          card.style.position = 'fixed';
+          card.style.left = geom.left;
+          card.style.top = geom.top;
+          if (geom.width) card.style.width = geom.width;
+          if (geom.height) card.style.height = geom.height;
+          card.style.margin = '0';
+          clampModalInViewport(card);
+        }
+      } catch (e) { }
     }
 
     // Squad Database State (Feature 3)
@@ -7683,6 +8020,11 @@
       if (modal) {
         modal.style.display = 'flex';
         modal.classList.add('open');
+        const card = document.getElementById('export-modal-card');
+        if (card) {
+          setupModalWindow(card);
+          restoreModalWindowState(card);
+        }
       }
     }
 
@@ -16374,6 +16716,7 @@
       checkClipperHandoff();
       initWatermarkUIFromState();
       initDraggableStageWatermark();
+      initDraggableResizableModals();
 
       // Local video media state event listeners for rock-solid sync with transport UI
       const localVid = document.getElementById('local-video-element');
