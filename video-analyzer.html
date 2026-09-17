@@ -2865,12 +2865,12 @@
 
             <button type="button" class="sub-tool-opt" id="sub-space-arrow"
               onclick="selectSpaceHighlightShape('arrow', event)">
-              <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:#00e676;fill:rgba(0,230,118,0.2);stroke-width:1.5;">
-                <path d="M4 9.5 L13 9.5 L13 6 L20 12 L13 18 L13 14.5 L4 14.5 Z" />
+              <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:#00e676;fill:rgba(0,230,118,0.25);stroke-width:1.5;">
+                <path d="M4 16 C8 15 12 11 15 9 L15 6 L21 11 L16 16 L15 13 C12 14.5 8 16.5 4 16 Z" />
               </svg>
               <div>
-                <div style="font-weight:700;">Arrow Space</div>
-                <div style="font-size:9px;color:var(--text-muted);">Directional corridor shadow spotlight</div>
+                <div style="font-weight:700;">Curved Arrow Space</div>
+                <div style="font-size:9px;color:var(--text-muted);">Curvical corridor shadow spotlight with pointed tail</div>
               </div>
             </button>
           </div>
@@ -3233,6 +3233,10 @@
           <button type="button" class="ctx-btn" id="btn-space-shape-arrow" onclick="setSpaceHighlightShape('arrow')"
             title="Arrow Space (Directional Corridor)">
             <span>➔ Arrow</span>
+          </button>
+          <button type="button" class="ctx-btn" id="btn-space-arrow-flip" onclick="flipSpaceHighlightArrow()"
+            title="Flip Arrow Direction / Arc (⇄)" style="display:none;color:#38bdf8;border-color:rgba(56,189,248,0.4);background:rgba(56,189,248,0.12);">
+            <span>⇄ Flip</span>
           </button>
           <div style="width:1px;height:18px;background:rgba(255,255,255,0.15);margin:0 2px;"></div>
           <span class="ctx-label">DIM:</span>
@@ -7390,7 +7394,7 @@
       }
     }
 
-    function showExportModalSuccess(url, filename, sizeMB) {
+    function showExportModalSuccess(url, filename, sizeMB, totalDuration, totalHoldSec) {
       const progressContainer = document.getElementById('export-progress-container');
       const modalFooter = document.getElementById('export-modal-footer');
       const barFill = document.getElementById('export-progress-bar-fill');
@@ -7409,13 +7413,15 @@
         pctEl.textContent = '100%';
         pctEl.style.color = 'var(--accent-green)';
       }
-      if (lblEl) lblEl.textContent = 'Export completed!';
+      if (lblEl) lblEl.textContent = totalDuration ? `Export completed: ${formatSecondsToMMSS(totalDuration)}` : 'Export completed!';
       if (helperRow) helperRow.style.display = 'none';
 
       if (successBox) {
         successBox.style.display = 'flex';
         if (successDetail) {
-          successDetail.textContent = `${filename} (${sizeMB} MB)`;
+          const durStr = totalDuration ? `${formatSecondsToMMSS(totalDuration)} • ` : '';
+          const holdStr = (totalHoldSec && totalHoldSec > 0) ? ` (includes +${totalHoldSec.toFixed(1)}s holds)` : '';
+          successDetail.textContent = `${filename} (${durStr}${sizeMB} MB${holdStr})`;
         }
         if (successBtn) {
           successBtn.href = url;
@@ -7538,19 +7544,49 @@
 
     function getKeyframeHoldSec(kf) {
       if (!kf) return 0;
-      if (kf.autoPause === false || kf.autoPauseDuration === 'off') return 0;
+      if (kf.autoPause === false && (!kf.duration || kf.duration < 0.3)) return 0;
+      if (kf.autoPauseDuration === 'off' && (!kf.duration || kf.duration < 0.3)) return 0;
+
+      let holdSec = 0;
+      // 1. Explicit keyframe duration set in sidebar or canvas
+      if (kf.duration !== undefined && parseFloat(kf.duration) > 0 && parseFloat(kf.duration) < 999) {
+        holdSec = parseFloat(kf.duration);
+      }
+
+      // 2. Pause timer duration configured on canvas or keyframe
       let pauseVal = (kf.autoPauseDuration && kf.autoPauseDuration !== 'inherit')
         ? kf.autoPauseDuration
         : autoPauseTimerDuration;
-      if (pauseVal === 'off') return 0;
-      if (pauseVal === 'manual') {
-        const globalSec = parseFloat(autoPauseTimerDuration);
-        if (!isNaN(globalSec) && globalSec > 0) return globalSec;
-        if (kf.duration !== undefined && kf.duration > 0 && kf.duration < 999) return kf.duration;
-        return 2.0;
+      if (pauseVal !== 'off') {
+        const pDur = parseFloat(pauseVal);
+        if (!isNaN(pDur) && pDur > 0) {
+          holdSec = Math.max(holdSec, pDur);
+        }
       }
-      const dur = parseFloat(pauseVal);
-      return (!isNaN(dur) && dur > 0) ? dur : ((kf.duration !== undefined && kf.duration > 0 && kf.duration < 999) ? kf.duration : 2.0);
+
+      // 3. Individual object-level hold duration
+      if (kf.objects && Array.isArray(kf.objects)) {
+        kf.objects.forEach(o => {
+          if (o.duration !== undefined && o.duration !== 'inherit') {
+            const od = parseFloat(o.duration);
+            if (!isNaN(od) && od > 0 && od < 999) {
+              holdSec = Math.max(holdSec, od);
+            }
+          }
+        });
+      }
+
+      // 4. Default fallback if holdSec is still minimal
+      if (holdSec < 0.3) {
+        const globalPause = parseFloat(autoPauseTimerDuration);
+        if (!isNaN(globalPause) && globalPause > 0) {
+          holdSec = globalPause;
+        } else {
+          holdSec = defaultHoldDuration || 2.0;
+        }
+      }
+
+      return Math.max(0.5, holdSec);
     }
 
     function getExportHoldMoments(startTime, endTime) {
@@ -7596,9 +7632,10 @@
         const moments = getExportHoldMoments(inSec, outSec);
         holdSec = moments.reduce((sum, m) => sum + m.holdSec, 0);
       }
+      const totalExportSec = dur + holdSec;
       if (durEl) {
         if (holdSec > 0) {
-          durEl.innerHTML = `Duration: <b>${formatSecondsToMMSS(dur)}</b> <span style="color:#38bdf8;">(+${holdSec.toFixed(1)}s holds = ${formatSecondsToMMSS(dur + holdSec)})</span>`;
+          durEl.innerHTML = `Total Video Duration: <b style="color:var(--accent-green);font-size:12px;">${formatSecondsToMMSS(totalExportSec)}</b> <span style="color:#38bdf8;font-size:10.5px;">(${formatSecondsToMMSS(dur)} clip + ${holdSec.toFixed(1)}s drawing holds)</span>`;
         } else {
           durEl.textContent = `Duration: ${formatSecondsToMMSS(dur)}`;
         }
@@ -7610,6 +7647,11 @@
         } else {
           descEl.textContent = `Preserves exact keyframe auto-pause hold times as configured on your canvas.`;
         }
+      }
+      const exportBtnLabel = document.getElementById('btn-start-export-label');
+      if (exportBtnLabel) {
+        const actionPrefix = (!isUsingLocalVideo && !isSyntheticDemo) ? '🎬 Record Match Clip' : '⬇️ Start Direct Export';
+        exportBtnLabel.textContent = `${actionPrefix} (${formatSecondsToMMSS(totalExportSec)})`;
       }
     }
 
@@ -7748,17 +7790,9 @@
       const fps = 30;
       const frameDurationUs = Math.round(1_000_000 / fps);
 
-      // Accurately calculate total moving frames accounting for per-keyframe playback rates
-      let estimatedMovingFrames = 0;
-      for (let simT = startTime; simT < endTime;) {
-        const activeKfs = getVisibleKeyframesAtTime(simT);
-        const primaryKf = activeKfs.length > 0 ? activeKfs[activeKfs.length - 1] : null;
-        const rate = (primaryKf && primaryKf.playbackRate) ? primaryKf.playbackRate : 1.0;
-        estimatedMovingFrames++;
-        simT += (rate / fps);
-      }
-      const totalExportFrames = Math.max(1, estimatedMovingFrames + totalHoldFrames);
-      const totalExportDuration = (estimatedMovingFrames / fps) + totalHoldSeconds;
+      const movingFrames = Math.max(1, Math.round((endTime - startTime) * fps));
+      const totalExportFrames = movingFrames + totalHoldFrames;
+      const totalExportDuration = (movingFrames / fps) + totalHoldSeconds;
 
       // Create high-precision 1080p composition canvas
       const compCanvas = document.createElement('canvas');
@@ -7817,29 +7851,38 @@
 
       let _lastExportKfKey = null;
 
-      async function renderFrameAtTime(t) {
-        const visibleKfs = getVisibleKeyframesAtTime(t);
-        const currentKfKey = visibleKfs.map(k => k.id).sort().join(',');
+      async function renderFrameAtTime(t, kfsToRender = null, isHold = false) {
+        currentVideoTime = t;
 
-        if (currentKfKey !== _lastExportKfKey) {
-          _lastExportKfKey = currentKfKey;
-          await renderKeyframesToCanvas(visibleKfs);
-        } else if (canvas) {
-          canvas.renderAll();
+        if (isHold && kfsToRender && kfsToRender.length > 0) {
+          const currentKfKey = kfsToRender.map(k => k.id).sort().join(',');
+          if (currentKfKey !== _lastExportKfKey) {
+            _lastExportKfKey = currentKfKey;
+            await renderKeyframesToCanvas(kfsToRender);
+          } else if (canvas) {
+            canvas.renderAll();
+          }
+        } else {
+          _lastExportKfKey = null;
+          if (canvas) {
+            canvas.clear();
+            canvas.renderAll();
+          }
         }
 
         // Determine active magnification / tactical zoom & pan
-        const hasProjectZoomKfs = (tacticalKeyframes || []).some(k => k.zoomLevel && k.zoomLevel > 1.0);
-        const zoomedKf = [...visibleKfs].reverse().find(k => k.zoomLevel && k.zoomLevel > 1.0);
         let effectiveZoom = 1.0;
         let effectivePanX = 0;
         let effectivePanY = 0;
 
-        if (zoomedKf) {
-          effectiveZoom = zoomedKf.zoomLevel;
-          effectivePanX = zoomedKf.panX || 0;
-          effectivePanY = zoomedKf.panY || 0;
-        } else if (!hasProjectZoomKfs && stageZoomLevel > 1.0) {
+        if (isHold && kfsToRender && kfsToRender.length > 0) {
+          const zoomedKf = [...kfsToRender].reverse().find(k => k.zoomLevel && k.zoomLevel > 1.0);
+          if (zoomedKf) {
+            effectiveZoom = zoomedKf.zoomLevel;
+            effectivePanX = zoomedKf.panX || 0;
+            effectivePanY = zoomedKf.panY || 0;
+          }
+        } else if (stageZoomLevel > 1.0) {
           effectiveZoom = stageZoomLevel;
           effectivePanX = stagePanX || 0;
           effectivePanY = stagePanY || 0;
@@ -7886,8 +7929,8 @@
           }
         }
 
-        // Composite telestration drawings (zoomed & panned synchronously with video)
-        if (canvas && canvas.lowerCanvasEl) {
+        // Composite telestration drawings only when hold is active
+        if (isHold && canvas && canvas.lowerCanvasEl) {
           try { compCtx.drawImage(canvas.lowerCanvasEl, 0, 0, 1920, 1080); } catch (e) { }
         }
 
@@ -7898,9 +7941,10 @@
       }
 
       try {
-        const waitForVideoSeek = (vid) => {
+        const seekVideoTo = (targetSec) => {
           return new Promise(resolve => {
-            if (!vid || (!vid.seeking && vid.readyState >= 2)) {
+            if (!localVid) { resolve(); return; }
+            if (Math.abs(localVid.currentTime - targetSec) < 0.005) {
               resolve();
               return;
             }
@@ -7908,13 +7952,18 @@
             const onSeek = () => {
               if (done) return;
               done = true;
-              vid.removeEventListener('seeked', onSeek);
-              vid.removeEventListener('canplay', onSeek);
+              localVid.removeEventListener('seeked', onSeek);
+              if ('requestVideoFrameCallback' in localVid) {
+                try {
+                  localVid.requestVideoFrameCallback(() => resolve());
+                  return;
+                } catch (e) { }
+              }
               resolve();
             };
-            vid.addEventListener('seeked', onSeek, { once: true });
-            vid.addEventListener('canplay', onSeek, { once: true });
-            setTimeout(onSeek, 350);
+            localVid.addEventListener('seeked', onSeek, { once: true });
+            localVid.currentTime = Math.min(localVid.duration || 999999, Math.max(0, targetSec));
+            setTimeout(onSeek, 250);
           });
         };
 
@@ -7922,13 +7971,13 @@
           localVid.pause();
         }
 
-        if (lblEl) lblEl.textContent = 'Compositing tactical frames with exact canvas speed & holds...';
+        if (lblEl) lblEl.textContent = `Compositing ${formatSecondsToMMSS(totalExportDuration)} tactical video (${formatSecondsToMMSS(endTime - startTime)} clip + ${totalHoldSeconds.toFixed(1)}s drawing holds)...`;
         let lastUiUpdate = 0;
         let currentT = startTime;
         let nextMomentIdx = 0;
         let outputFrameIdx = 0;
 
-        while ((currentT <= endTime + (0.5 / fps) || nextMomentIdx < holdMoments.length) && outputFrameIdx < totalExportFrames + 120) {
+        while (currentT <= endTime + 0.001) {
           if (!isExportingDirectVideo || exportDirectCancelled || encoderError) break;
 
           // Check if we hit the next keyframe hold moment
@@ -7939,15 +7988,21 @@
             currentVideoTime = holdT;
 
             if (isLocal && localVid) {
-              localVid.currentTime = Math.min(localVid.duration || 999999, Math.max(0, holdT));
-              await waitForVideoSeek(localVid);
+              await seekVideoTo(holdT);
             }
 
-            await renderFrameAtTime(holdT);
+            // Render keyframe drawings onto canvas for this tactical pause
+            await renderFrameAtTime(holdT, moment.kfs, true);
 
-            // Encode all hold frames matching the keyframe's actual hold duration
+            // Encode hold frames: frozen video frame + tactical drawings
             for (let h = 0; h < moment.frames; h++) {
               if (!isExportingDirectVideo || exportDirectCancelled || encoderError) break;
+
+              // If dynamic animated tracker ring is present, update rotation smoothly during hold
+              const hasAnimatedTracker = canvas && canvas.getObjects().some(o => o.tacticalType === 'tracker-ring');
+              if (hasAnimatedTracker) {
+                await renderFrameAtTime(holdT, moment.kfs, true);
+              }
 
               const timestampUs = outputFrameIdx * frameDurationUs;
               const isKeyFrame = (outputFrameIdx % (fps * 2) === 0);
@@ -7964,28 +8019,31 @@
               const now = performance.now();
               if (now - lastUiUpdate > 80 || h === moment.frames - 1) {
                 lastUiUpdate = now;
+                const curExportSec = Math.min(totalExportDuration, outputFrameIdx / fps);
                 if (barFill) barFill.style.width = pct + '%';
                 if (pctEl) pctEl.textContent = pct + '%';
-                if (lblEl) lblEl.textContent = `Encoding MP4: ${pct}% (⏳ Holding ${moment.holdSec.toFixed(1)}s tactical frame ${nextMomentIdx}/${holdMoments.length})...`;
+                if (lblEl) lblEl.textContent = `Encoding MP4: ${pct}% (${formatSecondsToMMSS(curExportSec)} / ${formatSecondsToMMSS(totalExportDuration)}) • ⏳ Holding ${moment.holdSec.toFixed(1)}s (Pin ${nextMomentIdx}/${holdMoments.length})...`;
                 await new Promise(r => setTimeout(r, 0));
               }
             }
 
-            // Advance currentT past this hold timestamp so the outer loop does not duplicate it
+            // Hold is finished: clear canvas so moving video continues without drawings
+            if (canvas) canvas.clear();
+
+            // Advance currentT past this hold timestamp
             currentT = holdT + (1.0 / fps);
             continue;
           }
 
           if (currentT > endTime) break;
 
-          // Render and encode normal moving frame
+          // Render normal moving video frame (clean, no drawings)
           currentVideoTime = currentT;
           if (isLocal && localVid) {
-            localVid.currentTime = Math.min(localVid.duration || 999999, Math.max(0, currentT));
-            await waitForVideoSeek(localVid);
+            await seekVideoTo(currentT);
           }
 
-          await renderFrameAtTime(currentT);
+          await renderFrameAtTime(currentT, null, false);
 
           const timestampUs = outputFrameIdx * frameDurationUs;
           const isKeyFrame = (outputFrameIdx % (fps * 2) === 0);
@@ -7998,21 +8056,16 @@
           vFrame.close();
           outputFrameIdx++;
 
-          // Check active playback rate at currentT (e.g. slow motion 0.5x, 0.25x or normal 1.0x)
-          const activeKfs = getVisibleKeyframesAtTime(currentT);
-          const primaryKf = activeKfs.length > 0 ? activeKfs[activeKfs.length - 1] : null;
-          const rate = (primaryKf && primaryKf.playbackRate) ? primaryKf.playbackRate : 1.0;
-
-          // Advance media timestamp according to playback rate
-          currentT += (rate / fps);
+          currentT += (1.0 / fps);
 
           const pct = Math.min(99, Math.round((outputFrameIdx / totalExportFrames) * 100));
           const now = performance.now();
           if (now - lastUiUpdate > 80) {
             lastUiUpdate = now;
+            const curExportSec = Math.min(totalExportDuration, outputFrameIdx / fps);
             if (barFill) barFill.style.width = pct + '%';
             if (pctEl) pctEl.textContent = pct + '%';
-            if (lblEl) lblEl.textContent = `Encoding MP4: ${pct}% (${formatSecondsToMMSS(currentT)} / ${formatSecondsToMMSS(endTime)})`;
+            if (lblEl) lblEl.textContent = `Encoding MP4: ${pct}% (${formatSecondsToMMSS(curExportSec)} / ${formatSecondsToMMSS(totalExportDuration)})`;
             await new Promise(r => setTimeout(r, 0));
           }
         }
@@ -8022,7 +8075,7 @@
           return;
         }
 
-        if (lblEl) lblEl.textContent = 'Finalizing fast-start MP4...';
+        if (lblEl) lblEl.textContent = `Finalizing fast-start MP4 (${formatSecondsToMMSS(totalExportDuration)})...`;
         if (barFill) barFill.style.width = '100%';
         if (pctEl) pctEl.textContent = '100%';
 
@@ -8039,8 +8092,8 @@
         const filename = `tactical-analysis-${Date.now()}.mp4`;
         const { url, sizeMB } = triggerFileDownload(blob, filename);
 
-        showExportModalSuccess(url, filename, sizeMB);
-        showExportToast(`✅ MP4 Export Ready: ${filename} (${sizeMB} MB)`);
+        showExportModalSuccess(url, filename, sizeMB, totalExportDuration, totalHoldSeconds);
+        showExportToast(`✅ MP4 Export Ready: ${filename} (${formatSecondsToMMSS(totalExportDuration)} • ${sizeMB} MB)`);
 
       } catch (err) {
         console.error('WebCodecs export encountered an error, falling back to MediaRecorder:', err);
@@ -8099,28 +8152,23 @@
       compCtx.imageSmoothingQuality = 'high';
 
       let _lastFallbackKfKey = null;
-      function renderCompFrame() {
-        const visibleKfs = getVisibleKeyframesAtTime(currentVideoTime);
-        const currentKfKey = visibleKfs.map(k => k.id).sort().join(',');
-        if (currentKfKey !== _lastFallbackKfKey) {
-          _lastFallbackKfKey = currentKfKey;
-          renderKeyframesToCanvas(visibleKfs);
+      function renderCompFrame(isHold = false) {
+        if (!isHold) {
+          _lastFallbackKfKey = null;
+          if (canvas) {
+            canvas.clear();
+            canvas.renderAll();
+          }
         } else if (canvas) {
           canvas.renderAll();
         }
 
         // Determine active magnification / tactical zoom & pan
-        const hasProjectZoomKfs = (tacticalKeyframes || []).some(k => k.zoomLevel && k.zoomLevel > 1.0);
-        const zoomedKf = [...visibleKfs].reverse().find(k => k.zoomLevel && k.zoomLevel > 1.0);
         let effectiveZoom = 1.0;
         let effectivePanX = 0;
         let effectivePanY = 0;
 
-        if (zoomedKf) {
-          effectiveZoom = zoomedKf.zoomLevel;
-          effectivePanX = zoomedKf.panX || 0;
-          effectivePanY = zoomedKf.panY || 0;
-        } else if (!hasProjectZoomKfs && stageZoomLevel > 1.0) {
+        if (stageZoomLevel > 1.0) {
           effectiveZoom = stageZoomLevel;
           effectivePanX = stagePanX || 0;
           effectivePanY = stagePanY || 0;
@@ -8160,7 +8208,7 @@
           }
         }
 
-        if (canvas && canvas.lowerCanvasEl) {
+        if (isHold && canvas && canvas.lowerCanvasEl) {
           try { compCtx.drawImage(canvas.lowerCanvasEl, 0, 0, 1920, 1080); } catch (e) { }
         }
 
@@ -8170,7 +8218,7 @@
         drawWatermarkOnCanvas(compCtx, 1920, 1080);
       }
 
-      renderCompFrame();
+      renderCompFrame(false);
 
       const streamFn = compCanvas.captureStream || compCanvas.mozCaptureStream || compCanvas.webkitCaptureStream;
       if (!streamFn) {
@@ -8186,7 +8234,7 @@
         stream = streamFn.call(compCanvas);
       }
 
-      if (isLocal) {
+      if (isLocal && holdMoments.length === 0) {
         try {
           const vStream = localVid.captureStream ? localVid.captureStream() : (localVid.mozCaptureStream ? localVid.mozCaptureStream() : null);
           if (vStream) {
@@ -8228,8 +8276,8 @@
           const blob = new Blob(chunks, { type: isMp4 ? 'video/mp4' : 'video/webm' });
           const { url, sizeMB } = triggerFileDownload(blob, filename);
 
-          showExportModalSuccess(url, filename, sizeMB);
-          showExportToast(`✅ Video exported: ${filename}`);
+          showExportModalSuccess(url, filename, sizeMB, totalDuration, totalHoldSeconds);
+          showExportToast(`✅ Video exported: ${filename} (${formatSecondsToMMSS(totalDuration)})`);
         } else if (!exportDirectCancelled) {
           alert('Export completed with 0 frames. Please ensure video is playable and try again.');
           if (progressContainer) progressContainer.style.display = 'none';
@@ -8239,10 +8287,11 @@
       };
 
       _origAutoPauseState = autoPauseOnKeyframes;
+      autoPauseOnKeyframes = false;
       isExportingDirectVideo = true;
       exportDirectCancelled = false;
 
-      if (lblEl) lblEl.textContent = `Seeking to ${formatSecondsToMMSS(startTime)}...`;
+      if (lblEl) lblEl.textContent = `Preparing export (${formatSecondsToMMSS(totalDuration)} with ${totalHoldSeconds.toFixed(1)}s holds)...`;
       if (isLocal && localVid) {
         localVid.pause();
         localVid.currentTime = startTime;
@@ -8317,6 +8366,7 @@
         }
 
         const cur = isLocal ? (localVid.currentTime || currentVideoTime) : currentVideoTime;
+        currentVideoTime = cur;
         const wallElapsed = (performance.now() - startRecordWall) / 1000;
 
         // Check keyframe auto-pause hold in fallback mode
@@ -8347,13 +8397,16 @@
             });
           }
           currentVideoTime = m.timestamp;
-          renderCompFrame();
+          await renderKeyframesToCanvas(m.kfs);
+          renderCompFrame(true);
 
           const holdEndWall = performance.now() + (m.holdSec * 1000);
           while (performance.now() < holdEndWall && isExportingDirectVideo && !exportDirectCancelled) {
-            renderCompFrame();
+            renderCompFrame(true);
             await new Promise(r => setTimeout(r, 33));
           }
+
+          if (canvas) canvas.clear();
 
           if (isLocal && localVid) {
             const primaryKf = m.kfs[m.kfs.length - 1];
@@ -8363,7 +8416,7 @@
           isFallbackHolding = false;
         }
 
-        renderCompFrame();
+        renderCompFrame(false);
 
         // Accumulate actual hold seconds from completed hold moments (not a hardcoded 3s per moment)
         let accumulatedHoldSec = 0;
@@ -8378,10 +8431,11 @@
           lastDomUpdate = now;
           if (barFill) barFill.style.width = pct + '%';
           if (pctEl) pctEl.textContent = pct + '%';
-          if (lblEl) lblEl.textContent = `Rendering: ${pct}% (${elapsed.toFixed(1)}s / ${totalDuration.toFixed(1)}s)`;
+          if (lblEl) lblEl.textContent = `Rendering: ${pct}% (${formatSecondsToMMSS(elapsed)} / ${formatSecondsToMMSS(totalDuration)})`;
         }
 
-        const isDone = (cur >= endTime && (!includeAutoPause || wallElapsed >= totalDuration - 0.5)) ||
+        const allHoldsComplete = (nextFallbackMomentIdx >= holdMoments.length);
+        const isDone = (cur >= endTime && (allHoldsComplete || !includeAutoPause)) ||
           (isLocal && localVid && localVid.ended) ||
           (wallElapsed >= totalDuration + 2.0);
 
@@ -8405,7 +8459,12 @@
     /* ==========================================================================
        AUTOMATED SCREEN EXPORT FLOATING HUD
     ========================================================================== */
-    function showFloatingExportHUD(startTime, endTime, onFinish) {
+    function showFloatingExportHUD(startTime, endTime, totalDuration, onFinish) {
+      if (typeof totalDuration === 'function') {
+        onFinish = totalDuration;
+        totalDuration = Math.max(0.5, endTime - startTime);
+      }
+      const dur = (totalDuration && totalDuration > 0) ? totalDuration : Math.max(0.5, endTime - startTime);
       let hud = document.getElementById('automated-export-hud');
       if (!hud) {
         hud = document.createElement('div');
@@ -8432,7 +8491,6 @@
         `;
         document.body.appendChild(hud);
       }
-      const dur = Math.max(0.5, endTime - startTime);
       hud.innerHTML = `
         <span style="display:inline-flex;align-items:center;gap:6px;color:#ff1744;">
           <span style="display:inline-block;width:8px;height:8px;background:#ff1744;border-radius:50%;box-shadow:0 0 8px #ff1744;"></span>
@@ -8534,7 +8592,17 @@
         modal.classList.remove('open');
       }
 
-      showFloatingExportHUD(startTime, endTime, () => finishScreenExport());
+      _origAutoPauseState = autoPauseOnKeyframes;
+      autoPauseOnKeyframes = false;
+      isExportingDirectVideo = true;
+      exportDirectCancelled = false;
+
+      const holdMoments = isAutoPauseOn ? getExportHoldMoments(startTime, endTime) : [];
+      let totalHoldSeconds = 0;
+      holdMoments.forEach(m => totalHoldSeconds += m.holdSec);
+      const totalDuration = Math.max(0.5, endTime - startTime) + totalHoldSeconds;
+
+      showFloatingExportHUD(startTime, endTime, totalDuration, () => finishScreenExport());
 
       if (successBox) successBox.style.display = 'none';
       if (helperRow) helperRow.style.display = 'flex';
@@ -8548,7 +8616,7 @@
         pctEl.textContent = '0%';
         pctEl.style.color = 'var(--accent-green)';
       }
-      if (lblEl) lblEl.textContent = 'Seeking to clip start...';
+      if (lblEl) lblEl.textContent = `Preparing recording (${formatSecondsToMMSS(totalDuration)} with ${totalHoldSeconds.toFixed(1)}s holds)...`;
 
       let recData;
       try {
@@ -8599,8 +8667,8 @@
           const blob = new Blob(chunks, { type: isMp4 ? 'video/mp4' : 'video/webm' });
           const { url, sizeMB } = triggerFileDownload(blob, filename);
 
-          showExportModalSuccess(url, filename, sizeMB);
-          showExportToast(`✅ Video exported: ${filename}`);
+          showExportModalSuccess(url, filename, sizeMB, totalDuration, totalHoldSeconds);
+          showExportToast(`✅ Video exported: ${filename} (${formatSecondsToMMSS(totalDuration)})`);
         } else if (!exportDirectCancelled) {
           alert('Recording completed with 0 frames. Please ensure permissions are granted and try again.');
           if (progressContainer) progressContainer.style.display = 'none';
@@ -8617,14 +8685,6 @@
           }
         };
       }
-
-      _origAutoPauseState = autoPauseOnKeyframes;
-      const isAutoPauseOn = document.getElementById('export-autopause-enable')
-        ? document.getElementById('export-autopause-enable').checked
-        : true;
-      autoPauseOnKeyframes = isAutoPauseOn;
-      isExportingDirectVideo = true;
-      exportDirectCancelled = false;
 
       seekToTime(startTime);
       let seekCheckCount = 0;
@@ -8660,10 +8720,6 @@
       // Smooth buffer chunking: avoids micro-timeslice stalls
       recorder.start(2000);
 
-      const holdMoments = isAutoPauseOn ? getExportHoldMoments(startTime, endTime) : [];
-      let totalHoldSeconds = 0;
-      holdMoments.forEach(m => totalHoldSeconds += m.holdSec);
-      const totalDuration = Math.max(0.5, endTime - startTime) + totalHoldSeconds;
       const startRecordWall = performance.now();
       let lastHudUpdate = 0;
 
@@ -8719,8 +8775,12 @@
           const m = holdMoments[nextScreenHoldIdx];
           nextScreenHoldIdx++;
 
-          // Snap video exactly to the keyframe timestamp so drawings render cleanly
+          // Snap video exactly to the keyframe timestamp and render keyframe drawings cleanly
           pauseVideo();
+          seekToTime(m.timestamp);
+          if (m.kfs && m.kfs.length > 0) {
+            renderKeyframesToCanvas(m.kfs);
+          }
 
           const holdEndWall = performance.now() + (m.holdSec * 1000);
           if (lblEl) lblEl.textContent = `Recording: ⏸ Holding ${m.holdSec.toFixed(1)}s at ${formatSecondsToMMSS(m.timestamp)}...`;
@@ -8761,7 +8821,7 @@
 
         // Complete when video passes endTime and all keyframe holds have executed
         const allHoldsComplete = (nextScreenHoldIdx >= holdMoments.length);
-        const isFinished = (cur >= endTime && (!isAutoPauseOn || (allHoldsComplete && wallElapsed >= totalDuration - 0.5))) ||
+        const isFinished = (cur >= endTime && (allHoldsComplete || !isAutoPauseOn)) ||
           (wallElapsed >= totalDuration + 2.0);
 
         if (isFinished) {
@@ -9492,6 +9552,11 @@
         arrowBtn.style.color = isArrowActive ? '#00e676' : '#cbd5e1';
       }
 
+      const flipBtn = document.getElementById('btn-space-arrow-flip');
+      if (flipBtn) {
+        flipBtn.style.display = (currShape === 'arrow') ? 'inline-flex' : 'none';
+      }
+
       const featherBtn = document.getElementById('btn-space-feather-toggle');
       const featherText = document.getElementById('btn-space-feather-text');
       if (featherBtn) {
@@ -9500,6 +9565,26 @@
         featherBtn.style.color = currFeather ? '#00e676' : '#cbd5e1';
       }
       if (featherText) featherText.textContent = currFeather ? 'Soft Edge: ON' : 'Soft Edge: OFF';
+    }
+
+    function flipSpaceHighlightArrow() {
+      if (!canvas) return;
+      let activeObj = canvas.getActiveObject();
+      if (!activeObj || activeObj.tacticalType !== 'space-highlight') {
+        const objs = canvas.getObjects();
+        for (let i = objs.length - 1; i >= 0; i--) {
+          if (objs[i].tacticalType === 'space-highlight') {
+            activeObj = objs[i];
+            break;
+          }
+        }
+      }
+      if (!activeObj) return;
+
+      activeObj.set({ flipX: !activeObj.flipX });
+      activeObj.setCoords();
+      canvas.requestRenderAll();
+      saveCurrentCanvasToActiveKeyframe();
     }
 
     function updateSpaceHighlightToolUI() {
@@ -9518,8 +9603,8 @@
           icon.innerHTML = `<rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="2" opacity="0.4" /><rect x="6" y="7" width="12" height="10" rx="1.5" fill="#00e676" opacity="0.25" /><rect x="6" y="7" width="12" height="10" rx="1.5" fill="none" stroke="#00e676" stroke-width="2" stroke-dasharray="4 2" /><circle cx="12" cy="12" r="1.5" fill="#00e676" />`;
           if (btn) btn.setAttribute('data-tooltip', `Highlight Space: Rectangle\n(Dark Pitch Shadow)\n(Click to use, arrow for options)\n(X)`);
         } else if (activeSpaceHighlightShape === 'arrow') {
-          icon.innerHTML = `<rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="2" opacity="0.4" /><path d="M5 9.5 L12 9.5 L12 6.5 L18 12 L12 17.5 L12 14.5 L5 14.5 Z" fill="#00e676" opacity="0.25" /><path d="M5 9.5 L12 9.5 L12 6.5 L18 12 L12 17.5 L12 14.5 L5 14.5 Z" fill="none" stroke="#00e676" stroke-width="1.8" /><circle cx="12" cy="12" r="1.5" fill="#00e676" />`;
-          if (btn) btn.setAttribute('data-tooltip', `Highlight Space: Arrow\n(Dark Pitch Shadow)\n(Click to use, arrow for options)\n(X)`);
+          icon.innerHTML = `<rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="2" opacity="0.4" /><path d="M4 16 C8 15 12 11 15 9 L15 6 L21 11 L16 16 L15 13 C12 14.5 8 16.5 4 16 Z" fill="#00e676" opacity="0.25" /><path d="M4 16 C8 15 12 11 15 9 L15 6 L21 11 L16 16 L15 13 C12 14.5 8 16.5 4 16 Z" fill="none" stroke="#00e676" stroke-width="1.6" /><circle cx="12" cy="12" r="1.5" fill="#00e676" />`;
+          if (btn) btn.setAttribute('data-tooltip', `Highlight Space: Curved Arrow\n(Dark Pitch Shadow)\n(Click to use, arrow for options)\n(X)`);
         } else {
           icon.innerHTML = `<rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="2" opacity="0.4" /><ellipse cx="12" cy="12" rx="6.5" ry="4.5" fill="#00e676" opacity="0.25" /><ellipse cx="12" cy="12" rx="6.5" ry="4.5" fill="none" stroke="#00e676" stroke-width="2" stroke-dasharray="4 2" /><circle cx="12" cy="12" r="1.5" fill="#00e676" />`;
           if (btn) btn.setAttribute('data-tooltip', `Highlight Space: Circle\n(Dark Pitch Shadow)\n(Click to use, arrow for options)\n(X)`);
@@ -11403,14 +11488,26 @@
       ctx.closePath();
     }
 
-    function drawHighlightArrowPath(ctx, tailX, baseX, tipX, shaftH, headW) {
-      ctx.moveTo(tailX, -shaftH / 2);
-      ctx.lineTo(baseX, -shaftH / 2);
-      ctx.lineTo(baseX, -headW / 2);
-      ctx.lineTo(tipX, 0);
-      ctx.lineTo(baseX, headW / 2);
-      ctx.lineTo(baseX, shaftH / 2);
-      ctx.lineTo(tailX, shaftH / 2);
+    function drawHighlightArrowPath(ctx, tailX, baseX, tipX, shaftH, headW, curvature) {
+      const curveMid = (curvature !== undefined) ? curvature : Math.min(Math.abs(tipX - tailX) * 0.22, 28);
+      const curveBase = curveMid * 0.50;
+      const curveTip = curveMid * 0.15;
+      const midX = (tailX + baseX) * 0.48;
+
+      // Start at sharp pointed tail (tapered needle point on ground, not flat)
+      ctx.moveTo(tailX, -curveTip * 0.5);
+      // Sleek curvical arched upper edge of shaft from pointed tail to arrowhead base
+      ctx.quadraticCurveTo(midX, -shaftH * 0.5 - curveMid, baseX, -shaftH * 0.44 - curveBase);
+      // Arrowhead upper barb wing flaring out crisply
+      ctx.lineTo(baseX - 8, -headW * 0.52 - curveBase);
+      // Sleek sharp pointed arrowhead apex
+      ctx.lineTo(tipX, -curveTip);
+      // Arrowhead lower barb wing
+      ctx.lineTo(baseX - 8, headW * 0.52 - curveBase);
+      // Arrowhead base step cleanly back into shaft
+      ctx.lineTo(baseX, shaftH * 0.44 - curveBase);
+      // Sleek curvical arched lower edge of shaft tapering back to pointed tail
+      ctx.quadraticCurveTo(midX, shaftH * 0.5 - curveMid, tailX, -curveTip * 0.5);
       ctx.closePath();
     }
 
@@ -11493,21 +11590,22 @@
           }
           ctx.restore();
         } else if (shape === 'arrow') {
-          const w = Math.max(40, this.width || 180);
-          const h = Math.max(24, this.height || 70);
+          const w = Math.max(50, this.width || 200);
+          const h = Math.max(30, this.height || 75);
           const tailX = -w / 2;
           const tipX = w / 2;
-          const shaftH = Math.max(16, h * 0.44);
-          const headW = h;
-          const headLen = Math.min(w * 0.45, Math.max(26, h * 0.82));
+          const shaftH = Math.max(16, h * 0.42);
+          const headW = h * 0.95;
+          const headLen = Math.min(w * 0.42, Math.max(28, h * 0.8));
           const baseX = tipX - headLen;
+          const curv = Math.min(h * 0.28, 24);
 
           ctx.save();
           if (isFeathered) {
             const featherSpread = Math.min(shaftH * 0.35, 16);
             ctx.beginPath();
             ctx.rect(-20000, -20000, 40000, 40000);
-            drawHighlightArrowPath(ctx, tailX, baseX, tipX, shaftH, headW);
+            drawHighlightArrowPath(ctx, tailX, baseX, tipX, shaftH, headW, curv);
             ctx.fillStyle = `rgba(0, 0, 0, ${darkness})`;
             ctx.fill('evenodd');
 
@@ -11519,11 +11617,12 @@
               ctx.beginPath();
               drawHighlightArrowPath(
                 ctx,
-                tailX + inset,
+                tailX + inset * 1.5,
                 baseX - inset * 0.5,
-                tipX - inset,
+                tipX - inset * 1.2,
                 Math.max(4, shaftH - inset * 2),
-                Math.max(8, headW - inset * 2)
+                Math.max(8, headW - inset * 2),
+                curv
               );
               ctx.strokeStyle = `rgba(0, 0, 0, ${alpha * 0.4})`;
               ctx.lineWidth = featherSpread / steps + 1.2;
@@ -11532,7 +11631,7 @@
           } else {
             ctx.beginPath();
             ctx.rect(-20000, -20000, 40000, 40000);
-            drawHighlightArrowPath(ctx, tailX, baseX, tipX, shaftH, headW);
+            drawHighlightArrowPath(ctx, tailX, baseX, tipX, shaftH, headW, curv);
             ctx.fillStyle = `rgba(0, 0, 0, ${darkness})`;
             ctx.fill('evenodd');
           }
@@ -11703,14 +11802,14 @@
         ctx.save();
         ctx.beginPath();
         ctx.ellipse(0, 0, rx * 0.64, ry * 0.64, 0, 0, Math.PI * 2);
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
-        ctx.lineWidth = 1.8;
-        ctx.setLineDash([6, 6]);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.95)';
+        ctx.lineWidth = 3.2;
+        ctx.setLineDash([7, 6]);
         ctx.lineDashOffset = -timeSec * 15;
         ctx.stroke();
         ctx.restore();
 
-        // 4. DYNAMIC CIRCUMFERENCE TRACKER: 4 distinct dashed lines orbiting
+        // 4. DYNAMIC CIRCUMFERENCE TRACKER: 4 distinct bold dashed lines orbiting
         const numDashes = 4;
         const dashArc = (Math.PI * 2) / numDashes;
         const arcSpan = dashArc * 0.58;
@@ -11718,11 +11817,11 @@
         const baseAngle = (timeSec * rotSpeed) % (Math.PI * 2);
 
         ctx.save();
-        ctx.lineWidth = 3.4;
+        ctx.lineWidth = 11.0;
         ctx.lineCap = 'round';
         ctx.strokeStyle = color;
         ctx.shadowColor = color;
-        ctx.shadowBlur = 14;
+        ctx.shadowBlur = 22;
 
         for (let i = 0; i < numDashes; i++) {
           const startA = baseAngle + i * dashArc;
@@ -11807,7 +11906,7 @@
         items.push(lightBeam);
       }
 
-      // Outer Glowing Floor Disc (Illuminated Grass on Pitch - gentle glow so player is clear)
+      // Outer Glowing Floor Disc (Complete Solid Line Circle - Thick Broadcast Style: 10.0px)
       const outerRing = new fabric.Ellipse({
         left: cx,
         top: cy,
@@ -11817,10 +11916,10 @@
         ry: ry,
         fill: hexToRgba(color, 0.10),
         stroke: color,
-        strokeWidth: 3,
+        strokeWidth: 10.0,
         shadow: new fabric.Shadow({
           color: color,
-          blur: 14,
+          blur: 22,
           offsetX: 0,
           offsetY: 0
         })
@@ -11833,12 +11932,12 @@
         top: cy,
         originX: 'center',
         originY: 'center',
-        rx: rx * 0.6,
-        ry: ry * 0.6,
+        rx: rx * 0.64,
+        ry: ry * 0.64,
         fill: 'transparent',
-        stroke: 'rgba(255, 255, 255, 0.85)',
-        strokeWidth: 1.8,
-        strokeDashArray: [6, 6]
+        stroke: 'rgba(255, 255, 255, 0.95)',
+        strokeWidth: 3.2,
+        strokeDashArray: [7, 6]
       });
       items.push(innerRing);
 
@@ -13370,7 +13469,7 @@
     function getVisibleKeyframesAtTime(time) {
       const dur = defaultHoldDuration;
       return tacticalKeyframes.filter(kf => {
-        let maxDuration = (kf.duration !== undefined) ? kf.duration : dur;
+        let maxDuration = (kf.duration !== undefined && kf.duration > 0) ? kf.duration : dur;
         if (kf.objects && Array.isArray(kf.objects)) {
           kf.objects.forEach(o => {
             if (o.duration !== undefined && o.duration !== 'inherit') {
@@ -13424,8 +13523,8 @@
               ? parseFloat(objDef.duration)
               : ((kf.duration !== undefined) ? kf.duration : defaultHoldDuration);
 
-            // If actively playing or exporting, respect per-drawing hold duration
-            if (isPlaying || isExportingDirectVideo) {
+            // If actively playing in real-time timeline, respect per-drawing hold duration
+            if (isPlaying && !isExportingDirectVideo) {
               const isObjActive = (objDur >= 999)
                 ? (currentVideoTime >= kf.timestamp - 0.015)
                 : (currentVideoTime >= (kf.timestamp - 0.015) && currentVideoTime <= (kf.timestamp + objDur + 0.015));
@@ -13559,16 +13658,22 @@
       // Robust search for existing keyframe at this tactical moment
       let targetKf = null;
 
-      // 1. Check if activeKeyframeId matches a known keyframe
+      // 1. Check if activeKeyframeId matches a known keyframe close to this moment
       if (activeKeyframeId) {
-        targetKf = tacticalKeyframes.find(kf => kf.id === activeKeyframeId);
+        const found = tacticalKeyframes.find(kf => kf.id === activeKeyframeId);
+        if (found && Math.abs(found.timestamp - currentFrameTime) < 0.25) {
+          targetKf = found;
+        }
       }
 
-      // 2. If not found, check keyframes currently visible at this playhead time
+      // 2. If not found, check keyframes currently visible at this playhead time close to this moment
       if (!targetKf) {
         const visibleKfs = getVisibleKeyframesAtTime(currentVideoTime);
         if (visibleKfs.length > 0) {
-          targetKf = visibleKfs[visibleKfs.length - 1];
+          const matchingVisible = visibleKfs.find(kf => Math.abs(kf.timestamp - currentFrameTime) < 0.25);
+          if (matchingVisible) {
+            targetKf = matchingVisible;
+          }
         }
       }
 
