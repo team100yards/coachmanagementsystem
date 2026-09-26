@@ -1898,8 +1898,8 @@ function FormationBuilder() {
                 const dragging = dragKey === key;
                 const code = player ? player.canonical : slot.code;
                 const group = GROUP[code] || "MID";
+                if (!activeLines.includes(group)) return null;
                 const groupColor = CODE_COLORS[code] || ZONE_COLORS[group];
-                const dimmed = !activeLines.includes(group);
                 return (
                   <div
                     key={`slot-${i}`}
@@ -1919,7 +1919,6 @@ function FormationBuilder() {
                       cursor: dragging ? "grabbing" : "grab",
                       zIndex: dragging ? 20 : 10,
                       userSelect: "none",
-                      opacity: dimmed ? 0.25 : 1,
                     }}
                   >
                     <svg width="40" height="40" viewBox="0 0 64 64" style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))", pointerEvents: "none" }}>
