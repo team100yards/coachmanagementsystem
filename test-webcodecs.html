@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<body>
+<pre id="out">testing...</pre>
+<script>
+async function test() {
+  const log = [];
+  log.push("VideoEncoder in window: " + (typeof VideoEncoder !== 'undefined'));
+  if (typeof VideoEncoder !== 'undefined') {
+    try {
+      const res1 = await VideoEncoder.isConfigSupported({
+        codec: 'avc1.4d002a',
+        width: 1920,
+        height: 1080,
+        bitrate: 3500000
+      });
+      log.push("isConfigSupported avc1.4d002a: " + JSON.stringify(res1));
+    } catch(e) {
+      log.push("isConfigSupported 4d err: " + e.message);
+    }
+    try {
+      const res2 = await VideoEncoder.isConfigSupported({
+        codec: 'avc1.640028',
+        width: 1920,
+        height: 1080,
+        bitrate: 3500000
+      });
+      log.push("isConfigSupported avc1.640028: " + JSON.stringify(res2));
+    } catch(e) {
+      log.push("isConfigSupported 64 err: " + e.message);
+    }
+    try {
+      const enc = new VideoEncoder({
+        output: () => {},
+        error: (e) => log.push("encoder error callback: " + e.message)
+      });
+      enc.configure({
+        codec: 'avc1.4d002a',
+        width: 1920,
+        height: 1080,
+        bitrate: 3500000,
+        bitrateMode: 'variable',
+        framerate: 30,
+        hardwareAcceleration: 'prefer-hardware',
+        avc: { format: 'avc' }
+      });
+      log.push("enc.configure avc1.4d002a state: " + enc.state);
+      enc.close();
+    } catch(e) {
+      log.push("enc.configure 4d EXCEPTION: " + e.message);
+    }
+  }
+  document.getElementById('out').innerText = log.join('\n');
+}
+test();
+</script>
+</body>
+</html>

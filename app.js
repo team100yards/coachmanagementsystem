@@ -226,6 +226,7 @@ async function doLogin(){
     }
     
     sessionStorage.setItem('fhq_session_active', '1');
+    try { localStorage.removeItem('fhq_session_active'); } catch(e){}
     errEl.style.display='none';
     $('lpw').value='';
     if(btn){btn.textContent='LOADING…';}
@@ -246,6 +247,7 @@ async function doLogin(){
     }
     if (authSuccess) {
       sessionStorage.setItem('fhq_session_active', '1');
+      try { localStorage.removeItem('fhq_session_active'); } catch(e){}
       errEl.style.display='none';
       $('lpw').value='';
       if(btn){btn.textContent='LOADING…';}
@@ -284,10 +286,11 @@ async function loadAdmin(){
   try{
     const snap=await getDocs(collection(db,'teams'));
     teams=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>((b.createdAt||'')>(a.createdAt||''))?1:-1);
+    try { localStorage.setItem('fhq_teams_cache', JSON.stringify(teams)); } catch(e){}
     renderAdmin();
-    
     getDocs(collection(db,'players')).then(allPlayersSnap=>{
-      const allPlayers=allPlayersSnap.docs.map(d=>({id:d.id,...d.data()}));
+      allSystemPlayers=allPlayersSnap.docs.map(d=>({id:d.id,...d.data()}));
+      const allPlayers=allSystemPlayers;
       teams.forEach(t=>{t.pc=allPlayers.filter(p=>p.teamId===t.id).length;});
       renderBirthdayBanner(allPlayers);
       renderAdmin();
@@ -505,7 +508,15 @@ function showTab(n){
     openFormationVisualizer(false);
     return;
   }
-  ['squad','lineup','formation','sessions','db','setup'].forEach(x=>{
+  if(n==='sessions'){
+    openSessionPlannerDirect();
+    return;
+  }
+  if(n==='tracker'){
+    openPlayerTrackerLab();
+    return;
+  }
+  ['squad','lineup','formation','db','setup'].forEach(x=>{
     $('page-'+x)&&$('page-'+x).classList.toggle('active',x===n);
     $('tab-'+x)&&$('tab-'+x).classList.toggle('active',x===n);
   });
@@ -515,7 +526,6 @@ function showTab(n){
   if(n==='setup')loadSetup();
   if(n==='squad'){renderSquad();renderStaffList();}
   if(n==='lineup'){openLineup();initCoachChat();}
-  if(n==='sessions'){subscribeSessions();renderSessions();}
   if(n==='chat'){showTab('lineup');initCoachChat();}
 }
 
@@ -607,11 +617,43 @@ function openPlayerTrackerLab(){
   window.open('player-tracker-lab.html', '_blank');
 }
 
+function openSessionPlannerDirect(){
+  const tid = curTeam ? curTeam.id : (localStorage.getItem('cms_active_team_id') || '');
+  const url = 'session-planner.html' + (tid && tid !== 'all' ? '?teamId=' + encodeURIComponent(tid) : '');
+  window.open(url, '_blank');
+}
+
 function backToPlayingList(){
   showTab('lineup');
 }
 
-function openMatchReport(){
+function openMatchReport(fromDashboard = false){
+  const adminScreen = $('s-admin');
+  const onDashboard = fromDashboard || !curTeam || (adminScreen && adminScreen.classList.contains('active'));
+
+  if (onDashboard) {
+    try {
+      const payload = {
+        fromDashboard: true,
+        teamId: null,
+        homeTeam: '',
+        awayTeam: '',
+        competition: '',
+        venue: '',
+        formation: '4-3-3',
+        startingXI: [],
+        substitutes: [],
+        squad: [],
+        updatedAt: Date.now()
+      };
+      localStorage.setItem('cms_match_report_context', JSON.stringify(payload));
+    } catch(e) {
+      console.warn('Could not reset match report context for dashboard:', e);
+    }
+    window.open('match-report.html?source=dashboard', '_blank');
+    return;
+  }
+
   try {
     const sq = curTeam ? curTeam.squad : null;
     const opponent = ($('lu-opponent') ? $('lu-opponent').value.trim() : '') || (sq && sq.opponent) || '';
@@ -642,6 +684,7 @@ function openMatchReport(){
     }));
 
     const payload = {
+      fromDashboard: false,
       teamId: curTeam ? curTeam.id : null,
       homeTeam: curTeam ? curTeam.name : 'Home Team',
       awayTeam: opponent,
@@ -657,7 +700,7 @@ function openMatchReport(){
   } catch(e) {
     console.warn('Could not export match report context:', e);
   }
-  window.open('match-report.html', '_blank');
+  window.open('match-report.html?teamId=' + encodeURIComponent(curTeam ? curTeam.id : ''), '_blank');
 }
 
 
@@ -3150,6 +3193,16 @@ function applyAdmName(){
     }
   }
   const tln=$('topbar-club-name');if(tln)tln.textContent=name;
+  const stli=$('sp-topbar-logo-img');
+  if(stli){
+    if(logo && logo !== DEFAULT_LOGO){
+      stli.src=logo;
+      stli.style.display='inline-block';
+    } else {
+      stli.style.display='none';
+    }
+  }
+  const stln=$('sp-topbar-club-name');if(stln)stln.textContent=name;
 }
 
 function applyTeamTopbarLogo(){
@@ -3575,13 +3628,17 @@ loadBrandingFS();
 loadAdminCreds();
 
 const up=new URLSearchParams(location.search);
+try { localStorage.removeItem('fhq_session_active'); } catch(e){}
+const isUserAuth = sessionStorage.getItem('fhq_session_active') === '1';
+
 if(up.get('team')) { 
   if(up.get('type')==='staff') initPubStaff(up.get('team')); 
   else initPub(up.get('team')); 
 } else if(up.get('view')) { 
   initPublicView(up.get('view')); 
 } else {
-  if(sessionStorage.getItem('fhq_session_active') === '1'){
+  if(isUserAuth){
+    ss('s-admin');
     loadAdmin();
   } else {
     ss('s-login');
@@ -3605,6 +3662,123 @@ let boardHistory = [];
 let isDrawingLine = false;
 let lineStart = null;
 let sessionAttendanceState = {};
+let allSystemPlayers = [];
+let currentStudioTeamId = 'all';
+let sessionStudioReturnTarget = 's-admin';
+
+function openSessionStudio(targetTeamId = '', returnTarget = 's-admin'){
+  sessionStudioReturnTarget = returnTarget;
+  applyAdmName();
+
+  // Populate sp-studio-team-select
+  const teamSel = $('sp-studio-team-select');
+  if(teamSel){
+    let opts = '<option value="all">🌐 All Teams (Global View)</option>';
+    if(Array.isArray(teams) && teams.length){
+      opts += teams.map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join('');
+    }
+    teamSel.innerHTML = opts;
+
+    let tidToSet = 'all';
+    if(targetTeamId && targetTeamId !== 'all' && Array.isArray(teams) && teams.some(t => t.id === targetTeamId)){
+      tidToSet = targetTeamId;
+    } else if(targetTeamId === 'all'){
+      tidToSet = 'all';
+    } else if(curTeam && curTeam.id && Array.isArray(teams) && teams.some(t => t.id === curTeam.id)){
+      tidToSet = curTeam.id;
+    }
+    teamSel.value = tidToSet;
+    currentStudioTeamId = tidToSet;
+  } else {
+    currentStudioTeamId = targetTeamId || 'all';
+  }
+
+  if(currentStudioTeamId && currentStudioTeamId !== 'all' && Array.isArray(teams)){
+    const tMatch = teams.find(t => t.id === currentStudioTeamId);
+    if(tMatch) curTeam = tMatch;
+  }
+
+  // Update back button label based on return target
+  const backBtn = document.querySelector('#s-session-studio .tbtn.back');
+  if(backBtn){
+    if(returnTarget === 's-team' && curTeam && curTeam.name){
+      backBtn.textContent = `← Back to ${curTeam.name}`;
+    } else {
+      backBtn.textContent = '← Dashboard';
+    }
+  }
+
+  updateStudioPlayers(currentStudioTeamId);
+  ss('s-session-studio');
+  subscribeSessions(currentStudioTeamId);
+}
+
+function onStudioTeamSelectChange(newTeamId){
+  currentStudioTeamId = newTeamId;
+  if(newTeamId && newTeamId !== 'all' && Array.isArray(teams)){
+    const tMatch = teams.find(t => t.id === newTeamId);
+    if(tMatch) curTeam = tMatch;
+  } else {
+    if(!curTeam && Array.isArray(teams) && teams.length > 0) curTeam = teams[0];
+  }
+  updateStudioPlayers(newTeamId);
+  subscribeSessions(newTeamId);
+}
+
+function updateStudioPlayers(teamId){
+  if(teamId && teamId !== 'all'){
+    if(Array.isArray(allSystemPlayers) && allSystemPlayers.length){
+      players = allSystemPlayers.filter(p => p.teamId === teamId);
+    } else if(typeof db !== 'undefined' && db){
+      getDocs(query(collection(db, 'players'), where('teamId', '==', teamId))).then(snap => {
+        players = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        if(currentEditingSession) renderSessionAttendance();
+      }).catch(e => console.warn(e));
+    }
+  } else {
+    players = allSystemPlayers || [];
+  }
+}
+
+function exitSessionStudio(){
+  if(sessionsUnsub){ sessionsUnsub(); sessionsUnsub = null; }
+  try {
+    if(window.location.search.includes('mode=sessions') || window.location.search.includes('tab=sessions') || window.location.search.includes('auth=1')){
+      history.replaceState(null, '', window.location.pathname);
+    }
+  } catch(e){}
+  if(sessionStudioReturnTarget === 's-team' && curTeam){
+    ss('s-team');
+    showTab('squad');
+  } else {
+    loadAdmin();
+    ss('s-admin');
+  }
+}
+
+function onSessionEditorTeamChanged(newTeamId){
+  if(!currentEditingSession) return;
+  currentEditingSession.teamId = newTeamId;
+  const activeEditorTeam = Array.isArray(teams) ? teams.find(t => t.id === newTeamId) : null;
+
+  const coachSelect = $('se-coach');
+  if(coachSelect){
+    const staffList = (activeEditorTeam && activeEditorTeam.staff) || [];
+    coachSelect.innerHTML = '<option value="">Select Coach</option>' + staffList.map(st => `
+      <option value="${esc(st.name)}">${esc(st.name)} (${esc(st.role || 'Staff')})</option>
+    `).join('');
+  }
+
+  if(Array.isArray(allSystemPlayers) && allSystemPlayers.length){
+    players = allSystemPlayers.filter(p => p.teamId === newTeamId);
+    renderSessionAttendance();
+  } else if(typeof db !== 'undefined' && db){
+    getDocs(query(collection(db, 'players'), where('teamId', '==', newTeamId))).then(snap => {
+      players = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderSessionAttendance();
+    }).catch(e => console.warn(e));
+  }
+}
 
 const EQUIPMENT_PRESETS = [
   { id: 'balls', label: 'Footballs (12)', icon: '<img src="soccer-ball.svg" style="width:14px;height:14px;vertical-align:middle;display:inline-block;border-radius:50%;margin-right:2px;" alt="Ball" />', def: true },
@@ -3949,13 +4123,17 @@ const SESSION_PRESETS = [
   }
 ];
 
-function subscribeSessions(){
+function subscribeSessions(targetTeamId){
   if(sessionsUnsub){sessionsUnsub(); sessionsUnsub = null;}
-  if(!curTeam) return;
+  const tid = (typeof targetTeamId === 'string') ? targetTeamId : (currentStudioTeamId || (curTeam ? curTeam.id : 'all'));
+  currentStudioTeamId = tid;
+
+  const isSpecificTeam = tid && tid !== 'all';
+  const cacheKey = isSpecificTeam ? ('fhq_sessions_' + tid) : 'fhq_sessions_all';
 
   // Load from local storage cache first for instant response (deduplicated)
   try {
-    const cached = localStorage.getItem('fhq_sessions_' + curTeam.id);
+    const cached = localStorage.getItem(cacheKey);
     if(cached) {
       const parsed = JSON.parse(cached);
       const uniqueMap = new Map();
@@ -3968,8 +4146,12 @@ function subscribeSessions(){
   } catch(e){}
 
   try {
+    const q = isSpecificTeam
+      ? query(collection(db, 'sessions'), where('teamId', '==', tid))
+      : collection(db, 'sessions');
+
     sessionsUnsub = onSnapshot(
-      query(collection(db, 'sessions'), where('teamId', '==', curTeam.id)),
+      q,
       snap => {
         const uniqueMap = new Map();
         snap.docs.forEach(d => {
@@ -3977,7 +4159,7 @@ function subscribeSessions(){
         });
         sessions = Array.from(uniqueMap.values())
           .sort((a, b) => (String(b.date || '') + String(b.time || '')).localeCompare(String(a.date || '') + String(a.time || '')));
-        try { localStorage.setItem('fhq_sessions_' + curTeam.id, JSON.stringify(sessions)); } catch(e){}
+        try { localStorage.setItem(cacheKey, JSON.stringify(sessions)); } catch(e){}
         renderSessions();
       },
       err => {
@@ -4117,6 +4299,8 @@ function renderSessions(){
     }
 
     const intensityClass = s.intensity === 'High' ? 'sp-intensity-high' : (s.intensity === 'Low' ? 'sp-intensity-low' : (s.intensity === 'Match' ? 'sp-intensity-match' : 'sp-intensity-med'));
+    const teamObj = Array.isArray(teams) ? teams.find(t => t.id === s.teamId) : null;
+    const teamBadgeHTML = teamObj ? `<span class="sp-badge" style="background:rgba(26,92,26,0.1);color:#1a5c1a;border:1px solid rgba(26,92,26,0.25);font-weight:700;">⚽ ${esc(teamObj.name)}</span>` : '';
 
     return `
       <div class="sp-card">
@@ -4127,6 +4311,7 @@ function renderSessions(){
             ${s.time ? `<span style="font-weight:400;opacity:.8;">${s.time}</span>` : ''}
           </div>
           <div class="sp-badge-group">
+            ${teamBadgeHTML}
             <span class="sp-badge ${getCategoryBadgeClass(s.category)}">${esc(s.category || 'Tactical')}</span>
             <span class="sp-badge ${intensityClass}">⚡ ${esc(s.intensity || 'Medium')}</span>
           </div>
@@ -4276,8 +4461,10 @@ function closeSessionEditor(){
 function openNewSession(){
   if(isSessionEditorDirty() && !confirm('⚠️ You have unsaved changes in the current session plan.\n\nDiscard and create a new session?')) return;
   const today = new Date().toISOString().split('T')[0];
+  const assignedTeamId = (currentStudioTeamId && currentStudioTeamId !== 'all') ? currentStudioTeamId : (curTeam ? curTeam.id : (teams[0] ? teams[0].id : ''));
   currentEditingSession = {
     id: null,
+    teamId: assignedTeamId,
     title: '',
     date: today,
     time: '17:30',
@@ -4301,8 +4488,10 @@ function openSessionWithPreset(presetId){
   const preset = SESSION_PRESETS.find(p => p.id === presetId);
   if(!preset) return;
   const today = new Date().toISOString().split('T')[0];
+  const assignedTeamId = (currentStudioTeamId && currentStudioTeamId !== 'all') ? currentStudioTeamId : (curTeam ? curTeam.id : (teams[0] ? teams[0].id : ''));
   currentEditingSession = {
     id: null,
+    teamId: assignedTeamId,
     title: preset.title,
     date: today,
     time: '17:30',
@@ -4341,8 +4530,9 @@ function duplicateSession(id){
   clone.title = 'Copy of ' + (clone.title || 'Session');
   clone.createdAt = new Date().toISOString();
   clone.updatedAt = new Date().toISOString();
+  const dupTeamId = clone.teamId || (currentStudioTeamId && currentStudioTeamId !== 'all' ? currentStudioTeamId : (curTeam ? curTeam.id : (teams[0] ? teams[0].id : '')));
   try {
-    addDoc(collection(db, 'sessions'), { teamId: curTeam.id, ...clone });
+    addDoc(collection(db, 'sessions'), { ...clone, teamId: dupTeamId });
     alert('✅ Session duplicated successfully!');
   } catch(e){
     alert('❌ Could not duplicate session: ' + (e.message || e));
@@ -4358,7 +4548,9 @@ async function doDeleteSession(id){
   try {
     await deleteDoc(doc(db, 'sessions', id));
     sessions = sessions.filter(s => s.id !== id);
-    try { localStorage.setItem('fhq_sessions_' + curTeam.id, JSON.stringify(sessions)); } catch(e){}
+    const delTeamId = (currentStudioTeamId && currentStudioTeamId !== 'all') ? currentStudioTeamId : (curTeam ? curTeam.id : '');
+    const cacheKey = delTeamId ? ('fhq_sessions_' + delTeamId) : 'fhq_sessions_all';
+    try { localStorage.setItem(cacheKey, JSON.stringify(sessions)); } catch(e){}
     renderSessions();
     alert('✅ Training session deleted.');
   } catch(e){
@@ -4382,13 +4574,36 @@ function populateSessionEditorForm(){
   $('se-status').value = s.debrief?.status || 'scheduled';
   $('se-notes').value = s.debrief?.notes || '';
 
+  // Team dropdown in editor
+  const teamSelect = $('se-team');
+  if(teamSelect){
+    let opts = '';
+    if(Array.isArray(teams) && teams.length){
+      opts = teams.map(t => `<option value="${t.id}"${(s.teamId === t.id) ? ' selected' : ''}>${esc(t.name)}</option>`).join('');
+    }
+    teamSelect.innerHTML = opts;
+    if(!s.teamId && teams.length > 0){
+      s.teamId = teams[0].id;
+    }
+  }
+
+  const activeEditorTeamId = s.teamId || (curTeam ? curTeam.id : (teams[0] ? teams[0].id : ''));
+  const activeEditorTeam = Array.isArray(teams) ? teams.find(t => t.id === activeEditorTeamId) : curTeam;
+
   // Coach dropdown
   const coachSelect = $('se-coach');
   if(coachSelect){
-    const staffList = (curTeam && curTeam.staff) || [];
+    const staffList = (activeEditorTeam && activeEditorTeam.staff) || [];
     coachSelect.innerHTML = '<option value="">Select Coach</option>' + staffList.map(st => `
       <option value="${esc(st.name)}"${s.coach === st.name ? ' selected' : ''}>${esc(st.name)} (${esc(st.role || 'Staff')})</option>
     `).join('');
+  }
+
+  // Update players for attendance
+  if(activeEditorTeamId){
+    if(Array.isArray(allSystemPlayers) && allSystemPlayers.length){
+      players = allSystemPlayers.filter(p => p.teamId === activeEditorTeamId);
+    }
   }
 
   // Equipment Checklist
@@ -4736,8 +4951,10 @@ async function saveSessionPlan(){
 
   const totalMins = (currentEditingSession.drills || []).reduce((sum, d) => sum + (parseInt(d.duration) || 0), 0) || 90;
 
+  const selectedTeamId = ($('se-team') ? $('se-team').value : '') || currentEditingSession.teamId || (curTeam ? curTeam.id : (teams[0] ? teams[0].id : ''));
+
   const sessionData = {
-    teamId: curTeam.id,
+    teamId: selectedTeamId,
     title,
     date,
     time: $('se-time').value || '17:30',
@@ -4774,7 +4991,8 @@ async function saveSessionPlan(){
         sessions.unshift(sessionData);
       }
     }
-    try { localStorage.setItem('fhq_sessions_' + curTeam.id, JSON.stringify(sessions)); } catch(e){}
+    const cacheKey = selectedTeamId ? ('fhq_sessions_' + selectedTeamId) : 'fhq_sessions_all';
+    try { localStorage.setItem(cacheKey, JSON.stringify(sessions)); } catch(e){}
     initialSessionStateSnapshot = null;
     currentEditingSession = null;
     closeM('m-session-editor');

@@ -71,3 +71,7 @@ node_modules/
 # macOS metadata
 ._*
 .DS_Store
+
+# Python cache
+__pycache__/
+*.py[cod]

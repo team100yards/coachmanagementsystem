@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Session Planner Studio | Coach Management System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=20260901q">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--tx);
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .sp-studio-container {
+      flex: 1;
+      padding: 24px 28px;
+      max-width: 1600px;
+      margin: 0 auto;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .sp-intensity-high { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+    .sp-intensity-med { background: #fff8e1; color: #f57f17; border: 1px solid #ffe082; }
+    .sp-intensity-low { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+    .sp-intensity-match { background: #fce4ec; color: #ad1457; border: 1px solid #f8bbd0; }
+    
+    /* Tactical Pitch Canvas */
+    .board-canvas-wrap {
+      position: relative;
+      background: #145a27;
+      border: 3px solid #1a7a35;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: inset 0 0 30px rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #pitch-canvas {
+      display: block;
+      cursor: crosshair;
+      touch-action: none;
+    }
+    .board-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 10px 14px;
+      background: var(--card2);
+      border-radius: 10px;
+      border: 1px solid var(--bd);
+      margin-bottom: 12px;
+      align-items: center;
+    }
+    .board-tool-btn {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--bd);
+      background: var(--card);
+      color: var(--tx);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all .15s;
+    }
+    .board-tool-btn:hover, .board-tool-btn.active {
+      background: var(--g);
+      color: #fff;
+      border-color: var(--g);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══ TOPBAR ══ -->
+  <div class="topbar">
+    <div class="tb-logo">
+      <img id="sp-topbar-logo-img" src="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;margin-right:8px;vertical-align:middle;display:none;" alt="">
+      <span id="sp-topbar-club-name">Coach Management System</span>
+    </div>
+    <span class="tb-sep">|</span>
+    <div style="display:flex;align-items:center;gap:6px;font-weight:800;color:var(--g);font-size:14.5px;white-space:nowrap;">
+      <span>📋</span>
+      <span>Session Planner Studio</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-left:14px;">
+      <label for="sp-studio-team-select" style="font-size:11.5px;font-weight:700;color:var(--mt);text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;">Squad Team:</label>
+      <select id="sp-studio-team-select" class="db-filter" style="padding:6px 12px;font-size:13px;font-weight:700;background:var(--card2);border-radius:8px;color:var(--tx);min-width:210px;cursor:pointer;" onchange="onStudioTeamSelectChange(this.value)">
+        <option value="all">🌐 All Teams (Global View)</option>
+      </select>
+    </div>
+    <div class="tb-sp"></div>
+    <div class="tb-tools-nav">
+      <button type="button" class="tb-tool-btn" onclick="window.open('player-tracker-lab.html', '_blank')" title="Tactical Vision &amp; Player Tracking System">
+        <span class="tb-tool-icon">🎯</span>
+        <span class="tb-tool-lbl">Player Tracking System</span>
+      </button>
+      <button type="button" class="tb-tool-btn" onclick="window.open('video-analyzer.html', '_blank')" title="Football Video Telestration & Tactical Analyzer">
+        <span class="tb-tool-icon">📹</span>
+        <span class="tb-tool-lbl">Video Analyzer</span>
+      </button>
+      <button type="button" class="tb-tool-btn" onclick="window.open('video-clipper.html', '_blank')" title="Tactical Video Match Clipper & Trim Studio">
+        <span class="tb-tool-icon">✂️</span>
+        <span class="tb-tool-lbl">Match Clipper</span>
+      </button>
+      <button type="button" class="tb-tool-btn" onclick="window.open('match-report.html', '_blank')" title="AI-Powered Match Report Studio">
+        <span class="tb-tool-icon">📋</span>
+        <span class="tb-tool-lbl">Match Report</span>
+      </button>
+    </div>
+    <button class="tbtn back" onclick="location.href='index.html'" style="margin-left:8px;margin-right:8px;">← Dashboard</button>
+  </div>
+
+  <!-- ══ MAIN WORKSPACE ══ -->
+  <div class="sp-studio-container">
+    <div class="sp-bar">
+      <input class="db-search sp-search" type="text" id="sp-search" placeholder="🔍 Search sessions, topics, drills…" oninput="renderSessions()">
+      <select class="db-filter sp-filter" id="sp-filter-cat" onchange="renderSessions()">
+        <option value="">All Categories</option>
+        <option value="Tactical">Tactical</option>
+        <option value="Technical">Technical</option>
+        <option value="SSG">Small-Sided Game</option>
+        <option value="Physical">Physical / SAQ</option>
+        <option value="Match Prep">Match Prep</option>
+        <option value="Set Pieces">Set Pieces</option>
+        <option value="Recovery">Cool Down / Recovery</option>
+      </select>
+      <select class="db-filter sp-filter" id="sp-filter-status" onchange="renderSessions()">
+        <option value="">All Status</option>
+        <option value="upcoming">Upcoming</option>
+        <option value="today">Today</option>
+        <option value="completed">Completed</option>
+      </select>
+      <button class="obtn" onclick="openTemplatePicker()" title="Use ready-made session presets">⚡ Presets</button>
+      <button class="obtn" onclick="openDrillLibraryModal()" title="Browse football drills library">📚 Drill Library</button>
+      <button class="mok" onclick="openNewSession()" style="padding:10px 18px;font-size:13px;display:flex;align-items:center;gap:6px;">＋ Plan New Session</button>
+    </div>
+
+    <div class="sp-stats-row">
+      <div class="sc"><div class="num" id="sp-st-total">0</div><div class="lbl">Total Sessions</div></div>
+      <div class="sc"><div class="num" id="sp-st-upcoming">0</div><div class="lbl">Upcoming</div></div>
+      <div class="sc"><div class="num" id="sp-st-hours">0h</div><div class="lbl">Training Hours</div></div>
+      <div class="sc"><div class="num" id="sp-st-att">0%</div><div class="lbl">Avg Attendance</div></div>
+    </div>
+
+    <div id="sp-list" class="sp-grid"></div>
+
+    <div class="app-copyright" style="margin-top:40px;text-align:center;">
+      <div>&copy; 2026 <strong class="copy-brand">100 Yards</strong>. All rights reserved.</div>
+      <div class="copy-sub" style="font-size:11px;color:var(--mt);">Football Coach &amp; Squad Management System</div>
+    </div>
+  </div>
+
+  <!-- ══ MODALS ══ -->
+
+  <!-- SESSION EDITOR MODAL -->
+  <div class="mov" id="m-session-editor" onclick="if(event.target===this)closeSessionEditor()">
+    <div class="mbox wide" style="max-width:960px;max-height:92vh;display:flex;flex-direction:column;padding:0;overflow:hidden;">
+      <div style="padding:20px 24px 14px;border-bottom:1.5px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="font-size:24px;">📋</div>
+          <div>
+            <div class="mtit" id="se-modal-title" style="margin:0;font-size:22px;">PLAN TRAINING SESSION</div>
+            <div style="font-size:12px;color:var(--mt);">Design drills, timeline, equipment checklist &amp; squad attendance</div>
+          </div>
+        </div>
+        <button class="chat-act-btn" style="font-size:16px;padding:4px 8px;border:none!important;outline:none!important;background:none!important;" onclick="closeSessionEditor()">✕</button>
+      </div>
+
+      <div style="overflow-y:auto;padding:20px 24px;flex:1;" class="sp-editor-wrap">
+        <!-- Section 1: Session Overview -->
+        <div class="sp-editor-section">
+          <div class="sp-editor-title">
+            <span>📌 1. SESSION DETAILS &amp; LOGISTICS</span>
+            <span style="font-size:12px;color:var(--mt);font-weight:400;">Basic schedule &amp; theme</span>
+          </div>
+          <div class="field">
+            <label>Session Title / Theme <span>*</span></label>
+            <input type="text" id="se-title" placeholder="e.g. 4-3-3 High Pressing &amp; Rapid Counter-Attack">
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label>Date <span>*</span></label>
+              <input type="date" id="se-date">
+            </div>
+            <div class="field">
+              <label>Start Time</label>
+              <input type="time" id="se-time" value="17:30">
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label>Assigned Squad / Team <span>*</span></label>
+              <select id="se-team" onchange="onSessionEditorTeamChanged(this.value)"></select>
+            </div>
+            <div class="field">
+              <label>Lead Coach / Staff</label>
+              <select id="se-coach">
+                <option value="">Select Coach</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label>Pitch / Venue</label>
+              <input type="text" id="se-venue" placeholder="e.g. Main Training Pitch 1 / North Turf">
+            </div>
+            <div class="field">
+              <label>Main Category</label>
+              <select id="se-cat">
+                <option value="Tactical">Tactical</option>
+                <option value="Technical">Technical</option>
+                <option value="SSG">Small-Sided Game</option>
+                <option value="Physical">Physical / SAQ</option>
+                <option value="Match Prep">Match Prep</option>
+                <option value="Set Pieces">Set Pieces</option>
+                <option value="Recovery">Cool Down / Recovery</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label>Target Intensity</label>
+              <select id="se-intensity">
+                <option value="Low">🟢 Low Intensity (Recovery / Tactical Walkthrough)</option>
+                <option value="Medium" selected>🟡 Medium Intensity (Standard Training)</option>
+                <option value="High">🟠 High Intensity (Match Speed / Pressing)</option>
+                <option value="Match">🔴 Match Day Intensity (Peak Load)</option>
+              </select>
+            </div>
+            <div class="field" style="display:flex;align-items:flex-end;padding-bottom:8px;">
+              <div style="font-size:12px;color:var(--mt);">Assign session to any squad; drills and attendance roster adapt automatically.</div>
+            </div>
+          </div>
+          <div class="field">
+            <label>Objectives &amp; Tactical Principles</label>
+            <textarea id="se-objectives" rows="2" placeholder="e.g. 1. Force play wide and lock in opponents. 2. Vertical penetration on recovery."></textarea>
+          </div>
+        </div>
+
+        <!-- Section 2: Equipment Checklist -->
+        <div class="sp-editor-section">
+          <div class="sp-editor-title">
+            <span>🎽 2. EQUIPMENT CHECKLIST</span>
+            <span style="font-size:12px;color:var(--mt);font-weight:400;">Ensure kit is ready before pitch arrival</span>
+          </div>
+          <div class="sp-equip-grid" id="se-equip-grid"></div>
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <input type="text" id="se-custom-equip" class="f-in" style="flex:1;font-size:12.5px;" placeholder="Add custom item (e.g. GPS Trackers, Rebounder Board…)" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomEquipment();}">
+            <button class="obtn" type="button" style="padding:6px 14px;font-size:12.5px;" onclick="addCustomEquipment()">＋ Add</button>
+          </div>
+        </div>
+
+        <!-- Section 3: Planned Drills Timeline -->
+        <div class="sp-editor-section">
+          <div class="sp-editor-title">
+            <span>⏱️ 3. DRILLS &amp; SESSION TIMELINE</span>
+            <div style="display:flex;gap:8px;">
+              <button type="button" class="obtn" style="padding:4px 10px;font-size:11.5px;" onclick="openDrillLibraryModal()">📚 From Library</button>
+              <button type="button" class="obtn" style="padding:4px 10px;font-size:11.5px;" onclick="addNewDrillRow()">＋ Add Drill</button>
+            </div>
+          </div>
+          <div id="se-drills-list"></div>
+          <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;background:var(--card2);padding:10px 14px;border-radius:10px;border:1px solid var(--bd);">
+            <div style="font-size:13px;font-weight:700;">Total Planned Time: <span id="se-total-mins" style="color:var(--g);font-size:15px;">0 mins</span></div>
+            <button type="button" class="mok" style="padding:6px 14px;font-size:12px;" onclick="addNewDrillRow()">＋ Add Phase / Drill</button>
+          </div>
+        </div>
+
+        <!-- Section 4: Squad Attendance Roster -->
+        <div class="sp-editor-section">
+          <div class="sp-editor-title">
+            <span>👥 4. SQUAD ATTENDANCE</span>
+            <div style="display:flex;gap:6px;">
+              <button type="button" class="obtn" style="padding:4px 10px;font-size:11px;" onclick="markAllAttendance('present')">Mark All Present</button>
+            </div>
+          </div>
+          <div style="font-size:12px;color:var(--mt);margin-bottom:10px;">Track who attended, arrived late, or missed this training session:</div>
+          <div id="se-att-roster" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px;"></div>
+        </div>
+
+        <!-- Section 5: Post-Session Debrief & Review -->
+        <div class="sp-editor-section" style="margin-bottom:0;">
+          <div class="sp-editor-title">
+            <span>📝 5. POST-SESSION DEBRIEF &amp; NOTES</span>
+            <span style="font-size:12px;color:var(--mt);font-weight:400;">Coach assessment</span>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label>Session Status</label>
+              <select id="se-status">
+                <option value="scheduled">Scheduled / Upcoming</option>
+                <option value="completed">Completed Successfully</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Execution / Performance Rating</label>
+              <select id="se-rating">
+                <option value="">No rating yet</option>
+                <option value="5">⭐⭐⭐⭐⭐ Outstanding Intensity & Execution</option>
+                <option value="4">⭐⭐⭐⭐ High Quality Session</option>
+                <option value="3">⭐⭐⭐ Met Objectives (Average)</option>
+                <option value="2">⭐⭐ Needs Improvement (Lacked Focus)</option>
+                <option value="1">⭐ Poor Session / Regroup Required</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label>Coach Takeaways &amp; Next Steps</label>
+            <textarea id="se-notes" rows="3" placeholder="What went well? What needs reinforcement in the next match or practice?"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:14px 24px;border-top:1.5px solid var(--bd);display:flex;justify-content:space-between;align-items:center;background:var(--card2);flex-shrink:0;">
+        <button class="mc" style="padding:9px 18px;border-radius:8px;font-size:13px;" onclick="closeSessionEditor()">Discard</button>
+        <div style="display:flex;gap:10px;">
+          <button class="obtn" id="se-print-btn" style="padding:9px 16px;font-size:13px;" onclick="printCurrentEditorSession()">🖨️ Print / PDF</button>
+          <button class="mok" style="padding:9px 24px;font-size:13.5px;font-weight:700;" onclick="saveSessionPlan()">💾 Save Training Plan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TACTICAL BOARD SKETCHER MODAL -->
+  <div class="mov" id="m-drill-board" onclick="if(event.target===this)closeBoardSketcher()">
+    <div class="mbox wide" style="max-width:920px;max-height:94vh;display:flex;flex-direction:column;padding:0;overflow:hidden;">
+      <div style="padding:16px 20px;border-bottom:1.5px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="font-size:22px;">📐</div>
+          <div>
+            <div class="mtit" style="margin:0;font-size:18px;">TACTICAL PITCH DIAGRAM SKETCHER</div>
+            <div style="font-size:11.5px;color:var(--mt);">Draw player movements, passing lines, cones, and pressing zones</div>
+          </div>
+        </div>
+        <button class="chat-act-btn" style="font-size:16px;padding:4px 8px;" onclick="closeBoardSketcher()">✕</button>
+      </div>
+
+      <div style="padding:16px 20px;overflow-y:auto;flex:1;">
+        <div class="board-toolbar">
+          <div style="display:flex;align-items:center;gap:4px;margin-right:10px;">
+            <span style="font-size:11px;font-weight:700;color:var(--mt);text-transform:uppercase;">Pitch:</span>
+            <button type="button" class="board-tool-btn" id="bt-pitch-half" onclick="setBoardPitch('half')">Half Pitch</button>
+            <button type="button" class="board-tool-btn" id="bt-pitch-full" onclick="setBoardPitch('full')">Full Pitch</button>
+            <button type="button" class="board-tool-btn" id="bt-pitch-box" onclick="setBoardPitch('box')">Penalty Box</button>
+          </div>
+
+          <div style="width:1px;height:24px;background:var(--bd);margin:0 4px;"></div>
+
+          <div style="display:flex;align-items:center;gap:4px;">
+            <span style="font-size:11px;font-weight:700;color:var(--mt);text-transform:uppercase;">Add:</span>
+            <button type="button" class="board-tool-btn active" id="bt-red" onclick="setBoardTool('red')">🔴 Attackers</button>
+            <button type="button" class="board-tool-btn" id="bt-blue" onclick="setBoardTool('blue')">🔵 Defenders</button>
+            <button type="button" class="board-tool-btn" id="bt-yellow" onclick="setBoardTool('yellow')">🟡 Neutral</button>
+            <button type="button" class="board-tool-btn" id="bt-ball" onclick="setBoardTool('ball')">⚽ Ball</button>
+            <button type="button" class="board-tool-btn" id="bt-cone" onclick="setBoardTool('cone')">▲ Cone</button>
+            <button type="button" class="board-tool-btn" id="bt-line" onclick="setBoardTool('line')">── Pass Line</button>
+            <button type="button" class="board-tool-btn" id="bt-arrow" onclick="setBoardTool('arrow')">➔ Run Arrow</button>
+            <button type="button" class="board-tool-btn" id="bt-text" onclick="setBoardTool('text')">🏷️ Text</button>
+          </div>
+
+          <div style="width:1px;height:24px;background:var(--bd);margin:0 4px;"></div>
+
+          <div style="display:flex;align-items:center;gap:4px;">
+            <button type="button" class="board-tool-btn" onclick="undoBoardObject()">↩ Undo</button>
+            <button type="button" class="board-tool-btn" onclick="clearBoardObjects()" style="color:#d32f2f;">🗑️ Clear</button>
+          </div>
+        </div>
+
+        <div class="board-canvas-wrap">
+          <canvas id="pitch-canvas" width="800" height="520"></canvas>
+        </div>
+      </div>
+
+      <div style="padding:14px 20px;border-top:1.5px solid var(--bd);background:var(--card2);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+        <div style="font-size:12px;color:var(--mt);">Click pitch to drop markers. Drag to move. Click &amp; drag for lines and run arrows.</div>
+        <div style="display:flex;gap:10px;">
+          <button class="mc" style="padding:8px 16px;border-radius:8px;font-size:12.5px;" onclick="closeBoardSketcher()">Cancel</button>
+          <button class="mok" style="padding:8px 20px;font-size:13px;font-weight:700;" onclick="saveBoardToDrill()">✓ Attach Diagram to Drill</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DRILL LIBRARY MODAL -->
+  <div class="mov" id="m-drill-library" onclick="if(event.target===this)closeM('m-drill-library')">
+    <div class="mbox wide" style="max-width:880px;max-height:90vh;display:flex;flex-direction:column;padding:0;overflow:hidden;">
+      <div style="padding:18px 22px;border-bottom:1.5px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="font-size:24px;">📚</div>
+          <div>
+            <div class="mtit" style="margin:0;font-size:20px;">FOOTBALL DRILL LIBRARY</div>
+            <div style="font-size:12px;color:var(--mt);">Select verified pro training drills to import into your session</div>
+          </div>
+        </div>
+        <button class="chat-act-btn" style="font-size:16px;padding:4px 8px;" onclick="closeM('m-drill-library')">✕</button>
+      </div>
+
+      <div style="padding:14px 22px;border-bottom:1px solid var(--bd);background:var(--card2);display:flex;gap:10px;">
+        <input type="text" id="dl-search" class="db-search" style="flex:1;" placeholder="🔍 Filter library drills by name or concept…" oninput="renderDrillLibrary()">
+        <select id="dl-filter-cat" class="db-filter" onchange="renderDrillLibrary()">
+          <option value="">All Categories</option>
+          <option value="Warm-up">Warm-up / Activation</option>
+          <option value="Technical">Technical</option>
+          <option value="Tactical">Tactical</option>
+          <option value="SSG">Small-Sided Game</option>
+          <option value="Physical">Physical / SAQ</option>
+          <option value="Cool-down">Cool-down / Recovery</option>
+        </select>
+      </div>
+
+      <div style="overflow-y:auto;padding:18px 22px;flex:1;" id="dl-grid" class="sp-grid"></div>
+
+      <div style="padding:12px 22px;border-top:1.5px solid var(--bd);background:var(--card2);display:flex;justify-content:flex-end;">
+        <button class="mc" style="padding:8px 18px;border-radius:8px;font-size:12.5px;" onclick="closeM('m-drill-library')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SESSION PRESETS MODAL -->
+  <div class="mov" id="m-template-picker" onclick="if(event.target===this)closeM('m-template-picker')">
+    <div class="mbox wide" style="max-width:820px;max-height:88vh;display:flex;flex-direction:column;padding:0;overflow:hidden;">
+      <div style="padding:18px 22px;border-bottom:1.5px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="font-size:24px;">⚡</div>
+          <div>
+            <div class="mtit" style="margin:0;font-size:20px;">PRO SESSION PRESETS</div>
+            <div style="font-size:12px;color:var(--mt);">Load pre-structured professional training sessions with complete drill progressions</div>
+          </div>
+        </div>
+        <button class="chat-act-btn" style="font-size:16px;padding:4px 8px;" onclick="closeM('m-template-picker')">✕</button>
+      </div>
+
+      <div style="overflow-y:auto;padding:20px;flex:1;display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;" id="tp-presets-list"></div>
+
+      <div style="padding:12px 22px;border-top:1.5px solid var(--bd);background:var(--card2);display:flex;justify-content:flex-end;">
+        <button class="mc" style="padding:8px 18px;border-radius:8px;font-size:12.5px;" onclick="closeM('m-template-picker')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRINTABLE SESSION SHEET MODAL -->
+  <div class="mov" id="m-session-print" onclick="if(event.target===this)closeM('m-session-print')">
+    <div class="mbox wide" style="max-width:840px;max-height:92vh;display:flex;flex-direction:column;padding:0;overflow:hidden;">
+      <div style="padding:16px 20px;border-bottom:1.5px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+        <div style="font-weight:800;font-size:16px;display:flex;align-items:center;gap:8px;">
+          <span>🖨️</span>
+          <span>PRINT / EXPORT SESSION PLAN</span>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="mok" style="padding:6px 14px;font-size:12.5px;" onclick="window.print()">Print / Save as PDF</button>
+          <button class="chat-act-btn" style="font-size:16px;padding:4px 8px;" onclick="closeM('m-session-print')">✕</button>
+        </div>
+      </div>
+      <div style="overflow-y:auto;padding:24px;flex:1;background:#fff;color:#111;" id="sp-print-container"></div>
+    </div>
+  </div>
+
+  <!-- DRILL DIAGRAM VIEWER MODAL -->
+  <div class="mov" id="m-drill-diagram-viewer" onclick="if(event.target===this)closeM('m-drill-diagram-viewer')">
+    <div class="mbox wide" style="max-width:920px;max-height:94vh;display:flex;flex-direction:column;padding:0;overflow:hidden;">
+      <div style="padding:16px 20px;border-bottom:1.5px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="font-size:22px;">📐</div>
+          <div>
+            <div class="mtit" id="diag-view-title" style="margin:0;font-size:18px;">TACTICAL DIAGRAM</div>
+            <div id="diag-view-subtitle" style="font-size:12px;color:var(--mt);margin-top:2px;">Full high-definition pitch diagram demonstration</div>
+          </div>
+        </div>
+        <button class="chat-act-btn" style="font-size:16px;padding:4px 8px;" onclick="closeM('m-drill-diagram-viewer')">✕</button>
+      </div>
+
+      <div style="flex:1;overflow-y:auto;padding:20px;background:#0d2818;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:380px;">
+        <div style="width:100%;max-width:880px;background:#164327;border-radius:14px;overflow:hidden;border:2.5px solid #2e7d32;box-shadow:0 8px 30px rgba(0,0,0,0.4);text-align:center;">
+          <img id="diag-view-img" src="" style="width:100%;height:auto;display:block;margin:0 auto;object-fit:contain;" alt="Full Pitch Diagram">
+        </div>
+      </div>
+
+      <div id="diag-view-footer" style="padding:14px 24px;border-top:1.5px solid var(--bd);background:var(--card);display:flex;gap:16px;align-items:center;justify-content:space-between;flex-shrink:0;">
+        <div id="diag-view-notes" style="font-size:12px;color:var(--tx);flex:1;line-height:1.4;"></div>
+        <button class="mok" onclick="closeM('m-drill-diagram-viewer')">✓ Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase Compat SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+
+  <!-- Session Planner Core Logic Script -->
+  <script src="session-planner.js"></script>
+</body>
+</html>

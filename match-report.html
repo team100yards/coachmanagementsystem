@@ -50,7 +50,19 @@
     .score-row .score-input{width:44px;flex-shrink:0;min-width:0;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:var(--radius);padding:8px 4px;color:var(--green);font-size:18px;font-weight:800;font-family:var(--font-mono);text-align:center;outline:none;transition:border-color 0.15s;}
     .score-row .score-input:focus{border-color:rgba(0,230,118,0.45);}
     .vs-sep{color:var(--text-dim);font-size:12px;font-weight:700;flex-shrink:0;}
-    .notes-area{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:var(--radius);padding:12px;color:var(--text);font-size:13px;font-family:var(--font);resize:none;outline:none;width:100%;min-height:130px;line-height:1.6;transition:border-color 0.15s;}
+    /* Uniform & Symmetrical Match Scoreboard & Details Frame */
+    .match-details-card{background:linear-gradient(180deg, var(--bg-card) 0%, #111a2a 100%);border:1px solid var(--border);box-shadow:0 4px 20px rgba(0,0,0,0.25);}
+    .team-selection-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;margin-bottom:8px;}
+    .uniform-control{height:38px;box-sizing:border-box;padding:0 10px;font-size:12.5px;border-radius:var(--radius);background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text);outline:none;transition:all 0.15s ease;width:100%;min-width:0;display:flex;align-items:center;}
+    .uniform-control:focus{border-color:rgba(0,230,118,0.45);background:rgba(255,255,255,0.06);}
+    select.uniform-control{cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238899aa' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;}
+    select.uniform-control option{background:#0f1724;color:#fff;}
+    .btn-uniform-action{height:38px;box-sizing:border-box;width:100%;background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.35);border-radius:var(--radius);color:var(--green);font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 10px;transition:all 0.15s ease;white-space:nowrap;}
+    .btn-uniform-action:hover{background:rgba(0,230,118,0.2);border-color:var(--green);color:#fff;box-shadow:0 0 12px rgba(0,230,118,0.2);}
+    .score-row .uniform-team-input{height:38px;box-sizing:border-box;padding:0 10px;font-size:13px;}
+    .score-row .uniform-score-input{height:38px;width:44px;box-sizing:border-box;padding:0 4px;font-size:18px;text-align:center;line-height:36px;}
+    .badge-source-tag{font-size:10px;font-weight:700;color:var(--amber);background:var(--amber-dim);border:1px solid rgba(255,171,0,0.3);padding:2px 8px;border-radius:12px;letter-spacing:0.3px;}
+    .notes-area{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:var(--radius);padding:12px;color:var(--text);font-size:13px;font-family:var(--font);resize:vertical;outline:none;width:100%;min-height:120px;line-height:1.6;transition:border-color 0.15s;}
     .notes-area:focus{border-color:rgba(0,230,118,0.35);} .notes-area::placeholder{color:var(--text-dim);}
     .voice-bar{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;}
     .btn-mic{width:38px;height:38px;border-radius:50%;background:var(--rose-dim);border:1px solid rgba(255,69,105,0.3);color:var(--rose);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;}
@@ -74,8 +86,13 @@
     .toggle-opt input[type=checkbox]{accent-color:var(--purple);}
     .style-btn{flex:1;padding:8px;font-size:11px;font-weight:700;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.03);color:var(--text-muted);cursor:pointer;transition:all 0.15s;}
     .style-btn.active{background:rgba(255,69,105,0.12);border-color:rgba(255,69,105,0.4);color:var(--rose);}
-    .right-panel{display:flex;flex-direction:column;overflow:hidden;background:var(--bg-base);}
-    .report-toolbar{height:54px;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 22px;gap:10px;flex-shrink:0;background:rgba(13,20,36,0.7);backdrop-filter:blur(12px);}
+    .right-panel{display:flex;flex-direction:column;overflow:hidden;background:var(--bg-base);height:100%;}
+    .right-notes-section{background:var(--bg-surface);border-bottom:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;transition:all 0.2s ease;}
+    .right-notes-header{height:46px;padding:0 18px;display:flex;align-items:center;justify-content:space-between;background:rgba(13,20,36,0.65);border-bottom:1px solid var(--border);flex-shrink:0;}
+    .right-notes-body{padding:10px 16px 12px;display:flex;flex-direction:column;gap:8px;}
+    .right-notes-section.collapsed .right-notes-body{display:none;}
+    .right-report-section{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;}
+    .report-toolbar{height:48px;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 18px;gap:10px;flex-shrink:0;background:rgba(13,20,36,0.7);backdrop-filter:blur(12px);}
     .report-toolbar-title{font-size:13px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;}
     .report-toolbar-title .badge{background:var(--green-dim);border:1px solid rgba(0,230,118,0.3);color:var(--green);font-size:10px;font-weight:800;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;}
     .toolbar-spacer{flex:1;}
@@ -83,7 +100,7 @@
     .btn-toolbar:hover{background:rgba(255,255,255,0.09);color:#fff;}
     .btn-toolbar.primary{background:var(--green-dim);border-color:rgba(0,230,118,0.35);color:var(--green);}
     .btn-toolbar.primary:hover{background:rgba(0,230,118,0.2);}
-    .report-scroll{flex:1;overflow-y:auto;padding:32px 48px;}
+    .report-scroll{flex:1;overflow-y:auto;padding:24px 36px;}
     .report-scroll::-webkit-scrollbar{width:6px;} .report-scroll::-webkit-scrollbar-track{background:transparent;} .report-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:4px;}
     .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;text-align:center;}
     .empty-icon{width:80px;height:80px;border-radius:50%;background:rgba(0,230,118,0.07);border:1px solid rgba(0,230,118,0.15);display:flex;align-items:center;justify-content:center;font-size:34px;}
@@ -615,6 +632,7 @@
       .tactical-pitch-container { grid-template-columns: 1fr; }
       .pitch-bench-section { height: auto; max-height: 240px; }
       .left-panel-grid-2 { grid-template-columns: 1fr; }
+      .ai-options-grid { grid-template-columns: 1fr !important; }
     }
 
     @media (max-width: 900px) {
@@ -622,7 +640,7 @@
       .app-body { display: flex; flex-direction: column; height: auto; overflow: visible; }
       .left-panel { border-right: none; border-bottom: 1px solid var(--border); overflow: visible; width: 100%; max-width: 100%; }
       .panel-scroll { overflow: visible; padding: 14px; }
-      .right-panel { min-height: 500px; }
+      .right-panel { min-height: 500px; height: auto; overflow: visible; }
       .report-scroll { padding: 20px 16px; }
     }
   </style>
@@ -639,6 +657,9 @@
     <div class="header-sep"></div>
     <div class="header-title">&#x1F4CB; Match Report Studio</div>
     <div class="header-spacer"></div>
+    <a href="player-tracker-lab.html" target="_blank" class="btn-back" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;margin-right:8px;border-color:rgba(0,240,255,0.4);color:#00f0ff;" title="Open Tactical Vision &amp; Player Tracking System">
+      <span>🎯 Player Tracking System ↗</span>
+    </a>
     <button class="btn-back" onclick="history.back()">&#x2190; Back to Dashboard</button>
   </header>
   <div class="app-body">
@@ -647,35 +668,67 @@
         <!-- ROW 1: MATCH DETAILS & SCOREBOARD (LEFT) + MATCH TIMER & LIVE SYNC (RIGHT) -->
         <div class="left-panel-grid-2">
           <!-- Card: Match Details & Scoreboard -->
-          <div class="card" style="display:flex;flex-direction:column;justify-content:space-between;">
+          <div class="card match-details-card" style="display:flex;flex-direction:column;justify-content:space-between;">
             <div>
-              <div class="card-label"><span class="dot" style="background:#ffab00;"></span>Match Scoreboard &amp; Details</div>
-              <div class="field-group" style="margin-bottom:10px;">
-                <div class="field-label">Score</div>
-                <div class="score-row">
-                  <input type="text" class="team-name" id="home-team" placeholder="Home Team">
-                  <input type="number" class="score-input" id="home-score" placeholder="0" min="0" max="99">
-                  <span class="vs-sep">&ndash;</span>
-                  <input type="number" class="score-input" id="away-score" placeholder="0" min="0" max="99">
-                  <input type="text" class="team-name" id="away-team" placeholder="Away Team">
+              <div class="card-label" style="display:flex;justify-content:space-between;align-items:center;">
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <span class="dot" style="background:#ffab00;"></span>
+                  <span>Match Scoreboard &amp; Details</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <span class="badge-source-tag" id="team-source-badge">Saved Teams</span>
                 </div>
               </div>
+
+              <!-- Row 1: Select Team & Export Teamlist (Symmetrical 50/50, Uniform Size) -->
+              <div class="team-selection-row">
+                <div class="field-group">
+                  <div class="field-label">Select Saved Team</div>
+                  <select class="field-input uniform-control" id="team-selector" onchange="onTeamSelectChange(this.value)">
+                    <option value="">-- Choose Saved Team --</option>
+                    <option value="__external__">⚡ Outside Saved Teams (Custom)</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <div class="field-label">Import teamlist</div>
+                  <button type="button" class="btn-uniform-action" id="btn-export-teamlist" onclick="openExportTeamlistModal()" title="Import teamlist">
+                    <span>📥 Import teamlist</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Row 2: Scoreboard (Symmetrical Home vs Away) -->
+              <div class="field-group" style="margin-top:4px;margin-bottom:8px;">
+                <div class="field-label" style="display:flex;justify-content:space-between;">
+                  <span>Home Team &amp; Goals</span>
+                  <span>Away Team &amp; Goals</span>
+                </div>
+                <div class="score-row">
+                  <input type="text" class="team-name uniform-team-input" id="home-team" placeholder="Home Team">
+                  <input type="number" class="score-input uniform-score-input" id="home-score" placeholder="0" min="0" max="99">
+                  <span class="vs-sep">&ndash;</span>
+                  <input type="number" class="score-input uniform-score-input" id="away-score" placeholder="0" min="0" max="99">
+                  <input type="text" class="team-name uniform-team-input" id="away-team" placeholder="Away Team">
+                </div>
+              </div>
+
+              <!-- Row 3: 2x2 Grid (Uniform 38px inputs) -->
               <div class="match-grid" style="gap:8px;">
                 <div class="field-group">
                   <div class="field-label">Date</div>
-                  <input type="date" class="field-input" id="match-date">
+                  <input type="date" class="field-input uniform-control" id="match-date">
                 </div>
                 <div class="field-group">
                   <div class="field-label">Competition</div>
-                  <input type="text" class="field-input" id="competition" placeholder="Competition">
+                  <input type="text" class="field-input uniform-control" id="competition" placeholder="Competition">
                 </div>
                 <div class="field-group">
                   <div class="field-label">Venue</div>
-                  <input type="text" class="field-input" id="venue" placeholder="Stadium / Venue">
+                  <input type="text" class="field-input uniform-control" id="venue" placeholder="Stadium / Venue">
                 </div>
                 <div class="field-group">
                   <div class="field-label">Formation Used</div>
-                  <input type="text" class="field-input" id="formation" placeholder="e.g. 4-3-3">
+                  <input type="text" class="field-input uniform-control" id="formation" placeholder="e.g. 4-3-3">
                 </div>
               </div>
             </div>
@@ -799,35 +852,15 @@
           </div>
         </div>
 
-        <!-- ROW 3: COACH NOTES (LEFT) & AI REPORT OPTIONS + GENERATOR (RIGHT) -->
-        <div class="left-panel-grid-2">
-          <!-- Left: Coach Notes -->
-          <div class="card" style="display:flex;flex-direction:column;">
-            <div class="card-label" style="display:flex;justify-content:space-between;align-items:center;">
-              <div style="display:flex;align-items:center;gap:6px;"><span class="dot" style="background:#00e676;"></span>Coach Notes</div>
-              <button type="button" class="clock-btn" onclick="insertCurrentTimecodeIntoNotes()" title="Insert current match minute into notes" style="padding:3px 8px;font-size:10px;background:rgba(0,229,255,0.1);border-color:rgba(0,229,255,0.3);color:#00e5ff;">
-                <span>⏱️ <span id="notes-stamp-lbl">Stamp 0'</span></span>
-              </button>
-            </div>
-            <div class="voice-bar" style="margin-bottom:8px;">
-              <button class="btn-mic" id="btn-mic" onclick="toggleVoiceRecording()" title="Tap to dictate notes">&#x1F399;&#xFE0F;</button>
-              <div class="voice-status">
-                <div id="voice-status-text">Dictate notes with match minute stamps</div>
-                <div style="color:var(--text);font-style:italic;display:none;" id="voice-live-text"></div>
-              </div>
-            </div>
-            <textarea class="notes-area" id="coach-notes" rows="9" style="flex:1;min-height:160px;"
-              placeholder="Jot down match observations (automatically stamped with match minute)...&#10;&#10; [12'] Team shape and pressing triggers&#10; [28'] ⚽ Goal - Cutback from right wing&#10; [45+1'] Key tactical moments&#10; [64'] 🔄 Sub - Tactical change"></textarea>
+        <!-- ROW 3: AI REPORT GENERATOR & OPTIONS (FULL WIDTH CARD) -->
+        <div class="card ai-options-card" style="display:flex;flex-direction:column;">
+          <div class="card-label" style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="display:flex;align-items:center;gap:6px;"><span class="dot" style="background:#c77dff;"></span>AI Report Generator &amp; Options</div>
+            <div class="api-status" id="api-status" style="display:none;"></div>
           </div>
 
-          <!-- Right: AI Options & Generate Button -->
-          <div class="card" style="display:flex;flex-direction:column;justify-content:space-between;">
+          <div class="ai-options-grid" style="display:grid;grid-template-columns:1fr 1.15fr;gap:14px;margin-bottom:12px;">
             <div>
-              <div class="card-label" style="display:flex;justify-content:space-between;align-items:center;">
-                <div style="display:flex;align-items:center;gap:6px;"><span class="dot" style="background:#c77dff;"></span>AI Report Options</div>
-                <div class="api-status" id="api-status" style="display:none;"></div>
-              </div>
-
               <!-- Report Style -->
               <div style="margin-bottom:10px;">
                 <div class="field-label" style="margin-bottom:5px;">Report Style</div>
@@ -838,22 +871,8 @@
                 </div>
               </div>
 
-              <!-- Sections to Include -->
-              <div style="margin-bottom:10px;">
-                <div class="field-label" style="margin-bottom:5px;">Sections to Include</div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-                  <label class="toggle-opt"><input type="checkbox" checked id="chk-squad"> Squad &amp; Lineup</label>
-                  <label class="toggle-opt"><input type="checkbox" checked id="chk-tactics"> Tactical Analysis</label>
-                  <label class="toggle-opt"><input type="checkbox" checked id="chk-players"> Player Ratings</label>
-                  <label class="toggle-opt"><input type="checkbox" checked id="chk-stats"> Key Statistics</label>
-                  <label class="toggle-opt"><input type="checkbox" checked id="chk-moments"> Key Moments</label>
-                  <label class="toggle-opt"><input type="checkbox" id="chk-setpieces"> Set Pieces</label>
-                  <label class="toggle-opt"><input type="checkbox" checked id="chk-improvements"> Improvements</label>
-                </div>
-              </div>
-
               <!-- Gemini API Key Compact Row -->
-              <div style="margin-bottom:12px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:8px;padding:8px;">
+              <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:8px;padding:8px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
                   <span class="field-label">Gemini API Key</span>
                   <a href="https://aistudio.google.com/apikey" target="_blank" style="font-size:10px;color:#00b0ff;text-decoration:none;">Get free key</a>
@@ -865,38 +884,90 @@
               </div>
             </div>
 
-            <!-- Generate Button -->
-            <button class="btn-generate" id="btn-generate" onclick="generateReport()" style="margin-top:auto;">
-              <div class="spinner-sm" id="gen-spinner"></div>
-              <span id="gen-btn-text">&#x2726; Generate Match Report</span>
-            </button>
+            <!-- Sections to Include -->
+            <div>
+              <div class="field-label" style="margin-bottom:5px;">Sections to Include</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                <label class="toggle-opt"><input type="checkbox" checked id="chk-squad"> Squad &amp; Lineup</label>
+                <label class="toggle-opt"><input type="checkbox" checked id="chk-tactics"> Tactical Analysis</label>
+                <label class="toggle-opt"><input type="checkbox" checked id="chk-players"> Player Ratings</label>
+                <label class="toggle-opt"><input type="checkbox" checked id="chk-stats"> Key Statistics</label>
+                <label class="toggle-opt"><input type="checkbox" checked id="chk-moments"> Key Moments</label>
+                <label class="toggle-opt"><input type="checkbox" id="chk-setpieces"> Set Pieces</label>
+                <label class="toggle-opt"><input type="checkbox" checked id="chk-improvements"> Improvements</label>
+              </div>
+            </div>
           </div>
+
+          <!-- Generate Button -->
+          <button class="btn-generate" id="btn-generate" onclick="generateReport()" style="margin-top:2px;">
+            <div class="spinner-sm" id="gen-spinner"></div>
+            <span id="gen-btn-text">&#x2726; Generate Match Report</span>
+          </button>
         </div>
         <div style="height:8px;"></div>
       </div>
     </div>
-    <div class="right-panel" style="position:relative;">
+    <div class="right-panel" id="right-panel" style="position:relative;">
       <div class="generating-overlay" id="generating-overlay">
         <div class="gen-spinner"></div>
         <div class="gen-text">Analysing match data...</div>
         <div class="gen-sub">Gemini AI is crafting your report</div>
       </div>
-      <div class="report-toolbar">
-        <div class="report-toolbar-title">Match Report <span class="badge" id="report-badge" style="display:none;">Ready</span></div>
-        <div class="toolbar-spacer"></div>
-        <button class="btn-toolbar" id="btn-past-reports" onclick="openPastReportsModal()">📂 Past Reports</button>
-        <button class="btn-toolbar primary" id="btn-save-report" onclick="saveReportToDatabase()" style="display:none;">💾 Save to Cloud</button>
-        <button class="btn-toolbar" id="btn-copy" onclick="copyReport()" style="display:none;">📋 Copy</button>
-        <button class="btn-toolbar" id="btn-print" onclick="printReport()" style="display:none;">💻 Download PDF</button>
-        <button class="btn-toolbar" id="btn-gdrive" onclick="openGoogleDriveModal()" style="display:none;border-color:rgba(0,176,255,0.35);color:#00b0ff;">☁️ Google Drive</button>
-      </div>
-      <div class="report-scroll" id="report-scroll">
-        <div class="empty-state" id="empty-state">
-          <div class="empty-icon">&#x1F4CB;</div>
-          <h3>Match Report Studio</h3>
-          <p>Fill in match details and coach notes on the left &mdash; type or speak with the mic &mdash; then tap <strong style="color:var(--green);">Generate Match Report</strong> to produce a professional, AI-written report instantly.</p>
+
+      <!-- DOCKED COACH NOTES (RIGHT PANEL) -->
+      <div class="right-notes-section" id="right-notes-section">
+        <div class="right-notes-header">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="dot" style="background:#00e676;"></span>
+            <span style="font-weight:700;font-size:13px;color:var(--text);letter-spacing:0.2px;">Coach Notes &amp; Observations</span>
+            <span style="font-size:10.5px;color:var(--text-dim);font-weight:600;display:inline-block;">(Click pitch players to tag)</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button type="button" class="clock-btn" onclick="insertCurrentTimecodeIntoNotes()" title="Insert current match minute into notes" style="padding:4px 9px;font-size:11px;background:rgba(0,229,255,0.1);border-color:rgba(0,229,255,0.3);color:#00e5ff;">
+              <span>⏱️ <span id="notes-stamp-lbl">Stamp 0'</span></span>
+            </button>
+            <button type="button" class="clock-btn" onclick="clearCoachNotes()" title="Clear notes" style="padding:4px 9px;font-size:11px;color:var(--text-dim);">
+              <span>🗑️ Clear</span>
+            </button>
+            <button type="button" class="clock-btn" id="btn-toggle-notes-collapse" onclick="toggleNotesCollapse()" title="Collapse / Expand Notes" style="padding:4px 9px;font-size:11px;">
+              <span>↕️ <span id="notes-collapse-txt">Collapse</span></span>
+            </button>
+          </div>
         </div>
-        <div class="report-content" id="report-content" style="display:none;"></div>
+
+        <div class="right-notes-body">
+          <div class="voice-bar">
+            <button class="btn-mic" id="btn-mic" onclick="toggleVoiceRecording()" title="Tap to dictate notes">&#x1F399;&#xFE0F;</button>
+            <div class="voice-status">
+              <div id="voice-status-text">Dictate notes with match minute stamps</div>
+              <div style="color:var(--text);font-style:italic;display:none;" id="voice-live-text"></div>
+            </div>
+          </div>
+          <textarea class="notes-area" id="coach-notes" rows="6" style="flex:1;min-height:130px;"
+            placeholder="Jot down match observations (automatically stamped with match minute)...&#10;&#10; [12'] Team shape and pressing triggers&#10; [28'] ⚽ Goal - Cutback from right wing&#10; [45+1'] Key tactical moments&#10; [64'] 🔄 Sub - Tactical change"></textarea>
+        </div>
+      </div>
+
+      <!-- MATCH REPORT SECTION (RIGHT PANEL) -->
+      <div class="right-report-section" id="right-report-section">
+        <div class="report-toolbar">
+          <div class="report-toolbar-title">Match Report <span class="badge" id="report-badge" style="display:none;">Ready</span></div>
+          <div class="toolbar-spacer"></div>
+          <button class="btn-toolbar" id="btn-past-reports" onclick="openPastReportsModal()">📂 Past Reports</button>
+          <button class="btn-toolbar primary" id="btn-save-report" onclick="saveReportToDatabase()" style="display:none;">💾 Save to Cloud</button>
+          <button class="btn-toolbar" id="btn-copy" onclick="copyReport()" style="display:none;">📋 Copy</button>
+          <button class="btn-toolbar" id="btn-print" onclick="printReport()" style="display:none;">💻 Download PDF</button>
+          <button class="btn-toolbar" id="btn-gdrive" onclick="openGoogleDriveModal()" style="display:none;border-color:rgba(0,176,255,0.35);color:#00b0ff;">☁️ Google Drive</button>
+        </div>
+        <div class="report-scroll" id="report-scroll">
+          <div class="empty-state" id="empty-state">
+            <div class="empty-icon">&#x1F4CB;</div>
+            <h3>Match Report Studio</h3>
+            <p>Take coach notes above or speak with the mic while reviewing squad &amp; formation on the left &mdash; then tap <strong style="color:var(--green);">Generate Match Report</strong> to produce a professional, AI-written report instantly.</p>
+          </div>
+          <div class="report-content" id="report-content" style="display:none;"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -913,6 +984,60 @@
       </div>
       <div class="modal-body" id="past-reports-list">
         <div style="padding:24px;text-align:center;color:var(--text-muted);">Loading past reports...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- IMPORT & EXPORT TEAMLIST (CSV) MODAL -->
+  <div class="modal-backdrop" id="export-teamlist-modal" style="display:none;" onclick="if(event.target===this)closeExportTeamlistModal()">
+    <div class="modal-card" style="max-width:540px;">
+      <div class="modal-header">
+        <div class="modal-title" style="display:flex;align-items:center;gap:8px;">
+          <span>📥</span> Import &amp; Export Teamlist (CSV)
+        </div>
+        <button class="modal-close" onclick="closeExportTeamlistModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding:20px;display:flex;flex-direction:column;gap:16px;">
+        <!-- Option 1: Import CSV -->
+        <div style="background:rgba(0,230,118,0.05);border:1px solid rgba(0,230,118,0.25);border-radius:12px;padding:16px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-weight:700;color:var(--green);font-size:13px;">📥 Import CSV</span>
+            <span style="font-size:11px;color:var(--text-muted);">.csv format</span>
+          </div>
+          <div style="font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:12px;">
+            Upload a CSV file or paste CSV rows below to import player lineup directly into this Match Report.
+          </div>
+          
+          <input type="file" id="teamlist-csv-file" accept=".csv,text/csv,text/plain" style="display:none;" onchange="handleTeamlistCsvFile(this)">
+          
+          <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;">
+            <button type="button" class="btn-uniform-action" onclick="document.getElementById('teamlist-csv-file').click()" style="flex:1;">
+              📁 Choose CSV File
+            </button>
+            <span id="csv-file-name" style="font-size:11px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px;"></span>
+          </div>
+
+          <textarea id="external-squad-input" class="notes-area" style="min-height:95px;font-family:var(--font-mono);font-size:12px;" placeholder="Role,Jersey,Position,Player Name&#10;Starter,1,GK,John Doe&#10;Starter,2,RB,Alex Ray&#10;Substitute,12,GK,Dan West"></textarea>
+          
+          <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end;">
+            <button type="button" class="btn-toolbar" onclick="document.getElementById('external-squad-input').value='';document.getElementById('csv-file-name').textContent='';" style="font-size:11px;">Clear</button>
+            <button type="button" class="btn-uniform-action" style="width:auto;padding:0 20px;background:linear-gradient(135deg,#00e676,#00b0ff);color:#060d16;font-weight:800;" onclick="applyExternalSquadFromModal()">⚡ Import CSV</button>
+          </div>
+        </div>
+
+        <!-- Option 2: Export CSV -->
+        <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;padding:16px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-weight:700;color:var(--text);font-size:13px;">📤 Export CSV</span>
+            <span style="font-size:11px;color:var(--text-muted);">Download .csv</span>
+          </div>
+          <div style="font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:12px;">
+            Export the current match squad lineup (Starters and Substitutes) as a CSV file.
+          </div>
+          <button type="button" class="btn-uniform-action" onclick="downloadTeamlistAsCSV()" style="width:100%;">
+            📊 Export CSV
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -1011,6 +1136,16 @@
     var speechRecognition = null;
     var rawReportText = '';
     var db = null;
+
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
 
     // Mobile / iPhone Live Sync State
     var liveNotesSessionId = '';
@@ -1193,6 +1328,26 @@
       showToast('Inserted match stamp ' + timeStr.trim(), 'success');
     }
 
+    function clearCoachNotes() {
+      var notes = document.getElementById('coach-notes');
+      if (!notes) return;
+      if (!notes.value.trim()) return;
+      if (confirm('Clear all coach notes?')) {
+        notes.value = '';
+        notes.focus();
+        showToast('Coach notes cleared', 'success');
+      }
+    }
+
+    function toggleNotesCollapse() {
+      var sec = document.getElementById('right-notes-section');
+      var txt = document.getElementById('notes-collapse-txt');
+      if (!sec) return;
+      sec.classList.toggle('collapsed');
+      var isCollapsed = sec.classList.contains('collapsed');
+      if (txt) txt.textContent = isCollapsed ? 'Expand' : 'Collapse';
+    }
+
     // ════════════════════════════════════════════════════════════
     // TACTICAL FORMATION & SQUAD STUDIO ENGINE
     // ════════════════════════════════════════════════════════════
@@ -1307,7 +1462,7 @@
       ]
     };
 
-    function initSquadAndFormation(matchCtx, vidSquad, formSync) {
+    function initSquadAndFormation(matchCtx, vidSquad, formSync, forceEmpty = false) {
       currentFormation = matchCtx.formation || (formSync && formSync.formation) || document.getElementById('formation').value || '4-3-3';
       if (!FORMATIONS_MAP[currentFormation]) currentFormation = '4-3-3';
 
@@ -1315,8 +1470,15 @@
       if (formSelect) formSelect.value = currentFormation;
       document.getElementById('formation').value = currentFormation;
 
+      var urlParams = new URLSearchParams(window.location.search);
+      var isFromDash = forceEmpty || urlParams.get('source') === 'dashboard' || matchCtx.fromDashboard === true || !matchCtx.teamId;
+
       // Extract players
-      if (matchCtx.startingXI && matchCtx.startingXI.length) {
+      if (isFromDash) {
+        // Keep completely empty when opened from main dashboard or no team selected
+        currentStartingXI = [];
+        currentSubstitutes = [];
+      } else if (matchCtx.startingXI && matchCtx.startingXI.length) {
         currentStartingXI = matchCtx.startingXI.slice();
         currentSubstitutes = (matchCtx.substitutes || []).slice();
       } else if (matchCtx.squad && matchCtx.squad.length) {
@@ -1329,27 +1491,8 @@
         currentStartingXI = formSync.players.slice(0, 11);
         currentSubstitutes = formSync.players.slice(11);
       } else {
-        // High-end default fallback squad (Madrid baseline)
-        currentStartingXI = [
-          { name: 'T. Courtois', position: 'GK', jersey: '1' },
-          { name: 'D. Carvajal', position: 'RB', jersey: '2' },
-          { name: 'E. Militão', position: 'CB', jersey: '3' },
-          { name: 'D. Alaba', position: 'CB', jersey: '4' },
-          { name: 'F. Mendy', position: 'LB', jersey: '23' },
-          { name: 'F. Valverde', position: 'CM', jersey: '8' },
-          { name: 'A. Tchouaméni', position: 'DM', jersey: '14' },
-          { name: 'J. Bellingham', position: 'AM', jersey: '5' },
-          { name: 'Rodrygo', position: 'RW', jersey: '11' },
-          { name: 'K. Mbappé', position: 'ST', jersey: '9' },
-          { name: 'Vinicius Jr', position: 'LW', jersey: '7' }
-        ];
-        currentSubstitutes = [
-          { name: 'L. Modrić', position: 'CM', jersey: '10' },
-          { name: 'E. Camavinga', position: 'CM', jersey: '6' },
-          { name: 'Brahim Díaz', position: 'RW', jersey: '21' },
-          { name: 'Endrick', position: 'ST', jersey: '16' },
-          { name: 'A. Lunin', position: 'GK', jersey: '13' }
-        ];
+        currentStartingXI = [];
+        currentSubstitutes = [];
       }
 
       renderTacticalPitch();
@@ -1359,7 +1502,13 @@
 
       var badge = document.getElementById('squad-badge');
       if (badge) {
-        badge.textContent = '✓ ' + (currentStartingXI.length + currentSubstitutes.length) + ' players (' + currentFormation + ')';
+        if (currentStartingXI.length || currentSubstitutes.length) {
+          badge.textContent = '✓ ' + (currentStartingXI.length + currentSubstitutes.length) + ' players (' + currentFormation + ')';
+          badge.style.color = 'var(--green)';
+        } else {
+          badge.textContent = 'Empty Lineup (' + currentFormation + ')';
+          badge.style.color = 'var(--text-muted)';
+        }
       }
     }
 
@@ -1371,23 +1520,28 @@
       layer.innerHTML = '';
 
       slots.forEach(function(slot, idx) {
-        var player = currentStartingXI[idx] || { name: slot.label, position: slot.role, jersey: String(idx + 1) };
-        var num = player.jersey || player.number || (idx + 1);
+        var player = currentStartingXI[idx];
+        var num = player ? (player.jersey || player.number || (idx + 1)) : '-';
+        var pName = player ? player.name : slot.label;
         var role = slot.role;
 
         var node = document.createElement('div');
-        node.className = 'pitch-player-node';
+        node.className = 'pitch-player-node' + (player ? '' : ' empty-slot');
         node.style.left = slot.x + '%';
         node.style.top = slot.y + '%';
-        node.title = '#' + num + ' ' + player.name + ' (' + (player.position || slot.label) + ')';
+        node.title = player ? ('#' + num + ' ' + player.name + ' (' + (player.position || slot.label) + ')') : ('Empty ' + slot.label + ' slot');
         node.onclick = function() {
-          insertPlayerIntoNotes(player.name, num);
+          if (player) {
+            insertPlayerIntoNotes(player.name, num);
+          } else {
+            showToast('Empty slot (' + slot.label + '). Select a team or enter external squad in Text view / Export studio.', 'info');
+          }
         };
 
         node.innerHTML = 
-          '<div class="pitch-jersey-badge role-' + role + '">' + num + '</div>' +
-          '<div class="pitch-player-label">' + player.name + '</div>' +
-          '<div class="pitch-player-pos-tag">' + (player.position || slot.label) + '</div>';
+          '<div class="pitch-jersey-badge role-' + role + '" style="' + (player ? '' : 'opacity:0.45;border-style:dashed;') + '">' + escapeHtml(String(num)) + '</div>' +
+          '<div class="pitch-player-label" style="' + (player ? '' : 'color:var(--text-dim);font-style:italic;') + '">' + escapeHtml(String(pName)) + '</div>' +
+          '<div class="pitch-player-pos-tag">' + escapeHtml(String(player ? (player.position || slot.label) : slot.label)) + '</div>';
 
         layer.appendChild(node);
       });
@@ -1463,6 +1617,11 @@
       if (!container) return;
       container.innerHTML = '';
 
+      if (!currentStartingXI.length && !currentSubstitutes.length) {
+        container.innerHTML = '<div style="padding:32px 16px;text-align:center;color:var(--text-dim);font-size:12px;width:100%;"><div style="font-size:24px;margin-bottom:6px;">📋</div><div style="font-weight:700;color:var(--text);margin-bottom:4px;">No Squad Loaded</div>Select a saved team from the dropdown above or enter an external squad.</div>';
+        return;
+      }
+
       var groups = {
         'Goalkeepers': currentStartingXI.filter(function(p){ return p.position === 'GK'; }),
         'Defenders': currentStartingXI.filter(function(p){ return ['CB', 'LB', 'RB', 'LWB', 'RWB', 'DEF'].includes(p.position); }),
@@ -1480,7 +1639,7 @@
         var html = '<div class="lineup-group-title">' + gName + ' (' + pList.length + ')</div><div class="lineup-group-players">';
         pList.forEach(function(p) {
           var num = p.jersey || p.number || '-';
-          html += '<div class="bench-chip" onclick="insertPlayerIntoNotes(\'' + p.name.replace(/'/g, "\\'") + '\',\'' + num + '\')"><span class="bench-num">#' + num + '</span> ' + p.name + ' <span style="font-size:9px;color:var(--text-dim);">' + (p.position || '') + '</span></div>';
+          html += '<div class="bench-chip" onclick="insertPlayerIntoNotes(\'' + p.name.replace(/'/g, "\\'") + '\',\'' + num + '\')"><span class="bench-num">#' + num + '</span> ' + escapeHtml(p.name) + ' <span style="font-size:9px;color:var(--text-dim);">' + escapeHtml(p.position || '') + '</span></div>';
         });
         html += '</div>';
         card.innerHTML = html;
@@ -1511,6 +1670,11 @@
     function updateRawSquadTextarea() {
       var textarea = document.getElementById('team-squad');
       if (!textarea) return;
+
+      if (!currentStartingXI.length && !currentSubstitutes.length) {
+        textarea.value = '';
+        return;
+      }
 
       var lines = [];
       lines.push('Starting Lineup (' + currentFormation + '):');
@@ -1594,22 +1758,35 @@
       var savedReport = sessionStorage.getItem('cms_last_report');
       if (savedReport) renderReport(savedReport);
       try {
+        var urlParams = new URLSearchParams(window.location.search);
         var matchCtx = JSON.parse(localStorage.getItem('cms_match_report_context') || '{}');
         var vidSquad = JSON.parse(localStorage.getItem('cms_video_analyzer_squad') || '{}');
         var formSync = JSON.parse(localStorage.getItem('formation_sync_payload') || '{}');
-        
-        if (matchCtx.homeTeam) document.getElementById('home-team').value = matchCtx.homeTeam;
-        else if (vidSquad.teamName) document.getElementById('home-team').value = vidSquad.teamName;
-        else if (formSync.teamName) document.getElementById('home-team').value = formSync.teamName;
+        var isFromDash = urlParams.get('source') === 'dashboard' || matchCtx.fromDashboard === true || !matchCtx.teamId;
 
-        if (matchCtx.awayTeam) document.getElementById('away-team').value = matchCtx.awayTeam;
-        if (matchCtx.competition) document.getElementById('competition').value = matchCtx.competition;
-        if (matchCtx.venue) document.getElementById('venue').value = matchCtx.venue;
-        if (matchCtx.formation) document.getElementById('formation').value = matchCtx.formation;
-        else if (formSync.formation) document.getElementById('formation').value = formSync.formation;
+        if (isFromDash) {
+          document.getElementById('home-team').value = '';
+          document.getElementById('away-team').value = '';
+          document.getElementById('competition').value = '';
+          document.getElementById('venue').value = '';
+          document.getElementById('formation').value = '4-3-3';
+          initSquadAndFormation(matchCtx, vidSquad, formSync, true);
+        } else {
+          if (matchCtx.homeTeam) document.getElementById('home-team').value = matchCtx.homeTeam;
+          else if (vidSquad.teamName) document.getElementById('home-team').value = vidSquad.teamName;
+          else if (formSync.teamName) document.getElementById('home-team').value = formSync.teamName;
 
-        // Initialize Structured Squad and Tactical Pitch
-        initSquadAndFormation(matchCtx, vidSquad, formSync);
+          if (matchCtx.awayTeam) document.getElementById('away-team').value = matchCtx.awayTeam;
+          if (matchCtx.competition) document.getElementById('competition').value = matchCtx.competition;
+          if (matchCtx.venue) document.getElementById('venue').value = matchCtx.venue;
+          if (matchCtx.formation) document.getElementById('formation').value = matchCtx.formation;
+          else if (formSync.formation) document.getElementById('formation').value = formSync.formation;
+
+          initSquadAndFormation(matchCtx, vidSquad, formSync, false);
+        }
+
+        // Populate Saved Teams Dropdown
+        loadSavedTeamsDropdown();
 
       } catch(e) {
         console.warn('Error reading squad/match context:', e);
@@ -1633,6 +1810,471 @@
         if (el) el.addEventListener('input', debounce(updateLiveSessionMetadata, 800));
       });
     });
+
+    // ════════════════════════════════════════════════════════════
+    // SAVED TEAMS DROPDOWN & EXPORT TEAMLIST STUDIO
+    // ════════════════════════════════════════════════════════════
+    var allSavedTeams = [];
+
+    function updateTeamSourceBadge() {
+      var badge = document.getElementById('team-source-badge');
+      var sel = document.getElementById('team-selector');
+      if (!badge) return;
+      if (!sel || !sel.value) {
+        badge.textContent = 'No Team Selected';
+        badge.style.color = 'var(--text-dim)';
+        badge.style.background = 'rgba(255,255,255,0.05)';
+        badge.style.borderColor = 'var(--border)';
+      } else if (sel.value === '__external__') {
+        badge.textContent = 'Outside Saved Teams';
+        badge.style.color = 'var(--blue)';
+        badge.style.background = 'var(--blue-dim)';
+        badge.style.borderColor = 'rgba(0,176,255,0.3)';
+      } else {
+        badge.textContent = 'Saved Team Active';
+        badge.style.color = 'var(--green)';
+        badge.style.background = 'var(--green-dim)';
+        badge.style.borderColor = 'rgba(0,230,118,0.3)';
+      }
+    }
+
+    async function loadSavedTeamsDropdown() {
+      var sel = document.getElementById('team-selector');
+      if (!sel) return;
+
+      // 1. Try reading from localStorage cache first
+      try {
+        var cached = localStorage.getItem('fhq_teams_cache');
+        if (cached) {
+          allSavedTeams = JSON.parse(cached);
+          populateTeamSelectorOptions(allSavedTeams);
+        }
+      } catch(e) {
+        console.warn('Could not parse cached teams:', e);
+      }
+
+      // 2. Fetch fresh teams from Firestore if db is active
+      if (db) {
+        try {
+          var snap = await db.collection('teams').get();
+          var list = [];
+          snap.forEach(function(doc) {
+            list.push(Object.assign({ id: doc.id }, doc.data()));
+          });
+          if (list.length > 0) {
+            list.sort(function(a, b) {
+              return ((a.name || '').localeCompare(b.name || ''));
+            });
+            allSavedTeams = list;
+            try {
+              localStorage.setItem('fhq_teams_cache', JSON.stringify(list));
+            } catch(e){}
+            populateTeamSelectorOptions(allSavedTeams);
+          }
+        } catch(err) {
+          console.warn('Could not load teams from Firestore:', err);
+        }
+      }
+    }
+
+    function populateTeamSelectorOptions(teamList) {
+      var sel = document.getElementById('team-selector');
+      if (!sel) return;
+      var curVal = sel.value;
+
+      var urlParams = new URLSearchParams(window.location.search);
+      var matchCtx = JSON.parse(localStorage.getItem('cms_match_report_context') || '{}');
+      var isFromDash = urlParams.get('source') === 'dashboard' || matchCtx.fromDashboard === true || !matchCtx.teamId;
+      var activeTid = isFromDash ? '' : (urlParams.get('teamId') || matchCtx.teamId || '');
+
+      var html = '<option value="">-- Choose Saved Team --</option>';
+      if (teamList && teamList.length) {
+        teamList.forEach(function(t) {
+          var label = (t.emoji ? t.emoji + ' ' : '') + (t.name || 'Unnamed Team');
+          html += '<option value="' + escapeHtml(t.id) + '">' + escapeHtml(label) + '</option>';
+        });
+      }
+      html += '<option value="__external__">⚡ Outside Saved Teams (Custom)</option>';
+
+      sel.innerHTML = html;
+      if (curVal && (curVal === '__external__' || (teamList && teamList.some(function(t){ return t.id === curVal; })))) {
+        sel.value = curVal;
+      } else if (activeTid && teamList && teamList.some(function(t){ return t.id === activeTid; })) {
+        sel.value = activeTid;
+      } else {
+        sel.value = '';
+      }
+      updateTeamSourceBadge();
+    }
+
+    async function onTeamSelectChange(teamId) {
+      updateTeamSourceBadge();
+      if (!teamId) {
+        currentStartingXI = [];
+        currentSubstitutes = [];
+        document.getElementById('home-team').value = '';
+        renderTacticalPitch();
+        renderBenchChips();
+        renderLineupCards();
+        updateRawSquadTextarea();
+        updateLiveSessionMetadata();
+        return;
+      }
+
+      if (teamId === '__external__') {
+        currentStartingXI = [];
+        currentSubstitutes = [];
+        document.getElementById('home-team').value = '';
+        document.getElementById('home-team').placeholder = 'Enter External Team Name';
+        document.getElementById('home-team').focus();
+        renderTacticalPitch();
+        renderBenchChips();
+        renderLineupCards();
+        updateRawSquadTextarea();
+        updateLiveSessionMetadata();
+        showToast('Outside saved teams mode. Enter team name or use Export/Import Teamlist.', 'info');
+        return;
+      }
+
+      var foundTeam = allSavedTeams.find(function(t) { return t.id === teamId; });
+      if (!foundTeam) return;
+
+      document.getElementById('home-team').value = foundTeam.name || '';
+      if (foundTeam.formation && FORMATIONS_MAP[foundTeam.formation]) {
+        currentFormation = foundTeam.formation;
+        var formSelect = document.getElementById('formation-selector');
+        if (formSelect) formSelect.value = currentFormation;
+        document.getElementById('formation').value = currentFormation;
+      }
+
+      var xi = [];
+      var subs = [];
+
+      if (foundTeam.squad && Array.isArray(foundTeam.squad.slots) && foundTeam.squad.slots.length) {
+        foundTeam.squad.slots.forEach(function(s) {
+          if (s && s.player && s.player.name) {
+            xi.push({
+              name: s.player.name,
+              position: s.player.matchPosition || s.player.position || '',
+              jersey: s.player.jersey || s.player.playernum || ''
+            });
+          } else if (s && s.name) {
+            xi.push({
+              name: s.name,
+              position: s.matchPosition || s.position || '',
+              jersey: s.jersey || ''
+            });
+          }
+        });
+      }
+
+      if (foundTeam.squad && Array.isArray(foundTeam.squad.substitutes) && foundTeam.squad.substitutes.length) {
+        foundTeam.squad.substitutes.forEach(function(s) {
+          if (s && (s.name || (s.player && s.player.name))) {
+            var p = s.player || s;
+            subs.push({
+              name: p.name,
+              position: p.position || '',
+              jersey: p.jersey || p.playernum || ''
+            });
+          }
+        });
+      }
+
+      if (xi.length === 0 && db) {
+        try {
+          var pSnap = await db.collection('players').where('teamId', '==', teamId).get();
+          var teamPlayers = [];
+          pSnap.forEach(function(doc) {
+            teamPlayers.push(doc.data());
+          });
+          if (teamPlayers.length > 0) {
+            xi = teamPlayers.slice(0, 11).map(function(p) {
+              return { name: p.name, position: p.position || '', jersey: p.jersey || p.playernum || '' };
+            });
+            subs = teamPlayers.slice(11).map(function(p) {
+              return { name: p.name, position: p.position || '', jersey: p.jersey || p.playernum || '' };
+            });
+          }
+        } catch(err) {
+          console.warn('Could not query players for team:', err);
+        }
+      }
+
+      currentStartingXI = xi;
+      currentSubstitutes = subs;
+
+      renderTacticalPitch();
+      renderBenchChips();
+      renderLineupCards();
+      updateRawSquadTextarea();
+      updateLiveSessionMetadata();
+
+      var badge = document.getElementById('squad-badge');
+      if (badge) {
+        if (currentStartingXI.length || currentSubstitutes.length) {
+          badge.textContent = '✓ ' + (currentStartingXI.length + currentSubstitutes.length) + ' players (' + currentFormation + ')';
+          badge.style.color = 'var(--green)';
+        } else {
+          badge.textContent = 'Empty Squad (' + currentFormation + ')';
+          badge.style.color = 'var(--text-muted)';
+        }
+      }
+
+      showToast('Loaded ' + (foundTeam.name || 'team') + ' squad (' + (xi.length + subs.length) + ' players)', 'success');
+    }
+
+    function openExportTeamlistModal() {
+      var modal = document.getElementById('export-teamlist-modal');
+      if (modal) modal.style.display = 'flex';
+      var txt = document.getElementById('external-squad-input');
+      var teamSquad = document.getElementById('team-squad');
+      if (txt && teamSquad && teamSquad.value.trim() && !txt.value.trim()) {
+        txt.value = teamSquad.value.trim();
+      }
+    }
+
+    function closeExportTeamlistModal() {
+      var modal = document.getElementById('export-teamlist-modal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function parsePlayerLine(raw) {
+      var line = raw.trim().replace(/^[-*•\d+\.]\s*/, '').trim();
+      if (!line) return null;
+
+      var num = '';
+      var pos = '';
+      var name = line;
+
+      var numMatch = name.match(/#(\d+)/);
+      if (numMatch) {
+        num = numMatch[1];
+        name = name.replace(/#\d+/, '').trim();
+      } else {
+        var startNumMatch = name.match(/^(\d+)\s+/);
+        if (startNumMatch) {
+          num = startNumMatch[1];
+          name = name.replace(/^\d+\s+/, '').trim();
+        }
+      }
+
+      var posMatch = name.match(/\[([A-Za-z]+)\]|\(([A-Za-z]+)\)/);
+      if (posMatch) {
+        pos = (posMatch[1] || posMatch[2] || '').toUpperCase();
+        name = name.replace(/\[[A-Za-z]+\]|\([A-Za-z]+\)/, '').trim();
+      } else {
+        var leadPosMatch = name.match(/^(GK|CB|LB|RB|LWB|RWB|DM|CDM|CM|AM|CAM|LM|RM|LW|RW|CF|ST|DEF|MID|FWD)\s+/i);
+        if (leadPosMatch) {
+          pos = leadPosMatch[1].toUpperCase();
+          name = name.substring(leadPosMatch[0].length).trim();
+        }
+      }
+
+      name = name.replace(/^[-–,\s]+|[-–,\s]+$/g, '').trim();
+      if (!name) return null;
+
+      return { name: name, position: pos, jersey: num };
+    }
+
+    function handleTeamlistCsvFile(input) {
+      if (!input || !input.files || !input.files[0]) return;
+      var file = input.files[0];
+      var nameEl = document.getElementById('csv-file-name');
+      if (nameEl) nameEl.textContent = file.name;
+
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var text = e.target.result;
+        var txtArea = document.getElementById('external-squad-input');
+        if (txtArea) txtArea.value = text;
+        showToast('CSV file loaded. Click Import CSV to apply.', 'info');
+      };
+      reader.onerror = function() {
+        showToast('Error reading CSV file', 'error');
+      };
+      reader.readAsText(file);
+    }
+
+    function parseCsvRow(rowStr) {
+      var cells = [];
+      var inQuotes = false;
+      var curCell = '';
+
+      for (var i = 0; i < rowStr.length; i++) {
+        var ch = rowStr[i];
+        if (ch === '"') {
+          if (inQuotes && rowStr[i + 1] === '"') {
+            curCell += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (ch === ',' && !inQuotes) {
+          cells.push(curCell.trim());
+          curCell = '';
+        } else {
+          curCell += ch;
+        }
+      }
+      cells.push(curCell.trim());
+      return cells;
+    }
+
+    function applyExternalSquadFromModal() {
+      var txt = document.getElementById('external-squad-input');
+      if (!txt) return;
+      var raw = txt.value.trim();
+      if (!raw) {
+        showToast('Please select a CSV file or paste CSV rows first', 'error');
+        return;
+      }
+
+      var lines = raw.split(/\r?\n/);
+      var xi = [];
+      var subs = [];
+
+      lines.forEach(function(rawLine) {
+        var line = rawLine.trim();
+        if (!line) return;
+
+        // Skip CSV header line if present
+        if (/^(role|type|jersey|#|position|pos|player|name)/i.test(line) && line.includes(',')) {
+          var headerCells = parseCsvRow(line).map(function(c){ return c.toLowerCase(); });
+          if (headerCells.includes('jersey') || headerCells.includes('player') || headerCells.includes('player name') || headerCells.includes('name')) {
+            return;
+          }
+        }
+
+        var cells = parseCsvRow(line);
+
+        // 4-column CSV: Role, Jersey, Position, Player Name
+        if (cells.length >= 4) {
+          var role = cells[0].toLowerCase();
+          var jersey = cells[1].replace(/#/g, '').trim();
+          var pos = cells[2].trim().toUpperCase();
+          var name = cells[3].trim();
+
+          if (name) {
+            var playerObj = { name: name, position: pos, jersey: jersey };
+            if (role.includes('sub') || role.includes('bench') || role.includes('changer')) {
+              subs.push(playerObj);
+            } else if (role.includes('start') || xi.length < 11) {
+              xi.push(playerObj);
+            } else {
+              subs.push(playerObj);
+            }
+            return;
+          }
+        }
+
+        // 3-column CSV: Jersey, Position, Name  OR  Name, Position, Jersey
+        if (cells.length === 3) {
+          var c0 = cells[0], c1 = cells[1], c2 = cells[2];
+          var num = '', pos = '', name = '';
+
+          if (/^\d+$/.test(c0.replace(/#/g, ''))) {
+            num = c0.replace(/#/g, '');
+            pos = c1.toUpperCase();
+            name = c2;
+          } else if (/^\d+$/.test(c2.replace(/#/g, ''))) {
+            name = c0;
+            pos = c1.toUpperCase();
+            num = c2.replace(/#/g, '');
+          } else {
+            num = c0;
+            name = c1;
+            pos = c2.toUpperCase();
+          }
+
+          if (name) {
+            var playerObj = { name: name, position: pos, jersey: num };
+            if (xi.length < 11) xi.push(playerObj);
+            else subs.push(playerObj);
+            return;
+          }
+        }
+
+        // 2-column CSV: Jersey, Name  OR  Name, Jersey
+        if (cells.length === 2) {
+          var c0 = cells[0], c1 = cells[1];
+          var num = '', name = '';
+          if (/^\d+$/.test(c0.replace(/#/g, ''))) {
+            num = c0.replace(/#/g, '');
+            name = c1;
+          } else {
+            name = c0;
+            num = c1.replace(/#/g, '');
+          }
+          if (name) {
+            var playerObj = { name: name, position: '', jersey: num };
+            if (xi.length < 11) xi.push(playerObj);
+            else subs.push(playerObj);
+            return;
+          }
+        }
+
+        // Fallback: single cell or line
+        var parsed = parsePlayerLine(line);
+        if (parsed) {
+          if (xi.length < 11) xi.push(parsed);
+          else subs.push(parsed);
+        }
+      });
+
+      if (xi.length === 0 && subs.length === 0) {
+        showToast('Could not find valid players in CSV data', 'error');
+        return;
+      }
+
+      currentStartingXI = xi;
+      currentSubstitutes = subs;
+
+      var sel = document.getElementById('team-selector');
+      if (sel) sel.value = '__external__';
+      updateTeamSourceBadge();
+
+      renderTacticalPitch();
+      renderBenchChips();
+      renderLineupCards();
+      updateRawSquadTextarea();
+      updateLiveSessionMetadata();
+
+      var badge = document.getElementById('squad-badge');
+      if (badge) {
+        badge.textContent = '✓ ' + (currentStartingXI.length + currentSubstitutes.length) + ' players (' + currentFormation + ')';
+        badge.style.color = 'var(--green)';
+      }
+
+      closeExportTeamlistModal();
+      showToast('Imported ' + (xi.length + subs.length) + ' players from CSV into Match Report!', 'success');
+    }
+
+    function downloadTeamlistAsCSV() {
+      var homeTeam = document.getElementById('home-team').value.trim() || 'Team';
+      var date = document.getElementById('match-date').value || new Date().toISOString().split('T')[0];
+      var rows = [['Role', 'Jersey', 'Position', 'Player Name']];
+
+      currentStartingXI.forEach(function(p) {
+        rows.push(['Starter', p.jersey || '', p.position || '', '"' + (p.name || '').replace(/"/g, '""') + '"']);
+      });
+
+      currentSubstitutes.forEach(function(p) {
+        rows.push(['Substitute', p.jersey || '', p.position || '', '"' + (p.name || '').replace(/"/g, '""') + '"']);
+      });
+
+      var csvContent = rows.map(function(r){ return r.join(','); }).join('\n');
+      var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = homeTeam.replace(/\s+/g, '_') + '_Teamlist_' + date + '.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function() { URL.revokeObjectURL(url); }, 4000);
+      showToast('Exported teamlist as CSV!', 'success');
+    }
 
     // ════════════════════════════════════════════════════════════
     // IPHONE / MOBILE LIVE NOTES REAL-TIME SYNC
@@ -2316,7 +2958,8 @@
       }
 
       var matchCtx = JSON.parse(localStorage.getItem('cms_match_report_context') || '{}');
-      var teamId = matchCtx.teamId || localStorage.getItem('cms_cur_team_id') || 'default_team';
+      var selTid = document.getElementById('team-selector') ? document.getElementById('team-selector').value : '';
+      var teamId = (selTid && selTid !== '__external__') ? selTid : (matchCtx.teamId || localStorage.getItem('cms_cur_team_id') || 'default_team');
       var homeTeam = document.getElementById('home-team').value.trim() || 'Home Team';
       var awayTeam = document.getElementById('away-team').value.trim() || 'Away Team';
       var homeScore = document.getElementById('home-score').value || '0';
@@ -2394,7 +3037,8 @@
       listEl.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-muted);">Loading saved match reports...</div>';
 
       var matchCtx = JSON.parse(localStorage.getItem('cms_match_report_context') || '{}');
-      var teamId = matchCtx.teamId || localStorage.getItem('cms_cur_team_id') || 'default_team';
+      var selTid = document.getElementById('team-selector') ? document.getElementById('team-selector').value : '';
+      var teamId = (selTid && selTid !== '__external__') ? selTid : (matchCtx.teamId || localStorage.getItem('cms_cur_team_id') || '');
 
       try {
         var snap;

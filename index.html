@@ -6,11 +6,24 @@
 <title>Coach Management System</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css?v=20260901q">
+<script>
+(function(){
+  try {
+    localStorage.removeItem('fhq_session_active');
+    var p = new URLSearchParams(window.location.search);
+    var isAuth = sessionStorage.getItem('fhq_session_active') === '1';
+    window.__initScreen = (isAuth && !p.get('team') && !p.get('view')) ? 's-admin' : 's-login';
+  } catch(e){
+    window.__initScreen = 's-login';
+  }
+})();
+</script>
 </head>
 <body>
 
 <!-- ══ LOGIN ══ -->
-<div id="s-login" class="screen active">
+<div id="s-login" class="screen">
+<script>if(window.__initScreen === 's-login') document.getElementById('s-login').classList.add('active');</script>
   <div id="firebase-err" style="display:none;background:#e53935;color:#fff;padding:14px 20px;border-radius:10px;margin-bottom:16px;font-size:13px;text-align:center;font-weight:600;">
     ⚠️ Firebase failed to load.<br>
     <span style="font-weight:400;font-size:12px;">Check your internet connection, disable any ad blocker, then refresh the page.</span>
@@ -45,12 +58,35 @@
 
 <!-- ══ ADMIN DASHBOARD ══ -->
 <div id="s-admin" class="screen">
+<script>if(window.__initScreen === 's-admin') document.getElementById('s-admin').classList.add('active');</script>
   <div class="topbar">
     <div class="tb-logo">
       <img id="topbar-logo-img" src="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;margin-right:8px;vertical-align:middle;" alt="">
       <span id="topbar-club-name">Coach Management System</span>
     </div>
     <div class="tb-badge">SUPER ADMIN</div>
+    <div class="tb-tools-nav">
+      <button type="button" class="tb-tool-btn" onclick="openSessionPlannerDirect()" title="Plan drills, training schedules &amp; attendance">
+        <span class="tb-tool-icon">📋</span>
+        <span class="tb-tool-lbl">Session Planner</span>
+      </button>
+      <button type="button" class="tb-tool-btn" onclick="openPlayerTrackerLab()" title="Tactical Vision &amp; Player Tracking System">
+        <span class="tb-tool-icon">🎯</span>
+        <span class="tb-tool-lbl">Player Tracking System</span>
+      </button>
+      <button type="button" class="tb-tool-btn" onclick="openVideoAnalyzer()" title="Football Video Telestration &amp; Tactical Analyzer">
+        <span class="tb-tool-icon">📹</span>
+        <span class="tb-tool-lbl">Video Analyzer</span>
+      </button>
+      <button type="button" class="tb-tool-btn" onclick="openVideoClipper()" title="Tactical Video Match Clipper &amp; Trim Studio">
+        <span class="tb-tool-icon">✂️</span>
+        <span class="tb-tool-lbl">Match Clipper</span>
+      </button>
+      <button type="button" class="tb-tool-btn" onclick="openMatchReport(true)" title="AI-Powered Match Report Studio">
+        <span class="tb-tool-icon">📋</span>
+        <span class="tb-tool-lbl">Match Report</span>
+      </button>
+    </div>
     <div class="tb-sp"></div>
     <button class="tbtn back" onclick="openM('m-create')" style="margin-right:8px;">＋ New Team</button>
     <div style="position:relative;" id="settings-wrap">
@@ -175,6 +211,28 @@
     <div class="tb-logo"><img id="team-topbar-logo" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" style="width:28px;height:28px;border-radius:50%;border:2px solid #1a5c1a;object-fit:cover;" alt=""></div>
     <span class="tb-sep">|</span>
     <div class="tb-name" id="tt-name">TEAM</div>
+    <div class="tb-tools-nav">
+      <button type="button" class="tb-tool-btn" onclick="openPlayerTrackerLab()" title="Tactical Vision &amp; Player Tracking System">
+        <span class="tb-tool-icon">🎯</span>
+        <span class="tb-tool-lbl">Player Tracking System</span>
+      </button>
+      <button type="button" class="tb-tool-btn" onclick="openSessionPlannerDirect()" title="Plan drills, training schedules &amp; attendance">
+        <span class="tb-tool-icon">📋</span>
+        <span class="tb-tool-lbl">Session Planner</span>
+      </button>
+      <button type="button" class="tb-tool-btn" onclick="openVideoAnalyzer()" title="Football Video Telestration &amp; Tactical Analyzer">
+        <span class="tb-tool-icon">📹</span>
+        <span class="tb-tool-lbl">Video Analyzer</span>
+      </button>
+      <button type="button" class="tb-tool-btn" onclick="openVideoClipper()" title="Tactical Video Match Clipper &amp; Trim Studio">
+        <span class="tb-tool-icon">✂️</span>
+        <span class="tb-tool-lbl">Match Clipper</span>
+      </button>
+      <button type="button" class="tb-tool-btn" onclick="openMatchReport(false)" title="AI-Powered Match Report Studio">
+        <span class="tb-tool-icon">📋</span>
+        <span class="tb-tool-lbl">Match Report</span>
+      </button>
+    </div>
     <div class="tb-sp"></div>
     <button class="tbtn back" onclick="goBack()" style="margin-right:8px;">← Dashboard</button>
     <button class="tbtn" onclick="doLogout()">🔒 Logout</button>
@@ -184,9 +242,10 @@
     <div class="tab" id="tab-lineup" onclick="showTab('lineup')">🎯 Tactics Studio</div>
     <div class="tab" id="tab-formation" onclick="showTab('formation')" title="Full Tactical Formation Visualizer">🧩 Formation Visualizer</div>
     <div class="tab" id="tab-sessions" onclick="showTab('sessions')">📋 Session Planner</div>
+    <div class="tab" id="tab-tracker" onclick="openPlayerTrackerLab()" title="Tactical Vision &amp; Player Tracking System">🎯 Player Tracking System</div>
     <div class="tab" id="tab-video" onclick="openVideoAnalyzer()" title="Football Video Telestration &amp; Tactical Analyzer">📹 Video Analyzer</div>
     <div class="tab" id="tab-clipper" onclick="openVideoClipper()" title="Tactical Video Match Clipper &amp; Trim Studio">✂️ Match Clipper</div>
-    <div class="tab" id="tab-matchreport" onclick="openMatchReport()" title="AI-Powered Match Report Studio">📋 Match Report</div>
+    <div class="tab" id="tab-matchreport" onclick="openMatchReport(false)" title="AI-Powered Match Report Studio">📋 Match Report</div>
     <div class="tab" id="tab-db" onclick="showTab('db')">👥 Database</div>
     <div class="tab" id="tab-setup" onclick="showTab('setup')">⚙️ Setup</div>
   </div>
@@ -260,6 +319,10 @@
               <button type="button" class="matchset-btn" onclick="openFormationVisualizer(false)" style="background:linear-gradient(135deg,rgba(0,200,83,0.18),rgba(0,200,83,0.05));border-color:var(--g);color:var(--g);font-weight:700;" title="Open Full Formation Visualizer">🧩 Formation Visualizer</button>
             </div>
             <div class="field" style="margin:0;">
+              <label style="visibility:hidden;height:18px;display:block;">Tracking</label>
+              <button type="button" class="matchset-btn" onclick="openPlayerTrackerLab()" style="background:linear-gradient(135deg,rgba(0,240,255,0.18),rgba(0,240,255,0.05));border-color:#00f0ff;color:#00f0ff;font-weight:700;" title="Open Tactical Vision &amp; Player Tracking System">🎯 Player Tracking System</button>
+            </div>
+            <div class="field" style="margin:0;">
               <label style="visibility:hidden;height:18px;display:block;">Chat</label>
               <button type="button" class="matchset-btn chat" id="btn-toggle-chat-coach" onclick="toggleLineupChat('coach')" title="Toggle Coach Chat">💬 Chat (Popup)</button>
             </div>
@@ -325,49 +388,15 @@
       </div>
     </div>
 
-    <!-- SESSION PLANNER -->
-    <div id="page-sessions" class="page">
-      <div class="sp-bar">
-        <input class="db-search sp-search" type="text" id="sp-search" placeholder="🔍 Search sessions, topics, drills…" oninput="renderSessions()">
-        <select class="db-filter sp-filter" id="sp-filter-cat" onchange="renderSessions()">
-          <option value="">All Categories</option>
-          <option value="Tactical">Tactical</option>
-          <option value="Technical">Technical</option>
-          <option value="SSG">Small-Sided Game</option>
-          <option value="Physical">Physical / SAQ</option>
-          <option value="Match Prep">Match Prep</option>
-          <option value="Set Pieces">Set Pieces</option>
-          <option value="Recovery">Cool Down / Recovery</option>
-        </select>
-        <select class="db-filter sp-filter" id="sp-filter-status" onchange="renderSessions()">
-          <option value="">All Status</option>
-          <option value="upcoming">Upcoming</option>
-          <option value="today">Today</option>
-          <option value="completed">Completed</option>
-        </select>
-        <button class="obtn" onclick="openTemplatePicker()" title="Use ready-made session presets">⚡ Presets</button>
-        <button class="obtn" onclick="openDrillLibraryModal()" title="Browse football drills library">📚 Drill Library</button>
-        <button class="mok" onclick="openNewSession()" style="padding:10px 18px;font-size:13px;display:flex;align-items:center;gap:6px;">＋ Plan New Session</button>
-      </div>
-
-      <div class="sp-stats-row">
-        <div class="sc"><div class="num" id="sp-st-total">0</div><div class="lbl">Total Sessions</div></div>
-        <div class="sc"><div class="num" id="sp-st-upcoming">0</div><div class="lbl">Upcoming</div></div>
-        <div class="sc"><div class="num" id="sp-st-hours">0h</div><div class="lbl">Training Hours</div></div>
-        <div class="sc"><div class="num" id="sp-st-att">0%</div><div class="lbl">Avg Attendance</div></div>
-      </div>
-
-      <div id="sp-list" class="sp-grid"></div>
-    </div>
-
     <!-- FORMATION VISUALIZER -->
     <div id="page-formation" class="page">
       <div class="macts" style="margin-bottom:14px;gap:8px;align-items:center;flex-wrap:wrap;">
         <button class="mok" onclick="backToPlayingList()">← Back to Tactics Studio</button>
         <button class="mc" onclick="openFormationVisualizer(true)" style="background:linear-gradient(135deg,rgba(0,200,83,0.18),rgba(0,200,83,0.05));border-color:var(--g);color:var(--g);font-weight:700;" title="Open Formation & Match visualizer in a new window">↗️ Open in New Window</button>
+        <button class="mc" onclick="openPlayerTrackerLab()" style="background:linear-gradient(135deg,rgba(0,240,255,0.18),rgba(0,240,255,0.05));border-color:#00f0ff;color:#00f0ff;font-weight:700;" title="Open Tactical Vision &amp; Player Tracking System">🎯 Player Tracking System</button>
         <button class="mc" onclick="openVideoAnalyzer()" style="background:linear-gradient(135deg,rgba(0,176,255,0.18),rgba(0,176,255,0.05));border-color:#00b0ff;color:#00b0ff;font-weight:700;" title="Open Football Video Telestration &amp; Tactical Analyzer">📹 Video Analyzer</button>
         <button class="mc" onclick="openVideoClipper()" style="background:linear-gradient(135deg,rgba(0,176,255,0.18),rgba(0,230,118,0.08));border-color:#00e676;color:#00e676;font-weight:700;" title="Open Tactical Video Match Clipper &amp; Trim Studio">✂️ Match Clipper</button>
-        <button class="mc" onclick="openMatchReport()" style="background:linear-gradient(135deg,rgba(0,230,118,0.18),rgba(0,230,118,0.05));border-color:#00e676;color:#00e676;font-weight:700;" title="AI-Powered Match Report Studio">📋 Match Report</button>
+        <button class="mc" onclick="openMatchReport(false)" style="background:linear-gradient(135deg,rgba(0,230,118,0.18),rgba(0,230,118,0.05));border-color:#00e676;color:#00e676;font-weight:700;" title="AI-Powered Match Report Studio">📋 Match Report</button>
       </div>
       <iframe id="formation-builder-frame" src="formation-builder.html?v=20260901p" title="Formation Visualizer" allow="fullscreen" allowfullscreen style="width:100%;height:calc(100vh - 140px);min-height:750px;border:none;border-radius:14px;display:block;"></iframe>
     </div>
@@ -499,6 +528,8 @@
     </button>
   </div>
 </div>
+
+
 
 <!-- ══ PUBLIC FORM ══ -->
 <div id="s-public" class="screen">
@@ -928,484 +959,6 @@
   </div>
 </div>
 
-<!-- ══ SESSION PLANNER MODALS ══ -->
-
-<!-- SESSION EDITOR MODAL -->
-<div class="mov" id="m-session-editor" onclick="if(event.target===this)closeSessionEditor()">
-  <div class="mbox wide" style="max-width:960px;max-height:92vh;display:flex;flex-direction:column;padding:0;overflow:hidden;">
-    <div style="padding:20px 24px 14px;border-bottom:1.5px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <div style="font-size:24px;">📋</div>
-        <div>
-          <div class="mtit" id="se-modal-title" style="margin:0;font-size:22px;">PLAN TRAINING SESSION</div>
-          <div style="font-size:12px;color:var(--mt);">Design drills, timeline, equipment checklist &amp; squad attendance</div>
-        </div>
-      </div>
-      <button class="chat-act-btn" style="font-size:16px;padding:4px 8px;border:none!important;outline:none!important;background:none!important;box-shadow:none!important;" onclick="closeSessionEditor()">✕</button>
-    </div>
-
-    <div style="overflow-y:auto;padding:20px 24px;flex:1;" class="sp-editor-wrap">
-      <!-- Section 1: Session Overview -->
-      <div class="sp-editor-section">
-        <div class="sp-editor-title">
-          <span>📌 1. SESSION DETAILS &amp; LOGISTICS</span>
-          <span style="font-size:12px;font-family:'DM Sans',sans-serif;color:var(--mt);font-weight:400;">Basic schedule &amp; theme</span>
-        </div>
-        <div class="field">
-          <label>Session Title / Theme <span>*</span></label>
-          <input type="text" id="se-title" placeholder="e.g. 4-3-3 High Pressing &amp; Rapid Counter-Attack">
-        </div>
-        <div class="grid-2">
-          <div class="field">
-            <label>Date <span>*</span></label>
-            <input type="date" id="se-date">
-          </div>
-          <div class="field">
-            <label>Start Time</label>
-            <input type="time" id="se-time" value="17:30">
-          </div>
-        </div>
-        <div class="grid-2">
-          <div class="field">
-            <label>Pitch / Venue</label>
-            <input type="text" id="se-venue" placeholder="e.g. Training Pitch 1 / Main Stadium">
-          </div>
-          <div class="field">
-            <label>Category / Phase</label>
-            <select id="se-category">
-              <option value="Tactical">Tactical</option>
-              <option value="Technical">Technical</option>
-              <option value="SSG">Small-Sided Game (SSG)</option>
-              <option value="Physical">Physical / SAQ</option>
-              <option value="Match Prep">Match Prep</option>
-              <option value="Set Pieces">Set Pieces</option>
-              <option value="Recovery">Cool Down / Recovery</option>
-            </select>
-          </div>
-        </div>
-        <div class="grid-2">
-          <div class="field">
-            <label>Intensity Level</label>
-            <select id="se-intensity">
-              <option value="Low">🟢 Low Intensity (Recovery / Technical)</option>
-              <option value="Medium" selected>🟡 Medium Intensity (Standard Training)</option>
-              <option value="High">🟠 High Intensity (Tactical &amp; Conditioning)</option>
-              <option value="Match">🔴 Match Day Intensity (Peak Load)</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Lead Coach / Staff</label>
-            <select id="se-coach">
-              <option value="">Select Coach</option>
-            </select>
-          </div>
-        </div>
-        <div class="field">
-          <label>Main Objectives &amp; Coaching Focus</label>
-          <textarea id="se-objectives" placeholder="• Body shape when receiving under pressure&#10;• Compact defensive block and pressing triggers&#10;• Quick forward transition upon winning possession" style="min-height:75px;"></textarea>
-        </div>
-
-        <div class="field" style="margin-bottom:0;">
-          <label>Equipment Checklist</label>
-          <div class="sp-equip-grid" id="se-equip-grid"></div>
-        </div>
-      </div>
-
-      <!-- Section 2: Drill Timeline -->
-      <div class="sp-editor-section">
-        <div class="sp-editor-title">
-          <span>⏱️ 2. DRILL TIMELINE &amp; TACTICAL BLOCKS</span>
-          <div style="display:flex;gap:6px;">
-            <button class="obtn" type="button" style="padding:4px 10px;font-size:11.5px;" onclick="openDrillLibraryModal(true)">📚 From Library</button>
-            <button class="obtn" type="button" style="padding:4px 10px;font-size:11.5px;" onclick="addDrillBlock()">➕ Add Drill</button>
-          </div>
-        </div>
-
-        <div class="sp-timeline-overview">
-          <div class="sp-timeline-stats">
-            <div>Total Duration: <span id="se-total-mins" style="color:#1a5c1a;font-size:16px;">0 mins</span></div>
-            <div id="se-drill-count" style="font-size:12px;color:var(--mt);font-weight:500;">0 Drill Blocks</div>
-          </div>
-          <div class="sp-timeline-bar-full" id="se-timeline-bar"></div>
-          <div class="sp-timeline-legend">
-            <div class="sp-legend-item"><div class="sp-legend-dot phase-warmup"></div> Warm-up</div>
-            <div class="sp-legend-item"><div class="sp-legend-dot phase-technical"></div> Technical</div>
-            <div class="sp-legend-item"><div class="sp-legend-dot phase-tactical"></div> Tactical</div>
-            <div class="sp-legend-item"><div class="sp-legend-dot phase-ssg"></div> SSG</div>
-            <div class="sp-legend-item"><div class="sp-legend-dot phase-match"></div> Game</div>
-            <div class="sp-legend-item"><div class="sp-legend-dot phase-recovery"></div> Recovery</div>
-          </div>
-        </div>
-
-        <div id="se-drills-list" class="sp-drill-list"></div>
-      </div>
-
-      <!-- Section 3: Squad Attendance -->
-      <div class="sp-editor-section">
-        <div class="sp-editor-title">
-          <span>👥 3. SQUAD ATTENDANCE &amp; PARTICIPATION</span>
-          <div style="display:flex;gap:6px;align-items:center;">
-            <span id="se-att-rate" style="font-size:12px;font-family:'DM Sans',sans-serif;color:var(--g);font-weight:700;">100% Present</span>
-            <button class="obtn" type="button" style="padding:4px 9px;font-size:11px;" onclick="markAllAttendance('present')">✅ All Present</button>
-          </div>
-        </div>
-        <div class="field" style="margin-bottom:8px;">
-          <input type="text" id="se-att-search" placeholder="🔍 Search squad members…" oninput="filterSessionAttendance(this.value)">
-        </div>
-        <div id="se-att-grid" class="sp-att-grid"></div>
-      </div>
-
-      <!-- Section 4: Post-Session Debrief -->
-      <div class="sp-editor-section">
-        <div class="sp-editor-title">
-          <span>📝 4. POST-TRAINING DEBRIEF &amp; EVALUATION</span>
-          <span style="font-size:12px;font-family:'DM Sans',sans-serif;color:var(--mt);font-weight:400;">Optional feedback</span>
-        </div>
-        <div class="grid-2">
-          <div class="field">
-            <label>Session Rating</label>
-            <select id="se-rating">
-              <option value="">Not rated</option>
-              <option value="5">⭐⭐⭐⭐⭐ 5 - Excellent (Superb execution)</option>
-              <option value="4">⭐⭐⭐⭐ 4 - Good (High focus &amp; energy)</option>
-              <option value="3">⭐⭐⭐ 3 - Satisfactory (Key goals met)</option>
-              <option value="2">⭐⭐ 2 - Needs Work (Low intensity/focus)</option>
-              <option value="1">⭐ 1 - Poor (Tactical breakdowns)</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Status</label>
-            <select id="se-status">
-              <option value="draft">Draft</option>
-              <option value="scheduled" selected>Scheduled</option>
-              <option value="completed">Completed</option>
-            </select>
-          </div>
-        </div>
-        <div class="field" style="margin-bottom:0;">
-          <label>Coach Notes &amp; Observations</label>
-          <textarea id="se-notes" placeholder="Overall thoughts, player reactions, drills that worked well, or adjustments needed for next match…" style="min-height:70px;"></textarea>
-        </div>
-      </div>
-    </div>
-
-    <div style="padding:14px 24px;border-top:1.5px solid var(--bd);background:#fff;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
-      <button class="mc" style="border:none!important;box-shadow:none!important;" onclick="closeSessionEditor()">Cancel</button>
-      <div style="display:flex;gap:8px;">
-        <button class="obtn" onclick="previewCurrentSessionPrint()">🖨️ Preview PDF</button>
-        <button class="mok" id="se-save-btn" onclick="saveSessionPlan()">💾 SAVE SESSION</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- INTERACTIVE CANVAS PITCH TACTICAL SKETCHER MODAL -->
-<div class="mov" id="m-drill-board" onclick="if(event.target===this)closeBoardSketcher()">
-  <div class="mbox wide sp-board-modal">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-shrink:0;">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:22px;">🎨</span>
-        <div class="mtit" style="margin:0;font-size:20px;">TACTICAL DRILL SKETCHER</div>
-      </div>
-      <button class="chat-act-btn" style="font-size:18px;padding:4px 8px;border:none!important;outline:none!important;background:none!important;box-shadow:none!important;" onclick="closeBoardSketcher()">✕</button>
-    </div>
-
-    <!-- Sketcher Toolbar -->
-    <div class="sp-board-toolbar" style="flex-shrink:0;">
-      <select id="board-pitch-type" class="db-filter" style="padding:6px 10px;font-size:12px;" onchange="changePitchBackground(this.value)">
-        <option value="half" selected>⚽ Half Pitch (Vertical)</option>
-        <option value="half_horizontal">⚽ Half Pitch (Horizontal)</option>
-        <option value="full">🏟️ Full Pitch</option>
-        <option value="box">🥅 Penalty Box (Final Third)</option>
-        <option value="grid">▦ Training Grid (3x3)</option>
-        <option value="plain">🔲 Plain Green Pitch</option>
-      </select>
-
-      <div style="height:20px;width:1px;background:var(--bd);margin:0 2px;"></div>
-
-      <button class="sp-tool-btn" id="tool-select" onclick="setBoardTool('select')" title="Select and drag any goal, cone, or player around the pitch">
-        <svg class="sp-tb-icon" viewBox="0 0 16 16"><path d="M2 2l4.5 11.5 2-4 4-2L2 2z" fill="#3949ab" stroke="#1a237e" stroke-width="1.2" stroke-linejoin="round"/></svg> Move
-      </button>
-
-      <!-- Players & Ball -->
-      <button class="sp-tool-btn active" id="tool-red" onclick="setBoardTool('red')">
-        <svg class="sp-tb-icon" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" fill="#e53935" stroke="#b71c1c" stroke-width="1.2"/><ellipse cx="6" cy="5.5" rx="2.5" ry="1.2" fill="rgba(255,255,255,0.6)"/></svg> Red
-      </button>
-      <button class="sp-tool-btn" id="tool-blue" onclick="setBoardTool('blue')" title="Blue Player Token">
-        <svg class="sp-tb-icon" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" fill="#1e88e5" stroke="#0d47a1" stroke-width="1.2"/><ellipse cx="6" cy="5.5" rx="2.5" ry="1.2" fill="rgba(255,255,255,0.6)"/></svg> Blue
-      </button>
-      <button class="sp-tool-btn" id="tool-yellow" onclick="setBoardTool('yellow')">
-        <svg class="sp-tb-icon" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" fill="#ffd600" stroke="#f57f17" stroke-width="1.2"/><ellipse cx="6" cy="5.5" rx="2.5" ry="1.2" fill="rgba(255,255,255,0.7)"/></svg> Yellow
-      </button>
-      <button class="sp-tool-btn" id="tool-green" onclick="setBoardTool('green')">
-        <svg class="sp-tb-icon" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" fill="#00e676" stroke="#1b5e20" stroke-width="1.2"/><ellipse cx="6" cy="5.5" rx="2.5" ry="1.2" fill="rgba(255,255,255,0.6)"/></svg> Green
-      </button>
-      <button class="sp-tool-btn" id="tool-gk" onclick="setBoardTool('gk')">
-        <svg class="sp-tb-icon" viewBox="0 0 16 16">
-          <circle cx="8" cy="8" r="6.5" fill="#ffffff" stroke="#37474f" stroke-width="1.2"/>
-          <ellipse cx="6" cy="5.5" rx="2.5" ry="1.2" fill="rgba(255,255,255,0.9)"/>
-          <text x="8" y="10.8" font-size="6.5" font-weight="bold" font-family="sans-serif" text-anchor="middle" fill="#11161b">GK</text>
-        </svg> GK
-      </button>
-      <button class="sp-tool-btn" id="tool-ball" onclick="setBoardTool('ball')" title="Match Football">
-        <img src="soccer-ball.svg" style="width:16px;height:16px;vertical-align:middle;display:inline-block;" alt="Ball" /> Ball
-      </button>
-
-      <div style="height:20px;width:1px;background:var(--bd);margin:0 2px;"></div>
-
-      <!-- Cones & Markers -->
-      <button class="sp-tool-btn" id="tool-cone_yellow" onclick="setBoardTool('cone_yellow')">
-        <svg class="sp-tb-icon" viewBox="0 0 16 16">
-          <ellipse cx="8" cy="13.5" rx="6.5" ry="2" fill="#e65100"/>
-          <path d="M3 13.5L7 3h2l4 10.5H3z" fill="#ffd600" stroke="#f57f17" stroke-width="0.8"/>
-          <path d="M5 9h6l.8 2.2H4.2L5 9z" fill="#ffffff" stroke="rgba(0,0,0,0.15)" stroke-width="0.5"/>
-          <ellipse cx="8" cy="3" rx="1" ry="0.5" fill="#bf360c"/>
-        </svg> Y-Cone
-      </button>
-      <button class="sp-tool-btn" id="tool-cone_red" onclick="setBoardTool('cone_red')">
-        <svg class="sp-tb-icon" viewBox="0 0 16 16">
-          <ellipse cx="8" cy="13.5" rx="6.5" ry="2" fill="#880e4f"/>
-          <path d="M3 13.5L7 3h2l4 10.5H3z" fill="#ff3d00" stroke="#c62828" stroke-width="0.8"/>
-          <path d="M5 9h6l.8 2.2H4.2L5 9z" fill="#ffffff" stroke="rgba(0,0,0,0.15)" stroke-width="0.5"/>
-          <ellipse cx="8" cy="3" rx="1" ry="0.5" fill="#4a148c"/>
-        </svg> R-Cone
-      </button>
-      <button class="sp-tool-btn" id="tool-marker_yellow" onclick="setBoardTool('marker_yellow')">
-        <svg class="sp-tb-icon" viewBox="0 0 16 16">
-          <ellipse cx="8" cy="10" rx="7" ry="3.2" fill="#ffd600" stroke="#f57f17" stroke-width="0.8"/>
-          <ellipse cx="8" cy="9.2" rx="4.5" ry="1.8" fill="#fff9c4"/>
-          <ellipse cx="8" cy="9.5" rx="1.6" ry="0.8" fill="#bf360c"/>
-        </svg> Y-Marker
-      </button>
-      <button class="sp-tool-btn" id="tool-marker_red" onclick="setBoardTool('marker_red')">
-        <svg class="sp-tb-icon" viewBox="0 0 16 16">
-          <ellipse cx="8" cy="10" rx="7" ry="3.2" fill="#ff3d00" stroke="#b71c1c" stroke-width="0.8"/>
-          <ellipse cx="8" cy="9.2" rx="4.5" ry="1.8" fill="#ffcdd2"/>
-          <ellipse cx="8" cy="9.5" rx="1.6" ry="0.8" fill="#4a148c"/>
-        </svg> R-Marker
-      </button>
-
-      <div style="height:20px;width:1px;background:var(--bd);margin:0 2px;"></div>
-
-      <!-- Equipment -->
-      <button class="sp-tool-btn" id="tool-mannequin" onclick="setBoardTool('mannequin')">
-        <svg class="sp-tb-icon" viewBox="0 0 16 16">
-          <ellipse cx="8" cy="2.5" rx="2.2" ry="2.2" fill="#00e676" stroke="#1b5e20" stroke-width="0.7"/>
-          <rect x="7" y="4.5" width="2" height="9" fill="#37474f"/>
-          <rect x="3" y="5.5" width="10" height="1.8" rx="0.8" fill="#00e676" stroke="#1b5e20" stroke-width="0.6"/>
-          <rect x="3.5" y="8" width="9" height="1.8" rx="0.8" fill="#00e676" stroke="#1b5e20" stroke-width="0.6"/>
-          <rect x="4.5" y="10.5" width="7" height="1.8" rx="0.8" fill="#00e676" stroke="#1b5e20" stroke-width="0.6"/>
-          <line x1="4" y1="14.5" x2="12" y2="14.5" stroke="#212121" stroke-width="1.2"/>
-        </svg> Mannequin
-      </button>
-      <button class="sp-tool-btn" id="tool-hurdle" onclick="setBoardTool('hurdle')">
-        <svg class="sp-tb-icon" viewBox="0 0 16 16">
-          <path d="M2 13v-7c0-1.1.9-2 2-2h8c1.1 0 2 .9 2 2v7" fill="none" stroke="#ff6d00" stroke-width="2" stroke-linecap="round"/>
-          <line x1="6" y1="4" x2="10" y2="4" stroke="#ffffff" stroke-width="2"/>
-          <line x1="1" y1="13" x2="4" y2="13" stroke="#263238" stroke-width="1.8"/>
-          <line x1="12" y1="13" x2="15" y2="13" stroke="#263238" stroke-width="1.8"/>
-        </svg> Hurdle
-      </button>
-      <button class="sp-tool-btn" id="tool-ladder" onclick="setBoardTool('ladder')">
-        <svg class="sp-tb-icon" viewBox="0 0 16 16">
-          <line x1="4" y1="1" x2="4" y2="15" stroke="#1a237e" stroke-width="1.6"/>
-          <line x1="12" y1="1" x2="12" y2="15" stroke="#1a237e" stroke-width="1.6"/>
-          <line x1="3" y1="3.5" x2="13" y2="3.5" stroke="#ffd600" stroke-width="1.5"/>
-          <line x1="3" y1="7.5" x2="13" y2="7.5" stroke="#ffd600" stroke-width="1.5"/>
-          <line x1="3" y1="11.5" x2="13" y2="11.5" stroke="#ffd600" stroke-width="1.5"/>
-        </svg> Ladder
-      </button>
-      <button class="sp-tool-btn" id="tool-pole" onclick="setBoardTool('pole')">
-        <svg class="sp-tb-icon" viewBox="0 0 16 16">
-          <ellipse cx="8" cy="14" rx="4.5" ry="1.6" fill="#263238"/>
-          <line x1="8" y1="2" x2="8" y2="14" stroke="#ffd600" stroke-width="1.8"/>
-          <line x1="8" y1="5" x2="8" y2="8" stroke="#d50000" stroke-width="1.8"/>
-          <line x1="8" y1="10" x2="8" y2="12.5" stroke="#d50000" stroke-width="1.8"/>
-          <polygon points="8,2 14,4.5 8,7" fill="#ff1744"/>
-        </svg> Pole
-      </button>
-      <button class="sp-tool-btn" id="tool-goal" onclick="setBoardTool('goal')">
-        <svg class="sp-tb-icon" viewBox="0 0 16 16">
-          <rect x="2" y="3" width="12" height="10" fill="rgba(255,255,255,0.25)" stroke="#cfd8dc" stroke-width="0.8"/>
-          <line x1="2" y1="6.5" x2="14" y2="6.5" stroke="#cfd8dc" stroke-width="0.6"/>
-          <line x1="2" y1="10" x2="14" y2="10" stroke="#cfd8dc" stroke-width="0.6"/>
-          <line x1="6" y1="3" x2="6" y2="13" stroke="#cfd8dc" stroke-width="0.6"/>
-          <line x1="10" y1="3" x2="10" y2="13" stroke="#cfd8dc" stroke-width="0.6"/>
-          <rect x="2" y="3" width="12" height="10" fill="none" stroke="#ffffff" stroke-width="1.8"/>
-        </svg> 3D Goal
-      </button>
-
-      <div style="height:20px;width:1px;background:var(--bd);margin:0 2px;"></div>
-
-      <!-- Tactical Lines & Measures -->
-      <button class="sp-tool-btn" id="tool-pass" onclick="setBoardTool('pass')" title="Ground Pass Line (Yellow)">
-        <svg class="sp-tb-icon" viewBox="0 0 16 16">
-          <circle cx="2.5" cy="8" r="1.8" fill="#ffd600" stroke="#11161b" stroke-width="0.5"/>
-          <path d="M4.5 8h6.5m0 0l-3-3m3 3l-3 3" fill="none" stroke="#ffd600" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 1.2"/>
-        </svg> Pass
-      </button>
-      <button class="sp-tool-btn" id="tool-lob" onclick="setBoardTool('lob')" title="Aerial / Lofted Arc Pass (Yellow)">
-        <svg class="sp-tb-icon" viewBox="0 0 16 16">
-          <path d="M2 13 Q8 2 13 10" fill="none" stroke="#ffd600" stroke-width="2" stroke-linecap="round" stroke-dasharray="3 2"/>
-          <path d="M10.5 9.5l3.2.8-.8-3.2" fill="none" stroke="#ffd600" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg> Lob Pass
-      </button>
-      <button class="sp-tool-btn" id="tool-run" onclick="setBoardTool('run')" title="Player Off-the-ball Run (Red)">
-        <svg class="sp-tb-icon" viewBox="0 0 16 16"><path d="M2 8h9m0 0l-3.5-3.5M11 8l-3.5 3.5" fill="none" stroke="#e53935" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Run
-      </button>
-      <button class="sp-tool-btn" id="tool-dribble" onclick="setBoardTool('dribble')">
-        <svg class="sp-tb-icon" viewBox="0 0 16 16"><path d="M2 8l2.5-3 3 6 3-6 2.5 3" fill="none" stroke="#ff9800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Dribble
-      </button>
-      <button class="sp-tool-btn" id="tool-zone" onclick="setBoardTool('zone')">
-        <svg class="sp-tb-icon" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" fill="rgba(255,214,0,0.2)" stroke="#ffd600" stroke-width="1.5" stroke-dasharray="2 2"/></svg> Zone
-      </button>
-      <button class="sp-tool-btn" id="tool-ruler" onclick="setBoardTool('ruler')">
-        <svg class="sp-tb-icon" viewBox="0 0 16 16"><path d="M2 13L13 2m-8 0l1 1m-2 2l1.5 1.5m-2 2l1 1m-2 2l1.5 1.5" fill="none" stroke="#0288d1" stroke-width="1.8" stroke-linecap="round"/></svg> Measure
-      </button>
-      <button class="sp-tool-btn active" id="btn-toggle-ruler" onclick="toggleRulerMeasurement()" style="background:#1b5e20;color:#fff;border-color:#43a047;font-weight:700;" title="Toggle Distance Measuring Ruler (ON/OFF)">
-        <svg class="sp-tb-icon" viewBox="0 0 16 16"><path d="M2 8h12M2 5v6M14 5v6M8 6v4" fill="none" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round"/></svg> Ruler: <span id="ruler-toggle-status">ON</span>
-      </button>
-      <button class="sp-tool-btn" id="tool-eraser" onclick="setBoardTool('eraser')" style="border-color:#e53935;color:#e53935;" title="Click any token, equipment, goal or line to remove it">
-        <svg class="sp-tb-icon" viewBox="0 0 16 16"><path d="M5 13h8M4 11l6-6 3 3-6 6H4v-3z" fill="none" stroke="#e53935" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Eraser
-      </button>
-
-      <div style="margin-left:auto;display:flex;gap:5px;">
-        <button class="obtn" style="padding:5px 9px;font-size:11.5px;" onclick="undoBoard()">↩️ Undo</button>
-        <button class="obtn d" style="padding:5px 9px;font-size:11.5px;" onclick="clearBoardCanvas()">🗑️ Clear</button>
-      </div>
-    </div>
-
-    <!-- Canvas -->
-    <div class="sp-canvas-container">
-      <div class="sp-canvas-wrap">
-        <canvas id="sp-canvas" width="800" height="520"></canvas>
-      </div>
-    </div>
-
-    <div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
-      <div style="font-size:11.5px;color:var(--mt);">
-        💡 Click pitch to place equipment or drag to draw lines. Click or use <b>[−] [🔄] [+]</b> directly on 3D Goal to resize &amp; rotate. Real-time yard distances automatically displayed.
-      </div>
-      <div style="display:flex;gap:8px;">
-        <button class="mc" style="border:none!important;box-shadow:none!important;" onclick="closeBoardSketcher()">Cancel</button>
-        <button class="mok" onclick="saveBoardDiagram()">💾 ATTACH TO DRILL</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- DRILL LIBRARY MODAL -->
-<div class="mov" id="m-drill-library" onclick="if(event.target===this)closeM('m-drill-library')">
-  <div class="mbox wide" style="max-width:860px;max-height:90vh;display:flex;flex-direction:column;padding:0;overflow:hidden;">
-    <div style="padding:18px 24px;border-bottom:1.5px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <div style="font-size:24px;">📚</div>
-        <div>
-          <div class="mtit" style="margin:0;font-size:20px;">FOOTBALL DRILL LIBRARY</div>
-          <div style="font-size:12px;color:var(--mt);">Ready-to-use professional drills with coaching keys &amp; diagrams</div>
-        </div>
-      </div>
-      <button class="chat-act-btn" style="font-size:16px;padding:4px 8px;" onclick="closeM('m-drill-library')">✕</button>
-    </div>
-
-    <div style="padding:14px 24px;border-bottom:1px solid var(--bd);display:flex;gap:10px;flex-wrap:wrap;align-items:center;flex-shrink:0;">
-      <input type="text" class="db-search" id="lib-search" placeholder="🔍 Search drill library…" style="flex:1;min-width:180px;" oninput="renderDrillLibrary()">
-      <select id="lib-filter-phase" class="db-filter" onchange="renderDrillLibrary()">
-        <option value="">All Drill Phases</option>
-        <option value="Warm-Up">Warm-Up</option>
-        <option value="Technical">Technical</option>
-        <option value="Tactical">Tactical</option>
-        <option value="SSG">Small-Sided Game</option>
-        <option value="Match Play">Match Simulation</option>
-        <option value="Cool Down">Cool Down</option>
-      </select>
-    </div>
-
-    <div style="overflow-y:auto;padding:20px 24px;flex:1;">
-      <div id="lib-grid" class="sp-lib-grid"></div>
-    </div>
-
-    <div style="padding:12px 24px;border-top:1.5px solid var(--bd);background:var(--card);display:flex;justify-content:flex-end;flex-shrink:0;">
-      <button class="mc" onclick="closeM('m-drill-library')">Close</button>
-    </div>
-  </div>
-</div>
-
-<!-- TEMPLATE / PRESETS PICKER MODAL -->
-<div class="mov" id="m-template-picker" onclick="if(event.target===this)closeM('m-template-picker')">
-  <div class="mbox wide" style="max-width:860px;max-height:90vh;display:flex;flex-direction:column;padding:0;overflow:hidden;">
-    <div style="padding:18px 24px;border-bottom:1.5px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <div style="font-size:24px;">⚡</div>
-        <div>
-          <div class="mtit" style="margin:0;font-size:20px;">READY-MADE SESSION PRESETS</div>
-          <div style="font-size:12px;color:var(--mt);">Instant full 90-minute structured football training plans</div>
-        </div>
-      </div>
-      <button class="chat-act-btn" style="font-size:16px;padding:4px 8px;" onclick="closeM('m-template-picker')">✕</button>
-    </div>
-
-    <div style="overflow-y:auto;padding:20px 24px;flex:1;">
-      <div id="preset-grid" class="sp-lib-grid"></div>
-    </div>
-
-    <div style="padding:12px 24px;border-top:1.5px solid var(--bd);background:var(--card);display:flex;justify-content:flex-end;flex-shrink:0;">
-      <button class="mc" onclick="closeM('m-template-picker')">Close</button>
-    </div>
-  </div>
-</div>
-
-<!-- PRINT / PDF COACHING SHEET MODAL -->
-<div class="mov" id="m-session-print" onclick="if(event.target===this)closeM('m-session-print')">
-  <div class="mbox wide" style="padding:0;overflow:hidden;display:flex;flex-direction:column;max-height:94vh;max-width:880px;">
-    <div id="session-print-area" style="overflow-y:auto;flex:1;background:var(--card);">
-      <!-- Formatted printable coaching sheet will render here -->
-    </div>
-    <div class="pf-actions" style="flex-shrink:0;position:sticky;bottom:0;display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--card);border-top:1.5px solid var(--bd);">
-      <button class="mc" onclick="closeM('m-session-print')">✕ Close</button>
-      <div style="display:flex;gap:8px;">
-        <button class="share-act-btn wa" onclick="shareCurrentSessionWhatsApp()">📱 WhatsApp Share</button>
-        <button class="mok" onclick="window.print()">🖨️ PRINT / SAVE PDF</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- FULL DRILL DIAGRAM DEMONSTRATION POPUP MODAL -->
-<div class="mov" id="m-drill-diagram-viewer" onclick="if(event.target===this)closeM('m-drill-diagram-viewer')">
-  <div class="mbox wide" style="max-width:960px;max-height:94vh;display:flex;flex-direction:column;padding:0;overflow:hidden;border-radius:18px;">
-    <!-- Modal Header -->
-    <div style="padding:16px 24px;border-bottom:1.5px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--card2);">
-      <div style="display:flex;align-items:center;gap:12px;">
-        <div style="font-size:26px;">🏟️</div>
-        <div>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <div class="mtit" id="diag-view-title" style="margin:0;font-size:20px;">TACTICAL DRILL DEMONSTRATION</div>
-            <span id="diag-view-phase" class="sp-badge sp-badge-tactical" style="font-size:11px;">Tactical</span>
-          </div>
-          <div id="diag-view-subtitle" style="font-size:12px;color:var(--mt);margin-top:2px;">Full high-definition pitch diagram demonstration</div>
-        </div>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <button class="obtn" id="diag-view-edit-btn" style="padding:6px 12px;font-size:12px;" onclick="editCurrentViewingDiagram()">✏️ Edit in Tactical Board</button>
-        <button class="chat-act-btn" style="font-size:16px;padding:4px 8px;" onclick="closeM('m-drill-diagram-viewer')">✕</button>
-      </div>
-    </div>
-
-    <!-- Pitch Demonstration Display -->
-    <div style="flex:1;overflow-y:auto;padding:20px;background:#0d2818;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:380px;">
-      <div style="width:100%;max-width:880px;background:#164327;border-radius:14px;overflow:hidden;border:2.5px solid #2e7d32;box-shadow:0 8px 30px rgba(0,0,0,0.4);text-align:center;">
-        <img id="diag-view-img" src="" style="width:100%;height:auto;display:block;margin:0 auto;object-fit:contain;" alt="Full Pitch Diagram">
-      </div>
-    </div>
-
-    <!-- Drill Details & Coaching Keys Footer -->
-    <div id="diag-view-footer" style="padding:14px 24px;border-top:1.5px solid var(--bd);background:var(--card);display:flex;gap:16px;align-items:center;justify-content:space-between;flex-shrink:0;">
-      <div id="diag-view-notes" style="font-size:12px;color:var(--tx);flex:1;line-height:1.4;"></div>
-      <button class="mok" onclick="closeM('m-drill-diagram-viewer')">✓ Close Demonstration</button>
-    </div>
-  </div>
-</div>
 
 <!-- ══ REGISTRATION SHARE POPUP MODAL (Copy, Email, SMS) ══ -->
 <div class="mov" id="m-share-popup" onclick="if(event.target===this)closeM('m-share-popup')">

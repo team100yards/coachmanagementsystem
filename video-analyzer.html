@@ -1508,10 +1508,12 @@
       pointer-events: auto;
     }
 
-    #telestration-canvas {
+    #telestration-canvas,
+    .canvas-container canvas {
       position: absolute;
       top: 0;
       left: 0;
+      image-rendering: -webkit-optimize-contrast;
     }
 
     /* Drawing Mode Watermark & Guide */
@@ -2686,7 +2688,12 @@
       </div>
 
       <nav class="header-nav-menu">
-        <!-- PLACE 1: Match Clipper -->
+        <!-- PLACE 1: Match Clipper & Player Tracking System -->
+        <a href="player-tracker-lab.html" target="_blank" class="preset-pill" id="preset-tracker"
+          title="Open Tactical Vision &amp; Player Tracking System in new tab"
+          style="text-decoration:none;display:inline-flex;align-items:center;border-color:rgba(0,240,255,0.45);color:#00f0ff;">
+          <span>🎯 Player Tracking System ↗</span>
+        </a>
         <a href="video-clipper.html" target="_blank" class="preset-pill" id="preset-clipper"
           title="Open Video Match Clipper in new tab to cut and extract clips"
           style="text-decoration:none;display:inline-flex;align-items:center;border-color:rgba(0,176,255,0.45);color:#00b0ff;">
@@ -3300,8 +3307,8 @@
             <span>➔ Arrow</span>
           </button>
           <button type="button" class="ctx-btn" id="btn-space-arrow-flip" onclick="flipSpaceHighlightArrow()"
-            title="Flip Arrow Direction / Arc (⇄)" style="display:none;color:#38bdf8;border-color:rgba(56,189,248,0.4);background:rgba(56,189,248,0.12);">
-            <span>⇄ Flip</span>
+            title="Mirror Flip Curved Arrow (⇄)" style="display:none;color:#38bdf8;border-color:rgba(56,189,248,0.4);background:rgba(56,189,248,0.12);">
+            <span>⇄ Mirror Flip</span>
           </button>
           <div style="width:1px;height:18px;background:rgba(255,255,255,0.15);margin:0 2px;"></div>
           <span class="ctx-label">DIM:</span>
@@ -4838,7 +4845,7 @@
       brandText: '© 100 Yards',
       showText: true,
       textSize: 28, // 14px to 54px calibrated for 1080p
-      textStyle: 'line-art', // 'line-art' (lines like mascot) or 'solid'
+      textStyle: 'solid', // Premier League style clean solid pure white typography
       mode: 'white-outline', // 'white-outline' or 'original'
       rawSource: 'default-watermark.png',
       processedDataUrl: null
@@ -4860,17 +4867,24 @@
           else parsed.scalePx = 160;
         }
         watermarkSettings = Object.assign(watermarkSettings, parsed);
-        if (!watermarkSettings.textStyle) watermarkSettings.textStyle = 'line-art';
+        if (!watermarkSettings.textStyle || watermarkSettings.textStyle === 'line-art') {
+          watermarkSettings.textStyle = 'solid';
+        }
       }
       const savedRaw = localStorage.getItem('cms_watermark_raw_source');
       if (savedRaw) {
         watermarkSettings.rawSource = savedRaw;
       }
-      const savedProcessed = localStorage.getItem('cms_watermark_processed');
-      if (savedProcessed) {
-        watermarkSettings.processedDataUrl = savedProcessed;
-        cachedWatermarkImage = new Image();
-        cachedWatermarkImage.src = savedProcessed;
+      const wmVer = localStorage.getItem('cms_watermark_v');
+      if (wmVer !== '3.0') {
+        try { localStorage.removeItem('cms_watermark_processed'); } catch (e) { }
+      } else {
+        const savedProcessed = localStorage.getItem('cms_watermark_processed');
+        if (savedProcessed) {
+          watermarkSettings.processedDataUrl = savedProcessed;
+          cachedWatermarkImage = new Image();
+          cachedWatermarkImage.src = savedProcessed;
+        }
       }
     } catch (e) { }
 
@@ -4898,7 +4912,7 @@
         if (watermarkSettings.processedDataUrl && watermarkSettings.processedDataUrl.length < 2500000) {
           localStorage.setItem('cms_watermark_processed', watermarkSettings.processedDataUrl);
         }
-        localStorage.setItem('cms_watermark_v', '2.2');
+        localStorage.setItem('cms_watermark_v', '3.0');
       } catch (e) { }
     }
 
@@ -5047,7 +5061,7 @@
         brandText: '© 100 Yards',
         showText: true,
         textSize: 28,
-        textStyle: 'line-art',
+        textStyle: 'solid',
         mode: 'white-outline',
         rawSource: 'default-watermark.png',
         processedDataUrl: null
@@ -5428,116 +5442,89 @@
             const finalCanvas = document.createElement('canvas');
             const fCtx = finalCanvas.getContext('2d');
 
+            // High-resolution supersampling: scale master canvas so that resizing on screen
+            // or rendering on 1080p/4K video remains vector-sharp with zero blur.
+            const superScale = Math.max(2.5, Math.min(4.0, 960 / Math.max(cropW, 100)));
+            const scaledCropW = Math.round(cropW * superScale);
+            const scaledCropH = Math.round(cropH * superScale);
+
             if (watermarkSettings.layout === 'mascot-only') {
-              // Mascot Only: Tightly cropped icon, zero dead space
-              finalCanvas.width = cropW;
-              finalCanvas.height = cropH;
-              fCtx.drawImage(offCanvas, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+              // Mascot Only: Tightly cropped icon, zero dead space, high-resolution
+              finalCanvas.width = scaledCropW;
+              finalCanvas.height = scaledCropH;
+              fCtx.imageSmoothingEnabled = true;
+              fCtx.imageSmoothingQuality = 'high';
+              fCtx.drawImage(offCanvas, cropX, cropY, cropW, cropH, 0, 0, scaledCropW, scaledCropH);
 
             } else if (watermarkSettings.layout === 'original' && !isDefaultSource) {
               // Full Original Layout for custom uploaded image
               const fullW = maxX - minX + 1;
               const fullH = maxY - minY + 1;
-              finalCanvas.width = fullW;
-              finalCanvas.height = fullH;
-              fCtx.drawImage(offCanvas, minX, minY, fullW, fullH, 0, 0, fullW, fullH);
+              const scaledFullW = Math.round(fullW * superScale);
+              const scaledFullH = Math.round(fullH * superScale);
+              finalCanvas.width = scaledFullW;
+              finalCanvas.height = scaledFullH;
+              fCtx.imageSmoothingEnabled = true;
+              fCtx.imageSmoothingQuality = 'high';
+              fCtx.drawImage(offCanvas, minX, minY, fullW, fullH, 0, 0, scaledFullW, scaledFullH);
 
             } else {
-              // Mascot + Brand Text
+              // Mascot + Brand Text (English Premier League Style: Pure White, Centered, No Stroke)
               const brandText = (watermarkSettings.showText !== false && watermarkSettings.brandText)
                 ? watermarkSettings.brandText.trim()
                 : '';
 
               if (!brandText) {
                 // If brand text is empty or disabled, render cropped mascot
-                finalCanvas.width = cropW;
-                finalCanvas.height = cropH;
-                fCtx.drawImage(offCanvas, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+                finalCanvas.width = scaledCropW;
+                finalCanvas.height = scaledCropH;
+                fCtx.imageSmoothingEnabled = true;
+                fCtx.imageSmoothingQuality = 'high';
+                fCtx.drawImage(offCanvas, cropX, cropY, cropW, cropH, 0, 0, scaledCropW, scaledCropH);
               } else {
-                const isLineArt = (watermarkSettings.textStyle !== 'solid');
-                const isOrig100Yards = isDefaultSource && hasOrigRasterText && (brandText.toUpperCase() === '100 YARDS') && isLineArt;
+                const userSize = watermarkSettings.textSize || 28;
+                // Proportional high-resolution font size matching the supersampled mascot
+                const fontSize = Math.max(24, Math.round((userSize / 160) * scaledCropW * 0.95));
 
-                if (isOrig100Yards) {
-                  // Keep authentic original line-art "100 YARDS" text directly from mascot image!
-                  const origTextW = textMaxX - textMinX + 1;
-                  const origTextH = textMaxY - textMinY + 1;
-
-                  // Proportional scale with user's textSize slider (28px base)
-                  const userSize = watermarkSettings.textSize || 28;
-                  const textScale = Math.max(0.6, Math.min(2.0, userSize / 28));
-                  const scaledTextW = Math.round(origTextW * textScale);
-                  const scaledTextH = Math.round(origTextH * textScale);
-
-                  const textGap = Math.max(14, Math.round(22 * textScale));
-                  const totalW = Math.max(cropW, scaledTextW);
-                  const totalH = cropH + textGap + scaledTextH;
-
-                  finalCanvas.width = totalW;
-                  finalCanvas.height = totalH;
-                  const fCtx2 = finalCanvas.getContext('2d');
-
-                  // Draw mascot centered horizontally
-                  const mascotX = Math.round((totalW - cropW) / 2);
-                  fCtx2.drawImage(offCanvas, cropX, cropY, cropW, cropH, mascotX, 0, cropW, cropH);
-
-                  // Draw authentic original line-art text centered horizontally
-                  const textX = Math.round((totalW - scaledTextW) / 2);
-                  const textY = cropH + textGap;
-                  fCtx2.drawImage(offCanvas, textMinX, textMinY, origTextW, origTextH, textX, textY, scaledTextW, scaledTextH);
-
-                } else {
-                  // Vector text (custom brand text or solid style)
-                  const userSize = watermarkSettings.textSize || 28;
-                  const scaleRatio = cropW / 160;
-                  const nativeFontSize = Math.max(18, Math.round(userSize * scaleRatio));
-
-                  const fontStack = `"Outfit", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
-                  fCtx.font = `${isLineArt ? '600' : '900'} ${nativeFontSize}px ${fontStack}`;
-                  const textMetrics = fCtx.measureText(brandText);
-                  const textWidth = textMetrics.width;
-
-                  const textPaddingX = Math.round(nativeFontSize * 0.4);
-                  const totalW = Math.max(cropW, Math.round(textWidth + textPaddingX));
-                  const textGap = Math.round(nativeFontSize * 0.35);
-                  const textHeightEstimate = Math.round(nativeFontSize * 1.25);
-                  const totalH = cropH + textGap + textHeightEstimate;
-
-                  finalCanvas.width = totalW;
-                  finalCanvas.height = totalH;
-                  const fCtx2 = finalCanvas.getContext('2d');
-
-                  // Draw mascot centered horizontally
-                  const mascotX = Math.round((totalW - cropW) / 2);
-                  fCtx2.drawImage(offCanvas, cropX, cropY, cropW, cropH, mascotX, 0, cropW, cropH);
-
-                  // Draw brand text
-                  fCtx2.save();
-                  fCtx2.font = `${isLineArt ? '600' : '900'} ${nativeFontSize}px ${fontStack}`;
-                  fCtx2.textAlign = 'center';
-                  fCtx2.textBaseline = 'top';
-
-                  const textCenterX = Math.round(totalW / 2);
-                  const textY = cropH + textGap;
-
-                  fCtx2.shadowColor = 'rgba(0, 0, 0, 0.85)';
-                  fCtx2.shadowBlur = Math.max(3, Math.round(nativeFontSize * 0.18));
-                  fCtx2.shadowOffsetX = 0;
-                  fCtx2.shadowOffsetY = Math.max(1, Math.round(nativeFontSize * 0.06));
-
-                  if (isLineArt) {
-                    // Line Art: stroked lines like that of the mascot!
-                    fCtx2.strokeStyle = '#ffffff';
-                    fCtx2.lineWidth = Math.max(1.8, Math.round(nativeFontSize * 0.085));
-                    fCtx2.lineJoin = 'round';
-                    fCtx2.lineCap = 'round';
-                    fCtx2.strokeText(brandText, textCenterX, textY);
-                  } else {
-                    // Solid fill
-                    fCtx2.fillStyle = '#ffffff';
-                    fCtx2.fillText(brandText, textCenterX, textY);
-                  }
-                  fCtx2.restore();
+                const fontStack = `"Inter", "Outfit", "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif`;
+                fCtx.font = `700 ${fontSize}px ${fontStack}`;
+                if ('letterSpacing' in fCtx) {
+                  fCtx.letterSpacing = '1.5px';
                 }
+                const textMetrics = fCtx.measureText(brandText);
+                const textWidth = Math.ceil(textMetrics.width);
+
+                const textPaddingX = Math.round(fontSize * 0.5);
+                const totalW = Math.max(scaledCropW, textWidth + textPaddingX);
+                const textGap = Math.round(fontSize * 0.4);
+                const textHeightEstimate = Math.round(fontSize * 1.25);
+                const totalH = scaledCropH + textGap + textHeightEstimate;
+
+                finalCanvas.width = totalW;
+                finalCanvas.height = totalH;
+                const fCtx2 = finalCanvas.getContext('2d');
+                fCtx2.imageSmoothingEnabled = true;
+                fCtx2.imageSmoothingQuality = 'high';
+
+                // 1. Draw mascot centered horizontally directly above the text
+                const mascotX = Math.round((totalW - scaledCropW) / 2);
+                fCtx2.drawImage(offCanvas, cropX, cropY, cropW, cropH, mascotX, 0, scaledCropW, scaledCropH);
+
+                // 2. Draw Pure White Premier League style brand text (centered horizontally, no stroke)
+                fCtx2.save();
+                fCtx2.font = `700 ${fontSize}px ${fontStack}`;
+                if ('letterSpacing' in fCtx2) {
+                  fCtx2.letterSpacing = '1.5px';
+                }
+                fCtx2.textAlign = 'center';
+                fCtx2.textBaseline = 'top';
+                fCtx2.fillStyle = '#ffffff';
+
+                const textCenterX = Math.round(totalW / 2);
+                const textY = scaledCropH + textGap;
+
+                fCtx2.fillText(brandText, textCenterX, textY);
+                fCtx2.restore();
               }
             }
 
@@ -5571,7 +5558,7 @@
             try {
               if (cleanDataUrl.length < 1500000) {
                 localStorage.setItem('cms_watermark_processed', cleanDataUrl);
-                localStorage.setItem('cms_watermark_v', '2.1');
+                localStorage.setItem('cms_watermark_v', '3.0');
               }
             } catch (e) { }
 
@@ -6778,7 +6765,7 @@
         preserveObjectStacking: true,
         enableRetinaScaling: true,
         stopContextMenu: true,
-        fireRightClick: false
+        fireRightClick: true
       });
       window.canvas = canvas;
 
@@ -6816,13 +6803,42 @@
       let isDraggingZoomBox = false;
       let zoomBoxStartX = 0;
       let zoomBoxStartY = 0;
+      // Right-click-to-move: temporarily saves the active tool during a right-click drag
+      let _rightClickSavedTool = null;
+      let _isRightClickMoving = false;
 
       canvas.on('mouse:down', (e) => {
         // If timeline scrubber is already active, don't let canvas steal the gesture
         if (isScrubbingTimeline) return;
 
-        clickStartTime = Date.now();
         const nativeEvt = (e && e.e) ? e.e : e;
+
+        // ── RIGHT-CLICK-TO-MOVE ─────────────────────────────────────────────
+        // Holding right mouse button temporarily activates select/move on any
+        // drawing without permanently switching tools.
+        if (nativeEvt && nativeEvt.button === 2) {
+          if (activeTool !== 'select' && activeTool !== 'none' && activeTool !== 'zoom') {
+            _rightClickSavedTool = activeTool;
+            _isRightClickMoving = true;
+            // Temporarily switch to select so Fabric handles the drag
+            setActiveTool('select');
+          } else if (activeTool === 'select') {
+            _isRightClickMoving = true;
+            _rightClickSavedTool = null; // already in select — nothing to restore
+          }
+          // Let Fabric process the right-click for object selection/drag
+          const target = e.target || canvas.findTarget(nativeEvt, false);
+          if (target) {
+            canvas.setActiveObject(target);
+          } else {
+            canvas.discardActiveObject();
+          }
+          canvas.renderAll();
+          return;
+        }
+        // ── END RIGHT-CLICK-TO-MOVE ─────────────────────────────────────────
+
+        clickStartTime = Date.now();
         clickStartPos = {
           x: (nativeEvt && nativeEvt.clientX !== undefined) ? nativeEvt.clientX : 0,
           y: (nativeEvt && nativeEvt.clientY !== undefined) ? nativeEvt.clientY : 0
@@ -6920,9 +6936,31 @@
         // If timeline scrubber just finished, don't process as a zoom interaction
         if (isScrubbingTimeline) return;
 
+        const nativeEvt = (e && e.e) ? e.e : e;
+
+        // ── RIGHT-CLICK-TO-MOVE RELEASE ─────────────────────────────────────
+        // Restore the previously active drawing tool when right mouse button released.
+        if (nativeEvt && nativeEvt.button === 2) {
+          if (_isRightClickMoving) {
+            _isRightClickMoving = false;
+            if (_rightClickSavedTool) {
+              // Save canvas state so the repositioned object is preserved
+              saveCurrentCanvasToActiveKeyframe();
+              setActiveTool(_rightClickSavedTool);
+              _rightClickSavedTool = null;
+            } else {
+              // Was already in select — just save if something was moved
+              saveCurrentCanvasToActiveKeyframe();
+            }
+            canvas.discardActiveObject();
+            canvas.renderAll();
+          }
+          return;
+        }
+        // ── END RIGHT-CLICK-TO-MOVE RELEASE ─────────────────────────────────
+
         const elapsed = Date.now() - clickStartTime;
         const isQuickClick = elapsed < 400;
-        const nativeEvt = (e && e.e) ? e.e : e;
         const currentClientX = (nativeEvt && nativeEvt.clientX !== undefined) ? nativeEvt.clientX : clickStartPos.x;
         const currentClientY = (nativeEvt && nativeEvt.clientY !== undefined) ? nativeEvt.clientY : clickStartPos.y;
         const dist = Math.hypot(currentClientX - clickStartPos.x, currentClientY - clickStartPos.y);
@@ -7179,6 +7217,10 @@
       zoomLayer.style.transition = smooth ? 'transform 0.26s cubic-bezier(0.2, 0.8, 0.2, 1)' : 'none';
       zoomLayer.style.transformOrigin = 'center center';
       zoomLayer.style.transform = `translate3d(${stagePanX}px, ${stagePanY}px, 0) scale(${stageZoomLevel})`;
+
+      if (canvas && canvas.freeDrawingBrush) {
+        canvas.freeDrawingBrush.width = (typeof getEffectiveStrokeWidth === 'function') ? getEffectiveStrokeWidth() : strokeWidth;
+      }
 
       updateZoomBadgeUI();
       updateCanvasBadge();
@@ -8251,6 +8293,7 @@
        (Exact Keyframe Holds, Tactical Zoom/Magnification, Zero Frame Drops, Watermark)
     ========================================================================== */
     async function exportWithWebCodecs(startTime, endTime) {
+      // FIXED: Robust video seek that waits for actual decoded frame availability
       pauseVideo();
 
       const localVid = document.getElementById('local-video-element');
@@ -8347,16 +8390,34 @@
         } catch (e) { }
       }
 
-      encoder.configure({
-        codec: chosenCodec,
-        width: 1920,
-        height: 1080,
-        bitrate: 3500000,
-        bitrateMode: 'variable',
-        framerate: fps,
-        hardwareAcceleration: 'prefer-hardware',
-        avc: { format: 'avc' }
-      });
+      let configured = false;
+      const codecProfiles = [chosenCodec, 'avc1.4d002a', 'avc1.42e01f'];
+      const accelModes = ['prefer-hardware', 'no-preference'];
+
+      for (const hw of accelModes) {
+        if (configured) break;
+        for (const c of codecProfiles) {
+          try {
+            encoder.configure({
+              codec: c,
+              width: 1920,
+              height: 1080,
+              bitrate: 3500000,
+              bitrateMode: 'variable',
+              framerate: fps,
+              hardwareAcceleration: hw,
+              avc: { format: 'avc' }
+            });
+            chosenCodec = c;
+            configured = true;
+            break;
+          } catch (cfgErr) { }
+        }
+      }
+
+      if (!configured) {
+        throw new Error('VideoEncoder configuration not supported');
+      }
 
       let _lastExportKfKey = null;
 
@@ -8438,9 +8499,15 @@
           }
         }
 
-        // Composite telestration drawings only when hold is active
-        if (isHold && canvas && canvas.lowerCanvasEl) {
-          try { compCtx.drawImage(canvas.lowerCanvasEl, 0, 0, 1920, 1080); } catch (e) { }
+        // FIXED: Composite both canvas layers (lower = objects, upper = active selection handles)
+        // during holds. Previously only lowerCanvasEl was drawn, missing upper layer content.
+        if (isHold && canvas) {
+          if (canvas.lowerCanvasEl) {
+            try { compCtx.drawImage(canvas.lowerCanvasEl, 0, 0, 1920, 1080); } catch (e) { }
+          }
+          if (canvas.upperCanvasEl) {
+            try { compCtx.drawImage(canvas.upperCanvasEl, 0, 0, 1920, 1080); } catch (e) { }
+          }
         }
 
         compCtx.restore();
@@ -8450,29 +8517,57 @@
       }
 
       try {
+        // FIXED: Wait for the actual decoded video frame to be painted after seek.
+        // requestVideoFrameCallback fires once the new frame is available in the compositor.
+        // Falls back to a 'seeked' + 80ms settle time if rVFC is not available.
         const seekVideoTo = (targetSec) => {
           return new Promise(resolve => {
             if (!localVid) { resolve(); return; }
-            if (Math.abs(localVid.currentTime - targetSec) < 0.005) {
+            const clampedT = Math.min(localVid.duration || 999999, Math.max(0, targetSec));
+            if (Math.abs(localVid.currentTime - clampedT) < 0.01) {
+              // Already at target; still wait one rVFC tick to guarantee frame is painted
+              if ('requestVideoFrameCallback' in localVid) {
+                try {
+                  let rVfcDone = false;
+                  const rVfcFinish = () => {
+                    if (rVfcDone) return;
+                    rVfcDone = true;
+                    resolve();
+                  };
+                  localVid.requestVideoFrameCallback(rVfcFinish);
+                  setTimeout(rVfcFinish, 60);
+                  return;
+                } catch(e){}
+              }
               resolve();
               return;
             }
             let done = false;
-            const onSeek = () => {
+            const finish = () => {
               if (done) return;
               done = true;
-              localVid.removeEventListener('seeked', onSeek);
-              if ('requestVideoFrameCallback' in localVid) {
-                try {
-                  localVid.requestVideoFrameCallback(() => resolve());
-                  return;
-                } catch (e) { }
-              }
               resolve();
             };
-            localVid.addEventListener('seeked', onSeek, { once: true });
-            localVid.currentTime = Math.min(localVid.duration || 999999, Math.max(0, targetSec));
-            setTimeout(onSeek, 250);
+            const onSeeked = () => {
+              localVid.removeEventListener('seeked', onSeeked);
+              if ('requestVideoFrameCallback' in localVid) {
+                try {
+                  // Give the browser 2 frames to decode and paint the new frame
+                  localVid.requestVideoFrameCallback(() => {
+                    localVid.requestVideoFrameCallback(() => finish());
+                  });
+                  // Hard timeout safety net in case rVFC never fires (e.g., video paused)
+                  setTimeout(finish, 300);
+                  return;
+                } catch(e){}
+              }
+              // Fallback: wait 80ms after seeked for browser to paint the decoded frame
+              setTimeout(finish, 80);
+            };
+            localVid.addEventListener('seeked', onSeeked, { once: true });
+            localVid.currentTime = clampedT;
+            // Hard outer timeout in case 'seeked' never fires
+            setTimeout(finish, 400);
           });
         };
 
@@ -8717,8 +8812,14 @@
           }
         }
 
-        if (isHold && canvas && canvas.lowerCanvasEl) {
-          try { compCtx.drawImage(canvas.lowerCanvasEl, 0, 0, 1920, 1080); } catch (e) { }
+        // FIXED: Composite both canvas layers during holds — lower = drawn objects, upper = active overlays
+        if (isHold && canvas) {
+          if (canvas.lowerCanvasEl) {
+            try { compCtx.drawImage(canvas.lowerCanvasEl, 0, 0, 1920, 1080); } catch (e) { }
+          }
+          if (canvas.upperCanvasEl) {
+            try { compCtx.drawImage(canvas.upperCanvasEl, 0, 0, 1920, 1080); } catch (e) { }
+          }
         }
 
         compCtx.restore();
@@ -8878,51 +8979,42 @@
         currentVideoTime = cur;
         const wallElapsed = (performance.now() - startRecordWall) / 1000;
 
-        // Check keyframe auto-pause hold in fallback mode
-        if (nextFallbackMomentIdx < holdMoments.length && cur >= holdMoments[nextFallbackMomentIdx].timestamp - 0.04 && !isFallbackHolding) {
+        // Keyframe Hold Logic: Pause playback transport & lock playhead to pin for exact hold duration
+        if (nextFallbackMomentIdx < holdMoments.length && cur >= holdMoments[nextFallbackMomentIdx].timestamp - 0.06 && !isFallbackHolding) {
           isFallbackHolding = true;
           const m = holdMoments[nextFallbackMomentIdx];
           nextFallbackMomentIdx++;
 
-          if (isLocal && localVid) {
-            localVid.pause();
-            localVid.currentTime = m.timestamp;
-            await new Promise(res => {
-              let resolved = false;
-              const onSeek = () => {
-                if (resolved) return;
-                resolved = true;
-                localVid.removeEventListener('seeked', onSeek);
-                localVid.removeEventListener('canplay', onSeek);
-                res();
-              };
-              if (!localVid.seeking && localVid.readyState >= 2) {
-                res();
-                return;
-              }
-              localVid.addEventListener('seeked', onSeek, { once: true });
-              localVid.addEventListener('canplay', onSeek, { once: true });
-              setTimeout(onSeek, 300);
-            });
-          }
+          // Snap video exactly to keyframe and update transport UI so playhead pauses on pin
+          pauseVideo();
+          seekToTime(m.timestamp);
           currentVideoTime = m.timestamp;
-          await renderKeyframesToCanvas(m.kfs);
-          renderCompFrame(true);
+
+          if (m.kfs && m.kfs.length > 0) {
+            await renderKeyframesToCanvas(m.kfs);
+          }
 
           const holdEndWall = performance.now() + (m.holdSec * 1000);
+          if (lblEl) lblEl.textContent = `Rendering: ⏸ Holding ${m.holdSec.toFixed(1)}s at ${formatSecondsToMMSS(m.timestamp)}...`;
+
+          // Keep rendering frozen frame + tactical drawings each 33ms tick so MediaRecorder captures full hold duration
           while (performance.now() < holdEndWall && isExportingDirectVideo && !exportDirectCancelled) {
             renderCompFrame(true);
             await new Promise(r => setTimeout(r, 33));
           }
 
+          // Hold finished — clear annotations and resume video playback
           if (canvas) canvas.clear();
-
-          if (isLocal && localVid) {
-            const primaryKf = m.kfs[m.kfs.length - 1];
-            if (primaryKf && primaryKf.playbackRate) localVid.playbackRate = primaryKf.playbackRate;
-            localVid.play();
+          if (isExportingDirectVideo && !exportDirectCancelled) {
+            const primaryKf = m.kfs && m.kfs[m.kfs.length - 1];
+            if (primaryKf && primaryKf.playbackRate) {
+              applyVideoPlaybackRate(primaryKf.playbackRate);
+            }
+            playVideo();
           }
           isFallbackHolding = false;
+          requestAnimationFrame(renderLoop);
+          return;
         }
 
         renderCompFrame(false);
@@ -9106,6 +9198,10 @@
       isExportingDirectVideo = true;
       exportDirectCancelled = false;
 
+      // FIX: derive isAutoPauseOn from the export modal checkbox (was undefined before)
+      const isAutoPauseOn = document.getElementById('export-autopause-enable')
+        ? document.getElementById('export-autopause-enable').checked
+        : autoPauseOnKeyframes;
       const holdMoments = isAutoPauseOn ? getExportHoldMoments(startTime, endTime) : [];
       let totalHoldSeconds = 0;
       holdMoments.forEach(m => totalHoldSeconds += m.holdSec);
@@ -9330,7 +9426,7 @@
 
         // Complete when video passes endTime and all keyframe holds have executed
         const allHoldsComplete = (nextScreenHoldIdx >= holdMoments.length);
-        const isFinished = (cur >= endTime && (allHoldsComplete || !isAutoPauseOn)) ||
+        const isFinished = (cur >= endTime && (allHoldsComplete || holdMoments.length === 0)) ||
           (wallElapsed >= totalDuration + 2.0);
 
         if (isFinished) {
@@ -10090,7 +10186,7 @@
       }
       if (!activeObj) return;
 
-      activeObj.set({ flipX: !activeObj.flipX });
+      activeObj.set({ flipY: !activeObj.flipY, flipX: false });
       activeObj.setCoords();
       canvas.requestRenderAll();
       saveCurrentCanvasToActiveKeyframe();
@@ -10220,7 +10316,7 @@
           });
           canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
           canvas.freeDrawingBrush.color = drawColor;
-          canvas.freeDrawingBrush.width = strokeWidth;
+          canvas.freeDrawingBrush.width = (typeof getEffectiveStrokeWidth === 'function') ? getEffectiveStrokeWidth() : strokeWidth;
           canvas.freeDrawingBrush.decimate = 2;
         } else {
           // Tactical drawing tools ('space-highlight', 'spotlight', 'tracker-ring', 'player', 'arrow-curved', 'arrow-straight', 'ruler', 'polygon', 'text')
@@ -10792,10 +10888,13 @@
       const stageCanvasOffsetX = canvasRect.left - stageRect.left;
       const stageCanvasOffsetY = canvasRect.top - stageRect.top;
 
-      const textLeft = stageCanvasOffsetX + objRect.left;
-      const textTop = stageCanvasOffsetY + objRect.top;
-      const textWidth = objRect.width;
-      const textHeight = objRect.height;
+      const scaleRatioX = canvasRect.width / (canvas.width || 1);
+      const scaleRatioY = canvasRect.height / (canvas.height || 1);
+
+      const textLeft = stageCanvasOffsetX + (objRect.left * scaleRatioX);
+      const textTop = stageCanvasOffsetY + (objRect.top * scaleRatioY);
+      const textWidth = objRect.width * scaleRatioX;
+      const textHeight = objRect.height * scaleRatioY;
       const textCenterX = textLeft + (textWidth / 2);
       const textBottom = textTop + textHeight;
 
@@ -11350,6 +11449,11 @@
       setActiveTool('player');
     }
 
+    // Returns stroke width for tactical tools
+    function getEffectiveStrokeWidth(w) {
+      return (w !== undefined) ? w : strokeWidth;
+    }
+
     // Mouse Down Handler
     function handleCanvasMouseDown(e) {
       const p = getVirtualPointer(e);
@@ -11416,7 +11520,7 @@
         canvas.renderAll();
       }
       else if (activeTool === 'circle') {
-        tempShape = createTacticalCircleZone(p.x, p.y, 4, 4, drawColor, strokeWidth, activeShapeStrokeStyle || activeCircleStyle);
+        tempShape = createTacticalCircleZone(p.x, p.y, 4, 4, drawColor, getEffectiveStrokeWidth(), activeShapeStrokeStyle || activeCircleStyle);
         tempShape.selectable = false;
         tempShape.evented = false;
         canvas.add(tempShape);
@@ -11424,7 +11528,7 @@
       }
       else if (activeTool === 'arrow-curved-right') {
         arrowCurveDirection = 1;
-        tempShape = createCurvedTacticalArrow(p.x, p.y, p.x + 1, p.y + 1, drawColor, strokeWidth, 1, activeShapeStrokeStyle);
+        tempShape = createCurvedTacticalArrow(p.x, p.y, p.x + 1, p.y + 1, drawColor, getEffectiveStrokeWidth(), 1, activeShapeStrokeStyle);
         tempShape.selectable = false;
         tempShape.evented = false;
         canvas.add(tempShape);
@@ -11432,42 +11536,42 @@
       }
       else if (activeTool === 'arrow-curved-left' || activeTool === 'arrow-curved') {
         arrowCurveDirection = -1;
-        tempShape = createCurvedTacticalArrow(p.x, p.y, p.x + 1, p.y + 1, drawColor, strokeWidth, -1, activeShapeStrokeStyle);
+        tempShape = createCurvedTacticalArrow(p.x, p.y, p.x + 1, p.y + 1, drawColor, getEffectiveStrokeWidth(), -1, activeShapeStrokeStyle);
         tempShape.selectable = false;
         tempShape.evented = false;
         canvas.add(tempShape);
         canvas.renderAll();
       }
       else if (activeTool === 'arrow-straight') {
-        tempShape = createStraightTacticalArrow(p.x, p.y, p.x + 1, p.y, drawColor, strokeWidth, activeShapeStrokeStyle);
+        tempShape = createStraightTacticalArrow(p.x, p.y, p.x + 1, p.y, drawColor, getEffectiveStrokeWidth(), activeShapeStrokeStyle);
         tempShape.selectable = false;
         tempShape.evented = false;
         canvas.add(tempShape);
         canvas.renderAll();
       }
       else if (activeTool === 'arrow-dotted') {
-        tempShape = createStraightTacticalArrow(p.x, p.y, p.x + 1, p.y, drawColor, strokeWidth, 'dotted');
+        tempShape = createStraightTacticalArrow(p.x, p.y, p.x + 1, p.y, drawColor, getEffectiveStrokeWidth(), 'dotted');
         tempShape.selectable = false;
         tempShape.evented = false;
         canvas.add(tempShape);
         canvas.renderAll();
       }
       else if (activeTool === 'arrow-run') {
-        tempShape = createStraightTacticalArrow(p.x, p.y, p.x + 1, p.y, drawColor, strokeWidth, 'solid');
+        tempShape = createStraightTacticalArrow(p.x, p.y, p.x + 1, p.y, drawColor, getEffectiveStrokeWidth(), 'solid');
         tempShape.selectable = false;
         tempShape.evented = false;
         canvas.add(tempShape);
         canvas.renderAll();
       }
       else if (activeTool === 'arrow-dribble') {
-        tempShape = createZigzagDribbleArrow(p.x, p.y, p.x + 1, p.y, drawColor, strokeWidth, activeShapeStrokeStyle);
+        tempShape = createZigzagDribbleArrow(p.x, p.y, p.x + 1, p.y, drawColor, getEffectiveStrokeWidth(), activeShapeStrokeStyle);
         tempShape.selectable = false;
         tempShape.evented = false;
         canvas.add(tempShape);
         canvas.renderAll();
       }
       else if (activeTool === 'ruler') {
-        tempShape = createTacticalRuler(p.x, p.y, p.x + 1, p.y, drawColor, strokeWidth, pixelsPerYard, measurementUnit);
+        tempShape = createTacticalRuler(p.x, p.y, p.x + 1, p.y, drawColor, getEffectiveStrokeWidth(), pixelsPerYard, measurementUnit);
         tempShape.selectable = false;
         tempShape.evented = false;
         canvas.add(tempShape);
@@ -11636,7 +11740,7 @@
       }
       else if (activeTool === 'arrow-curved-right' && tempShape) {
         canvas.remove(tempShape);
-        tempShape = createCurvedTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, p.x, p.y, drawColor, strokeWidth, 1, activeShapeStrokeStyle);
+        tempShape = createCurvedTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, p.x, p.y, drawColor, getEffectiveStrokeWidth(), 1, activeShapeStrokeStyle);
         tempShape.selectable = false;
         tempShape.evented = false;
         canvas.add(tempShape);
@@ -11644,7 +11748,7 @@
       }
       else if ((activeTool === 'arrow-curved-left' || activeTool === 'arrow-curved') && tempShape) {
         canvas.remove(tempShape);
-        tempShape = createCurvedTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, p.x, p.y, drawColor, strokeWidth, -1, activeShapeStrokeStyle);
+        tempShape = createCurvedTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, p.x, p.y, drawColor, getEffectiveStrokeWidth(), -1, activeShapeStrokeStyle);
         tempShape.selectable = false;
         tempShape.evented = false;
         canvas.add(tempShape);
@@ -11652,7 +11756,7 @@
       }
       else if (activeTool === 'arrow-straight' && tempShape) {
         canvas.remove(tempShape);
-        tempShape = createStraightTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, p.x, p.y, drawColor, strokeWidth, activeShapeStrokeStyle);
+        tempShape = createStraightTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, p.x, p.y, drawColor, getEffectiveStrokeWidth(), activeShapeStrokeStyle);
         tempShape.selectable = false;
         tempShape.evented = false;
         canvas.add(tempShape);
@@ -11660,7 +11764,7 @@
       }
       else if (activeTool === 'arrow-dotted' && tempShape) {
         canvas.remove(tempShape);
-        tempShape = createStraightTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, p.x, p.y, drawColor, strokeWidth, 'dotted');
+        tempShape = createStraightTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, p.x, p.y, drawColor, getEffectiveStrokeWidth(), 'dotted');
         tempShape.selectable = false;
         tempShape.evented = false;
         canvas.add(tempShape);
@@ -11668,7 +11772,7 @@
       }
       else if (activeTool === 'arrow-run' && tempShape) {
         canvas.remove(tempShape);
-        tempShape = createStraightTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, p.x, p.y, drawColor, strokeWidth, 'solid');
+        tempShape = createStraightTacticalArrow(shapeStartPoint.x, shapeStartPoint.y, p.x, p.y, drawColor, getEffectiveStrokeWidth(), 'solid');
         tempShape.selectable = false;
         tempShape.evented = false;
         canvas.add(tempShape);
@@ -11676,7 +11780,7 @@
       }
       else if (activeTool === 'arrow-dribble' && tempShape) {
         canvas.remove(tempShape);
-        tempShape = createZigzagDribbleArrow(shapeStartPoint.x, shapeStartPoint.y, p.x, p.y, drawColor, strokeWidth, activeShapeStrokeStyle);
+        tempShape = createZigzagDribbleArrow(shapeStartPoint.x, shapeStartPoint.y, p.x, p.y, drawColor, getEffectiveStrokeWidth(), activeShapeStrokeStyle);
         tempShape.selectable = false;
         tempShape.evented = false;
         canvas.add(tempShape);
@@ -11684,7 +11788,7 @@
       }
       else if (activeTool === 'ruler' && tempShape) {
         canvas.remove(tempShape);
-        tempShape = createTacticalRuler(shapeStartPoint.x, shapeStartPoint.y, p.x, p.y, drawColor, strokeWidth, pixelsPerYard, measurementUnit);
+        tempShape = createTacticalRuler(shapeStartPoint.x, shapeStartPoint.y, p.x, p.y, drawColor, getEffectiveStrokeWidth(), pixelsPerYard, measurementUnit);
         tempShape.selectable = false;
         tempShape.evented = false;
         canvas.add(tempShape);
@@ -12997,6 +13101,8 @@
       return new fabric.Group(items, {
         left: x,
         top: y,
+        scaleX: 1,
+        scaleY: 1,
         originX: 'center',
         originY: 'center',
         tacticalType: 'player-token',
@@ -13018,6 +13124,8 @@
       const textAlign = options.textAlign || activeTextAlign || 'center';
       const textColor = color || drawColor || '#ffd600';
       const initialAngle = options.angle !== undefined ? options.angle : 0;
+      const initialScaleX = options.scaleX !== undefined ? options.scaleX : 1;
+      const initialScaleY = options.scaleY !== undefined ? options.scaleY : 1;
 
       let bgColor = 'rgba(15, 23, 36, 0.92)';
       let shadowObj = new fabric.Shadow({
@@ -13082,7 +13190,9 @@
         paintFirst: paintFirst,
         borderColor: textColor,
         cornerColor: textColor,
-        cornerSize: 10,
+        cornerSize: 12,
+        scaleX: initialScaleX,
+        scaleY: initialScaleY,
         transparentCorners: false,
         originX: 'center',
         originY: 'center',
@@ -13492,7 +13602,7 @@
       }
 
       const isSelect = (activeTool === 'select');
-      const chainGroup = createPolylineChainGroup(pts, drawColor, strokeWidth, isPolylineRulerEnabled);
+      const chainGroup = createPolylineChainGroup(pts, drawColor, getEffectiveStrokeWidth(), isPolylineRulerEnabled);
       chainGroup.selectable = isSelect;
       chainGroup.evented = isSelect;
       chainGroup.hasControls = isSelect;
@@ -13621,7 +13731,7 @@
       }
 
       const isSelect = (activeTool === 'select');
-      const shadedZone = createPolygonZoneGroup(pts, drawColor, strokeWidth, shapeOpacity, isPolygonRulerEnabled);
+      const shadedZone = createPolygonZoneGroup(pts, drawColor, getEffectiveStrokeWidth(), shapeOpacity, isPolygonRulerEnabled);
       shadedZone.selectable = isSelect;
       shadedZone.evented = isSelect;
       shadedZone.hasControls = isSelect;
@@ -14935,10 +15045,7 @@
         const targetTime = frac * dur;
 
         seekToTime(targetTime);
-
-        if (wasPlayingBeforeScrub) {
-          playVideo();
-        }
+        pauseVideo();
 
         window.removeEventListener('pointermove', onScrubMove);
         window.removeEventListener('pointerup', onScrubEnd);
@@ -14955,10 +15062,8 @@
         if (marquee) marquee.style.display = 'none';
 
         isScrubbingTimeline = true;
-        wasPlayingBeforeScrub = isPlaying;
-        if (isPlaying) {
-          pauseVideo();
-        }
+        wasPlayingBeforeScrub = false;
+        pauseVideo();
         container.classList.add('is-scrubbing');
 
         try {
@@ -15481,7 +15586,7 @@
       const el = document.getElementById('opt-stroke-val');
       if (el) el.textContent = `${val}px`;
       if (canvas && canvas.freeDrawingBrush) {
-        canvas.freeDrawingBrush.width = strokeWidth;
+        canvas.freeDrawingBrush.width = (typeof getEffectiveStrokeWidth === 'function') ? getEffectiveStrokeWidth(strokeWidth) : strokeWidth;
       }
       if (canvas) {
         const activeObj = canvas.getActiveObject();
