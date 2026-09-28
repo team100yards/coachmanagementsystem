@@ -12,6 +12,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="cms-tokens.css">
   <link rel="stylesheet" href="cms-nav.css">
+  <script src="cms-storage.js"></script>
+  <script src="cms-bus.js"></script>
 
   <style>
     :root {
@@ -3074,6 +3076,18 @@
 
       startDemoMatchWithBackFourAndCDM();
       requestAnimationFrame(mainLoop);
+
+      // CMS Bus Real-Time Suite Synchronization
+      if (window.CMSBus) {
+        window.CMSBus.subscribe(window.CMSBus.EVENTS.PLAYER_ROSTER_SYNC, (data) => {
+          if (!data || !Array.isArray(data.players)) return;
+          try {
+            localStorage.setItem('cms_player_tracker_squad', JSON.stringify(data));
+          } catch(_) {}
+          loadSyncedSquad();
+          window.CMSBus.notify(`Tracker squad labels updated (${data.players.length} players)`, '⚡');
+        });
+      }
     }
 
     /* ==========================================================================

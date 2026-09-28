@@ -333,6 +333,7 @@
       <div style="padding:14px 24px;border-top:1.5px solid var(--bd);display:flex;justify-content:space-between;align-items:center;background:var(--card2);flex-shrink:0;">
         <button class="mc" style="padding:9px 18px;border-radius:8px;font-size:13px;" onclick="closeSessionEditor()">Discard</button>
         <div style="display:flex;gap:10px;">
+          <button class="obtn" id="se-briefing-btn" style="padding:9px 16px;font-size:13px;border-color:rgba(0,230,118,0.4);color:var(--grn);font-weight:700;" onclick="sendSessionToMatchBriefing()" title="Broadcast session drills to Match Day Briefing & Report">📋 Send to Match Briefing</button>
           <button class="obtn" id="se-print-btn" style="padding:9px 16px;font-size:13px;" onclick="printCurrentEditorSession()">🖨️ Print / PDF</button>
           <button class="mok" style="padding:9px 24px;font-size:13.5px;font-weight:700;" onclick="saveSessionPlan()">💾 Save Training Plan</button>
         </div>
@@ -655,6 +656,10 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+
+  <!-- CMS Core Interoperability Bus & High-Capacity Storage -->
+  <script src="cms-storage.js"></script>
+  <script src="cms-bus.js"></script>
 
   <!-- Session Planner Core Logic Script -->
   <script src="session-planner.js?v=20260928b"></script>

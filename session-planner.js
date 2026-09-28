@@ -1412,7 +1412,30 @@ async function saveSessionPlan() {
     }
 
     const cacheKey = selectedTeamId ? ('fhq_sessions_' + selectedTeamId) : 'fhq_sessions_all';
-    try { localStorage.setItem(cacheKey, JSON.stringify(sessions)); } catch(e){}
+    try {
+      if (window.CMSStorage) {
+        window.CMSStorage.set(cacheKey, sessions);
+      }
+      localStorage.setItem(cacheKey, JSON.stringify(sessions));
+    } catch(e){}
+
+    if (window.CMSBus) {
+      window.CMSBus.publish(window.CMSBus.EVENTS.TACTICAL_SESSION_EXPORT, {
+        sessionId: payload.id,
+        sessionTitle: payload.title,
+        category: payload.category,
+        date: payload.date,
+        drills: (payload.drills || []).map(d => ({
+          id: d.id,
+          title: d.title || d.name || 'Tactical Drill',
+          category: d.category || d.phase || 'Tactical',
+          duration: d.duration || 15,
+          notes: d.notes || ''
+        })),
+        teamId: payload.teamId,
+        updatedAt: Date.now()
+      });
+    }
 
     closeSessionEditor();
     renderSessions();
@@ -1420,6 +1443,38 @@ async function saveSessionPlan() {
   } catch(e) {
     alert('❌ Could not save session: ' + (e.message || e));
   }
+}
+
+function sendSessionToMatchBriefing() {
+  if(!currentEditingSession) return;
+  const title = ($('se-title')?.value || currentEditingSession.title || 'Training Plan').trim();
+  const date = $('se-date')?.value || currentEditingSession.date || '';
+  const selectedTeamId = $('se-team')?.value || currentEditingSession.teamId || '';
+  const drills = (currentEditingSession.drills || []).map(d => ({
+    id: d.id,
+    title: d.title || d.name || 'Tactical Drill',
+    category: d.category || d.phase || 'Tactical',
+    duration: d.duration || 15,
+    notes: d.notes || ''
+  }));
+
+  const payload = {
+    sessionId: currentEditingSession.id || ('local_' + Date.now()),
+    sessionTitle: title,
+    date: date,
+    teamId: selectedTeamId,
+    drills: drills,
+    updatedAt: Date.now()
+  };
+
+  if (window.CMSStorage) {
+    window.CMSStorage.set('cms_latest_tactical_briefing', payload);
+  }
+  if (window.CMSBus) {
+    window.CMSBus.publish(window.CMSBus.EVENTS.TACTICAL_SESSION_EXPORT, payload);
+    window.CMSBus.notify(`Session "${title}" sent to Match Briefing!`, '📋');
+  }
+  alert(`📋 Session "${title}" broadcast to Match Day Briefing & Report Studio!`);
 }
 
 function duplicateSession(id) {
@@ -3825,4 +3880,19 @@ ${drills.map((d, i) => `${i + 1}. [${d.phase}] ${d.name} (${d.duration}m)`).join
 
   const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
   window.open(waUrl, '_blank');
+}
+
+// CMS Bus Real-Time Suite Listeners for Session Planner
+if (window.CMSBus) {
+  window.CMSBus.subscribe(window.CMSBus.EVENTS.PLAYER_ROSTER_SYNC, (data) => {
+    if (!data || !Array.isArray(data.players)) return;
+    if (typeof loadSquadPlayers === 'function') {
+      try { loadSquadPlayers(data.teamId); } catch(_) {}
+    }
+  });
+
+  window.CMSBus.subscribe(window.CMSBus.EVENTS.LINEUP_PUBLISHED, (data) => {
+    if (!data) return;
+    window.CMSBus.notify(`Tactical Lineup "${data.formation || 'XI'}" updated in Tactics Studio`, '🧩');
+  });
 }

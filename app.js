@@ -1056,6 +1056,36 @@ function subscribeTeam(){
         .sort((a,b)=>((b.registeredAt||'')>(a.registeredAt||''))?1:-1);
       renderPlayers();
       renderSquad();
+
+      try {
+        const rosterPayload = {
+          teamId: curTeam.id,
+          teamName: curTeam.name || 'Team Squad',
+          teamEmoji: curTeam.emoji || '⚽',
+          players: players.map(p => ({
+            id: p.id,
+            name: p.name,
+            number: p.jersey || p.playernum || '-',
+            position: posCode(p.position),
+            photo: p.photo || null
+          })),
+          updatedAt: Date.now()
+        };
+
+        if (window.CMSStorage && curTeam) {
+          window.CMSStorage.set('cms_active_roster', rosterPayload);
+        }
+        try {
+          localStorage.setItem('cms_player_tracker_squad', JSON.stringify(rosterPayload));
+          localStorage.setItem('cms_video_analyzer_squad', JSON.stringify(rosterPayload));
+        } catch(_) {}
+
+        if (window.CMSBus && curTeam) {
+          window.CMSBus.publish(window.CMSBus.EVENTS.PLAYER_ROSTER_SYNC, rosterPayload);
+        }
+      } catch (err) {
+        console.warn('[CMSBus] Error broadcasting roster:', err);
+      }
     },
     err=>{console.error('subscribeTeam error:',err);}
   );
@@ -1354,9 +1384,19 @@ function buildFormationSyncPayload(){
 }
 
 function sendFormationSync(){
+  const payload = buildFormationSyncPayload();
+  try {
+    if (window.CMSStorage) {
+      window.CMSStorage.set('formation_sync_payload', payload);
+      window.CMSStorage.set('cms_active_lineup', payload);
+    }
+    if (window.CMSBus) {
+      window.CMSBus.publish(window.CMSBus.EVENTS.LINEUP_PUBLISHED, payload);
+    }
+  } catch(e){}
   const frame=$('formation-builder-frame');
   if(!frame||!frame.contentWindow)return;
-  frame.contentWindow.postMessage(Object.assign({type:'ff-sync'},buildFormationSyncPayload()),'*');
+  frame.contentWindow.postMessage(Object.assign({type:'ff-sync'}, payload),'*');
   sendFrameChatSync();
 }
 
@@ -2255,8 +2295,16 @@ async function saveLineup(){
       await updateDoc(doc(db,'teams',curTeam.id),{squad});
     }
     if (curTeam) curTeam.squad=squad;
+    const syncPayload = buildFormationSyncPayload();
     try {
-      localStorage.setItem('formation_sync_payload', JSON.stringify(buildFormationSyncPayload()));
+      localStorage.setItem('formation_sync_payload', JSON.stringify(syncPayload));
+      if (window.CMSStorage) {
+        window.CMSStorage.set('formation_sync_payload', syncPayload);
+        window.CMSStorage.set('cms_active_lineup', syncPayload);
+      }
+      if (window.CMSBus) {
+        window.CMSBus.publish(window.CMSBus.EVENTS.LINEUP_PUBLISHED, syncPayload);
+      }
     } catch(e) {}
     sendFormationSync();
     alert('✅ Match squad saved!');
@@ -2273,6 +2321,19 @@ async function clearLineup(){
     curTeam.squad=null;
     try {
       localStorage.removeItem('formation_sync_payload');
+      if (window.CMSStorage) {
+        window.CMSStorage.remove('formation_sync_payload');
+        window.CMSStorage.remove('cms_active_lineup');
+      }
+      if (window.CMSBus) {
+        window.CMSBus.publish(window.CMSBus.EVENTS.LINEUP_PUBLISHED, {
+          formation: '4-3-3',
+          starters: [],
+          subs: [],
+          teamId: curTeam ? curTeam.id : '',
+          teamName: curTeam ? curTeam.name : ''
+        });
+      }
     } catch(e){}
     openLineup();
     sendFormationSync();
@@ -8005,6 +8066,34 @@ function setupStudioScrollTrap() {
 document.addEventListener('DOMContentLoaded', () => {
   setupStudioScrollTrap();
   if (typeof initDrillLibraryDiagrams === 'function') initDrillLibraryDiagrams();
+
+  // CMS Bus Real-Time Suite Synchronization
+  if (window.CMSBus) {
+    window.CMSBus.subscribe(window.CMSBus.EVENTS.LINEUP_PUBLISHED, (data, senderId) => {
+      if (!data || !curTeam) return;
+      if (data.teamId && data.teamId !== curTeam.id) return;
+      if (data.formation && FORMATIONS[data.formation]) {
+        luFormation = data.formation;
+      }
+      if (data.customPos || data.formation) {
+        curTeam.visualizerState = {
+          ...(curTeam.visualizerState || {}),
+          customPos: data.customPos || curTeam.visualizerState?.customPos || {},
+          ballPos: data.ballPos || curTeam.visualizerState?.ballPos || { x: 50, y: 50 },
+          formationKey: data.formation || curTeam.visualizerState?.formationKey || '4-4-2',
+          updatedAt: Date.now()
+        };
+      }
+    });
+
+    window.CMSBus.subscribe(window.CMSBus.EVENTS.MATCH_REPORT_SAVED, (data) => {
+      window.CMSBus.notify(`Match Report "${data.title || 'Fixture'}" saved to archive`, '⚽');
+    });
+
+    window.CMSBus.subscribe(window.CMSBus.EVENTS.VIDEO_CLIP_HANDOFF, (data) => {
+      window.CMSBus.notify(`Video Highlight "${data.title || 'Match Clip'}" added to library`, '📹');
+    });
+  }
 });
 setTimeout(setupStudioScrollTrap, 200);
 setTimeout(setupStudioScrollTrap, 1000);

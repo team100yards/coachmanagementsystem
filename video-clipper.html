@@ -12,6 +12,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="cms-tokens.css">
   <link rel="stylesheet" href="cms-nav.css">
+  <script src="cms-storage.js"></script>
+  <script src="cms-bus.js"></script>
   <!-- High-Performance MP4 Muxer for WebCodecs Hardware Export -->
   <script src="mp4-muxer.min.js"></script>
   <script>
@@ -1581,6 +1583,7 @@
             `}
             <button class="btn-clip-sub save-btn" onclick="downloadSpecificClip('${c.id}')" title="${c.isRendered ? 'Instant Download MP4' : 'Render & Download MP4'}">⬇</button>
             <button class="btn-clip-sub analyzer-btn" onclick="sendSpecificClipToAnalyzer('${c.id}')" title="Send to Video Analyzer">🚀</button>
+            <button class="btn-clip-sub report-btn" onclick="sendSpecificClipToMatchReport('${c.id}')" title="Send Clip to Match Report Timeline" style="border-color:rgba(0,230,118,0.4);color:var(--accent-green);">📋</button>
             <button class="btn-clip-sub del-btn" onclick="deleteClip('${c.id}')" title="Delete Clip">✕</button>
           </div>
         </div>
@@ -2216,8 +2219,53 @@
       await sendCutDirectlyToAnalyzer();
     }
 
-    // IndexedDB Transfer Store
+    async function sendSpecificClipToMatchReport(id) {
+      const c = clipsQueue.find(item => item.id === id);
+      if (!c) return;
+
+      const clipPayload = {
+        clipId: c.id,
+        title: c.title || 'Tactical Cut',
+        inPoint: c.inPoint,
+        outPoint: c.outPoint,
+        duration: c.duration,
+        tag: c.tag,
+        format: c.isMp4 ? 'mp4' : 'webm',
+        matchMinute: Math.max(1, Math.round((c.inPoint || 0) / 60)),
+        updatedAt: Date.now()
+      };
+
+      try {
+        if (window.CMSStorage) {
+          await window.CMSStorage.set('cms_latest_clip_handoff', clipPayload);
+          if (c.blob) {
+            await window.CMSStorage.setBlob('clip_' + c.id, c.blob, clipPayload);
+          }
+        }
+        if (window.CMSBus) {
+          window.CMSBus.publish(window.CMSBus.EVENTS.VIDEO_CLIP_HANDOFF, clipPayload);
+          window.CMSBus.notify(`Clip "${c.title}" sent to Match Report Timeline!`, '📋');
+        }
+      } catch(e) {
+        console.warn('Error sending clip to match report:', e);
+      }
+    }
+
+    // IndexedDB Transfer Store with CMSStorage LRU Protection
     function storeClipInIndexedDB(blob, format) {
+      const clipName = `Match_Cut_${Math.round(inPoint)}s_${Math.round(outPoint)}s`;
+      if (window.CMSStorage) {
+        try {
+          window.CMSStorage.setBlob('latest_handoff', blob, {
+            format: format,
+            name: clipName,
+            inPoint: inPoint,
+            outPoint: outPoint,
+            createdAt: Date.now()
+          });
+        } catch(_) {}
+      }
+
       return new Promise((resolve, reject) => {
         const req = indexedDB.open('TacticalClipperDB', 1);
         req.onupgradeneeded = (e) => {
@@ -2235,7 +2283,7 @@
             blob: blob,
             format: format,
             timestamp: Date.now(),
-            name: `Match_Cut_${Math.round(inPoint)}s_${Math.round(outPoint)}s`
+            name: clipName
           });
           tx.oncomplete = () => resolve();
           tx.onerror = () => reject(tx.error);

@@ -10,6 +10,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&family=Bebas+Neue&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="cms-tokens.css">
   <link rel="stylesheet" href="cms-nav.css">
+  <script src="cms-storage.js"></script>
+  <script src="cms-bus.js"></script>
   <style>
     :root {
       --bg-base:#080c14; --bg-surface:#0f1724; --bg-card:#131d2e; --bg-card-2:#182438;
@@ -814,8 +816,9 @@
               </select>
             </div>
 
-            <!-- View Toggle: Pitch | Cards | Raw Text -->
+            <!-- View Toggle: Pitch | Cards | Raw Text & CMS Sync -->
             <div class="view-toggle-pills">
+              <button type="button" class="view-pill" onclick="syncLineupFromCMSBus()" title="Pull active lineup from Tactics Studio (CMS Bus)" style="color:var(--green);font-weight:700;border-color:rgba(0,230,118,0.4);">⚡ Sync Lineup</button>
               <button class="view-pill active" id="btn-view-pitch" onclick="switchSquadView('pitch')">🏟️ Pitch</button>
               <button class="view-pill" id="btn-view-cards" onclick="switchSquadView('cards')">📋 Cards</button>
               <button class="view-pill" id="btn-view-text" onclick="switchSquadView('text')">✏️ Text</button>
@@ -1820,7 +1823,147 @@
         var el = document.getElementById(id);
         if (el) el.addEventListener('input', debounce(updateLiveSessionMetadata, 800));
       });
+
+      // ════════════════════════════════════════════════════════════
+      // CMS BUS REAL-TIME SUITE SYNCHRONIZATION
+      // ════════════════════════════════════════════════════════════
+      if (window.CMSBus) {
+        // 1. Live Squad Roster Sync from Core Database
+        window.CMSBus.subscribe(window.CMSBus.EVENTS.PLAYER_ROSTER_SYNC, function(data) {
+          if (!data || !data.players) return;
+          var sel = document.getElementById('team-selector');
+          var currentTid = sel ? sel.value : '';
+          if (!currentTid || currentTid === data.teamId || currentTid === '__external__') {
+            if (data.teamName && !document.getElementById('home-team').value) {
+              document.getElementById('home-team').value = data.teamName;
+            }
+            currentStartingXI = data.players.slice(0, 11);
+            currentSubstitutes = data.players.slice(11);
+            renderTacticalPitch();
+            renderBenchChips();
+            renderLineupCards();
+            updateRawSquadTextarea();
+            updateLiveSessionMetadata();
+            var badge = document.getElementById('squad-badge');
+            if (badge) {
+              badge.textContent = '✓ ' + (currentStartingXI.length + currentSubstitutes.length) + ' players (' + currentFormation + ')';
+              badge.style.color = 'var(--green)';
+            }
+            showToast('Squad synced from Core Database: ' + data.players.length + ' players', 'success');
+          }
+        });
+
+        // 2. Live Lineup Published from Formation Builder / Tactics Studio
+        window.CMSBus.subscribe(window.CMSBus.EVENTS.LINEUP_PUBLISHED, function(data) {
+          if (!data) return;
+          if (data.formation && FORMATIONS_MAP[data.formation]) {
+            currentFormation = data.formation;
+            var formSelect = document.getElementById('formation-selector');
+            if (formSelect) formSelect.value = currentFormation;
+            document.getElementById('formation').value = currentFormation;
+          }
+          if (data.teamName && !document.getElementById('home-team').value) {
+            document.getElementById('home-team').value = data.teamName;
+          }
+          if (Array.isArray(data.starters)) {
+            currentStartingXI = data.starters.filter(Boolean);
+            currentSubstitutes = data.subs || [];
+          } else if (Array.isArray(data.players)) {
+            currentStartingXI = data.players.slice(0, 11);
+            currentSubstitutes = data.players.slice(11);
+          }
+          renderTacticalPitch();
+          renderBenchChips();
+          renderLineupCards();
+          updateRawSquadTextarea();
+          updateLiveSessionMetadata();
+
+          var badge = document.getElementById('squad-badge');
+          if (badge) {
+            badge.textContent = '✓ ' + (currentStartingXI.length + currentSubstitutes.length) + ' players (' + currentFormation + ')';
+            badge.style.color = 'var(--green)';
+          }
+          showToast('Tactical Lineup synced: ' + currentFormation, 'success');
+        });
+
+        // 3. Video Clip Handoff from Clipper or Video Analyzer
+        window.CMSBus.subscribe(window.CMSBus.EVENTS.VIDEO_CLIP_HANDOFF, function(clip) {
+          if (!clip) return;
+          var notesArea = document.getElementById('coach-notes');
+          if (notesArea) {
+            var minStr = (clip.matchMinute != null && clip.matchMinute !== '') ? String(clip.matchMinute) : (typeof currentMatchMinute !== 'undefined' ? String(currentMatchMinute) : '0');
+            var clipLine = '\n[' + minStr + '\'] 📹 Video Clip: "' + (clip.title || 'Match Highlight') + '" (' + Math.round(clip.inPoint || 0) + 's - ' + Math.round(clip.outPoint || (clip.duration || 0)) + 's)';
+            notesArea.value = (notesArea.value || '').trim() + clipLine + '\n';
+            updateLiveSessionMetadata();
+            showToast('Video clip "' + (clip.title || 'Highlight') + '" added to Match Notes!', 'success');
+          }
+        });
+
+        // 4. Tactical Session Drill Handoff
+        window.CMSBus.subscribe(window.CMSBus.EVENTS.TACTICAL_SESSION_EXPORT, function(session) {
+          if (!session) return;
+          var notesArea = document.getElementById('coach-notes');
+          if (notesArea) {
+            var drillNames = (session.drills || []).map(function(d){ return d.title; }).filter(Boolean).join(', ');
+            var sessionLine = '\n[Pre-Match Tactical Focus: "' + (session.sessionTitle || 'Training Session') + '"]' + (drillNames ? ' Drills: ' + drillNames : '');
+            notesArea.value = (notesArea.value || '').trim() + sessionLine + '\n';
+            updateLiveSessionMetadata();
+            showToast('Tactical Session "' + (session.sessionTitle || 'Plan') + '" linked to match preparation!', 'info');
+          }
+        });
+      }
     });
+
+    async function syncLineupFromCMSBus() {
+      try {
+        var payload = null;
+        if (window.CMSStorage) {
+          payload = await window.CMSStorage.get('formation_sync_payload');
+          if (!payload) payload = await window.CMSStorage.get('cms_active_lineup');
+        }
+        if (!payload) {
+          try {
+            var raw = localStorage.getItem('formation_sync_payload');
+            if (raw) payload = JSON.parse(raw);
+          } catch(e){}
+        }
+
+        if (payload) {
+          if (payload.formation && FORMATIONS_MAP[payload.formation]) {
+            currentFormation = payload.formation;
+            var formSelect = document.getElementById('formation-selector');
+            if (formSelect) formSelect.value = currentFormation;
+            document.getElementById('formation').value = currentFormation;
+          }
+          if (payload.teamName && !document.getElementById('home-team').value) {
+            document.getElementById('home-team').value = payload.teamName;
+          }
+          if (Array.isArray(payload.starters)) {
+            currentStartingXI = payload.starters.filter(Boolean);
+            currentSubstitutes = payload.subs || [];
+          } else if (Array.isArray(payload.players)) {
+            currentStartingXI = payload.players.slice(0, 11);
+            currentSubstitutes = payload.players.slice(11);
+          }
+          renderTacticalPitch();
+          renderBenchChips();
+          renderLineupCards();
+          updateRawSquadTextarea();
+          updateLiveSessionMetadata();
+
+          var badge = document.getElementById('squad-badge');
+          if (badge) {
+            badge.textContent = '✓ ' + (currentStartingXI.length + currentSubstitutes.length) + ' players (' + currentFormation + ')';
+            badge.style.color = 'var(--green)';
+          }
+          showToast('Tactical Lineup synced: ' + currentFormation + ' (' + (currentStartingXI.length + currentSubstitutes.length) + ' players)', 'success');
+        } else {
+          showToast('No active lineup found in Tactics Studio. Open Formation Builder to set one.', 'info');
+        }
+      } catch(err) {
+        console.warn('syncLineupFromCMSBus error:', err);
+      }
+    }
 
     // ════════════════════════════════════════════════════════════
     // SAVED TEAMS DROPDOWN & EXPORT TEAMLIST STUDIO
@@ -3019,6 +3162,19 @@
         showToast('Saved to Cloud Database!', 'success');
         document.getElementById('report-badge').textContent = 'Saved in Cloud ✓';
         document.getElementById('report-badge').style.display = 'inline-flex';
+
+        if (window.CMSStorage) {
+          window.CMSStorage.set('cms_last_saved_report', reportData);
+        }
+        if (window.CMSBus) {
+          window.CMSBus.publish(window.CMSBus.EVENTS.MATCH_REPORT_SAVED, {
+            id: reportId,
+            title: homeTeam + ' vs ' + awayTeam,
+            matchDate: matchDate,
+            score: homeScore + ' - ' + awayScore,
+            teamId: teamId
+          });
+        }
 
         // Auto trigger Google Drive webhook if configured
         sendToGoogleDriveWebhook(reportData);

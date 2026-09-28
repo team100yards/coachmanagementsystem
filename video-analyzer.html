@@ -26,6 +26,8 @@
     rel="stylesheet">
   <link rel="stylesheet" href="cms-tokens.css">
   <link rel="stylesheet" href="cms-nav.css">
+  <script src="cms-storage.js"></script>
+  <script src="cms-bus.js"></script>
 
   <!-- Fabric.js for high-performance canvas telestration -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
@@ -7988,6 +7990,25 @@
           successBtn.href = url;
           successBtn.download = filename;
         }
+
+        // Broadcast exported clip to CMS Suite
+        try {
+          const clipPayload = {
+            clipId: 'analyzer_' + Date.now(),
+            title: filename,
+            duration: totalDuration,
+            sourceUrl: url,
+            sizeMB: sizeMB,
+            matchMinute: Math.max(1, Math.round((currentVideoTime || 0) / 60)),
+            updatedAt: Date.now()
+          };
+          if (window.CMSStorage) {
+            window.CMSStorage.set('cms_latest_clip_handoff', clipPayload);
+          }
+          if (window.CMSBus) {
+            window.CMSBus.publish(window.CMSBus.EVENTS.VIDEO_CLIP_HANDOFF, clipPayload);
+          }
+        } catch(_) {}
       }
       if (progressContainer) progressContainer.style.display = 'flex';
       if (modalFooter) modalFooter.style.display = 'none';
@@ -16858,6 +16879,26 @@
       if (videoViewport) {
         videoViewport.addEventListener('pointerdown', () => {
           window.focus();
+        });
+      }
+
+      // Real-Time CMS Bus Suite Synchronization
+      if (window.CMSBus) {
+        window.CMSBus.subscribe(window.CMSBus.EVENTS.PLAYER_ROSTER_SYNC, (data) => {
+          if (!data) return;
+          try {
+            localStorage.setItem('cms_video_analyzer_squad', JSON.stringify(data));
+          } catch(_) {}
+          loadSquadRosterFromDatabase();
+          window.CMSBus.notify(`Telestration squad updated (${(data.players || []).length} players)`, '⚡');
+        });
+
+        window.CMSBus.subscribe(window.CMSBus.EVENTS.LINEUP_PUBLISHED, (data) => {
+          if (!data) return;
+          try {
+            localStorage.setItem('cms_video_analyzer_squad', JSON.stringify(data));
+          } catch(_) {}
+          loadSquadRosterFromDatabase();
         });
       }
     });

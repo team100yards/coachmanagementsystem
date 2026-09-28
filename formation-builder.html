@@ -21,6 +21,8 @@
 
 <link rel="stylesheet" href="cms-tokens.css">
 <link rel="stylesheet" href="cms-nav.css">
+<script src="cms-storage.js"></script>
+<script src="cms-bus.js"></script>
 <style>
   html, body { margin: 0; padding: 0; }
   html:fullscreen, html:-webkit-full-screen { background: #0F1B14; overflow-y: auto; }
@@ -509,12 +511,23 @@ function FormationBuilder() {
       }
     };
     window.addEventListener("message", handleMessage);
-    // Check localStorage cache if opened standalone in a new window/tab
+    // Check CMSStorage & localStorage cache if opened standalone in a new window/tab
     try {
-      const cached = localStorage.getItem('formation_sync_payload');
-      if(cached){
-        const parsed = JSON.parse(cached);
-        applySyncPayload(parsed);
+      if (window.CMSStorage) {
+        window.CMSStorage.get('formation_sync_payload').then(cached => {
+          if (cached) applySyncPayload(cached);
+          else {
+            window.CMSStorage.get('cms_active_roster').then(roster => {
+              if (roster) applySyncPayload(roster);
+            });
+          }
+        });
+      } else {
+        const cached = localStorage.getItem('formation_sync_payload');
+        if(cached){
+          const parsed = JSON.parse(cached);
+          applySyncPayload(parsed);
+        }
       }
     } catch(e){}
 
@@ -526,6 +539,18 @@ function FormationBuilder() {
       }
     };
     window.addEventListener('storage', handleStorage);
+
+    // Real-Time Cross-Tool Suite Bus Subscriptions
+    let unsubRoster = null;
+    let unsubLineup = null;
+    if (window.CMSBus) {
+      unsubRoster = window.CMSBus.subscribe(window.CMSBus.EVENTS.PLAYER_ROSTER_SYNC, (data) => {
+        if (data) applySyncPayload(data);
+      });
+      unsubLineup = window.CMSBus.subscribe(window.CMSBus.EVENTS.LINEUP_PUBLISHED, (data) => {
+        if (data) applySyncPayload(data);
+      });
+    }
 
     // Let the parent app know we're mounted and ready to receive the roster
     try {
@@ -543,6 +568,8 @@ function FormationBuilder() {
       window.removeEventListener("message", handleMessage);
       window.removeEventListener("storage", handleStorage);
       window.removeEventListener("resize", reportHeight);
+      if (unsubRoster) unsubRoster();
+      if (unsubLineup) unsubLineup();
       ro.disconnect();
       clearTimeout(t1);
       clearTimeout(t2);
@@ -1425,6 +1452,61 @@ function FormationBuilder() {
               style={{ fontSize: 13, letterSpacing: "0.02em", height: 42, padding: "0 14px", borderRadius: 8, border: `1px solid ${C.border}`, color: C.creamSoft, background: "transparent", fontWeight: 600, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5 }}
             >
               🔄 Sync from Match XI
+            </button>
+
+            {/* 2b. Send Lineup to Match Report */}
+            <button
+              onClick={() => {
+                try {
+                  const statePayload = {
+                    formation: formationKey,
+                    formationDef: FORMATIONS[formationKey] || null,
+                    starters: (exactStarters || starters).map(p => p ? {
+                      id: p.id,
+                      name: p.name,
+                      number: p.number != null ? String(p.number) : '-',
+                      position: p.position || 'CM'
+                    } : null),
+                    subs: (exactSubs || subs || []).map(p => ({
+                      id: p.id,
+                      name: p.name,
+                      number: p.number != null ? String(p.number) : '-',
+                      position: p.position || 'SUB'
+                    })),
+                    outOfSquad: outOfSquad,
+                    management: management,
+                    customPos,
+                    ballPos,
+                    showZones,
+                    showThirds,
+                    unitCoverShift,
+                    showCoverLines,
+                    activeLines,
+                    teamId: syncTeamId,
+                    teamName: syncTeamName,
+                    source: 'Tactics Studio Lineup',
+                    updatedAt: Date.now()
+                  };
+                  if (window.CMSStorage) {
+                    window.CMSStorage.set('formation_sync_payload', statePayload);
+                    window.CMSStorage.set('cms_active_lineup', statePayload);
+                  }
+                  try {
+                    localStorage.setItem('formation_sync_payload', JSON.stringify(statePayload));
+                  } catch(e){}
+                  if (window.CMSBus) {
+                    window.CMSBus.publish(window.CMSBus.EVENTS.LINEUP_PUBLISHED, statePayload);
+                    window.CMSBus.notify(`Lineup "${formationKey}" broadcast to Match Report!`, '📋');
+                  }
+                } catch(err) {
+                  console.error('Error broadcasting lineup:', err);
+                }
+              }}
+              className="oswald"
+              style={{ fontSize: 13, letterSpacing: "0.02em", height: 42, padding: "0 14px", borderRadius: 8, border: "1px solid rgba(0,230,118,0.5)", color: "#00e676", background: "rgba(0,230,118,0.08)", fontWeight: 700, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5 }}
+              title="Broadcast this lineup directly to Match Report Studio"
+            >
+              📋 Send to Match Report
             </button>
 
             {/* 3. Team View Link with share and whatsapp icons below */}
