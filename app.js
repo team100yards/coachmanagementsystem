@@ -18,6 +18,22 @@ try{
 const db=firebase.firestore();
 const auth=firebase.auth();
 
+// Polyfill for CanvasRenderingContext2D.prototype.roundRect if missing in WebKit/Safari
+if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, radii) {
+    if (!radii) radii = 0;
+    let r = typeof radii === 'number' ? radii : (Array.isArray(radii) ? (radii[0] || 0) : 0);
+    r = Math.min(r, Math.abs(w) / 2, Math.abs(h) / 2);
+    this.moveTo(x + r, y);
+    this.arcTo(x + w, y, x + w, y + h, r);
+    this.arcTo(x + w, y + h, x, y + h, r);
+    this.arcTo(x, y + h, x, y, r);
+    this.arcTo(x, y, x + w, y, r);
+    this.closePath();
+    return this;
+  };
+}
+
 const collection=(db,name)=>db.collection(name);
 const addDoc=(ref,data)=>ref.add(data);
 const getDocs=(q)=>q.get();
@@ -508,15 +524,11 @@ function showTab(n){
     openFormationVisualizer(false);
     return;
   }
-  if(n==='sessions'){
-    openSessionPlannerDirect();
-    return;
-  }
   if(n==='tracker'){
     openPlayerTrackerLab();
     return;
   }
-  ['squad','lineup','formation','db','setup'].forEach(x=>{
+  ['squad','lineup','formation','sessions','db','setup'].forEach(x=>{
     $('page-'+x)&&$('page-'+x).classList.toggle('active',x===n);
     $('tab-'+x)&&$('tab-'+x).classList.toggle('active',x===n);
   });
@@ -526,6 +538,7 @@ function showTab(n){
   if(n==='setup')loadSetup();
   if(n==='squad'){renderSquad();renderStaffList();}
   if(n==='lineup'){openLineup();initCoachChat();}
+  if(n==='sessions'){if(typeof initDrillLibraryDiagrams==='function')initDrillLibraryDiagrams();subscribeSessions();renderSessions();}
   if(n==='chat'){showTab('lineup');initCoachChat();}
 }
 
@@ -3806,6 +3819,23 @@ const DRILL_LIBRARY = [
     players: '7 Players (5v2)',
     description: '5 attackers on the outside keep possession with 1-2 touch max. 2 defenders in the middle press. If defenders win the ball or force a mistake, the player who made the error switches with the defender.',
     coachingPoints: '• Open body shape facing the grid\n• Weight and accuracy of first touch\n• Scan 360° before receiving the ball\n• High intensity defensive pressing triggers',
+    pitchType: 'half',
+    boardObjects: [
+      { type: 'token', tool: 'cone_yellow', x: 260, y: 160, sequenceId: 1, showMeasurement: true },
+      { type: 'token', tool: 'cone_yellow', x: 540, y: 160, sequenceId: 1, showMeasurement: true },
+      { type: 'token', tool: 'cone_yellow', x: 540, y: 400, sequenceId: 1, showMeasurement: true },
+      { type: 'token', tool: 'cone_yellow', x: 260, y: 400, sequenceId: 1, showMeasurement: true },
+      { type: 'token', tool: 'red', x: 260, y: 280, label: '3' },
+      { type: 'token', tool: 'red', x: 540, y: 280, label: '4' },
+      { type: 'token', tool: 'red', x: 400, y: 160, label: '2' },
+      { type: 'token', tool: 'red', x: 330, y: 400, label: '5' },
+      { type: 'token', tool: 'red', x: 470, y: 400, label: '6' },
+      { type: 'token', tool: 'blue', x: 370, y: 270, label: '9' },
+      { type: 'token', tool: 'blue', x: 430, y: 290, label: '10' },
+      { type: 'token', tool: 'ball', x: 416, y: 176 },
+      { type: 'line', tool: 'pass', x1: 416, y1: 176, x2: 524, y2: 268, showMeasurement: true },
+      { type: 'line', tool: 'run', x1: 385, y1: 270, x2: 480, y2: 260, showMeasurement: true }
+    ],
     diagram: ''
   },
   {
@@ -3817,6 +3847,22 @@ const DRILL_LIBRARY = [
     players: '8-12 Players',
     description: 'Player A passes to B who checks away. B sets ball back to A. A plays diagonal penetrative pass to C making an overlapping run. C crosses or finishes into mini-goal. Rotate positions A->B->C->A.',
     coachingPoints: '• Timing of the checking movement\n• Firm punchy passes on the ground\n• Dynamic acceleration after releasing the ball\n• Communication (verbal + visual hand gestures)',
+    pitchType: 'half',
+    boardObjects: [
+      { type: 'token', tool: 'goal', x: 400, y: 80, scale: 0.8, rotation: 0 },
+      { type: 'token', tool: 'marker_yellow', x: 400, y: 400, sequenceId: 1, showMeasurement: true },
+      { type: 'token', tool: 'marker_yellow', x: 400, y: 270, sequenceId: 1, showMeasurement: true },
+      { type: 'token', tool: 'marker_yellow', x: 280, y: 160, sequenceId: 1, showMeasurement: true },
+      { type: 'token', tool: 'marker_yellow', x: 520, y: 160, sequenceId: 1, showMeasurement: true },
+      { type: 'token', tool: 'red', x: 400, y: 418, label: 'A' },
+      { type: 'token', tool: 'red', x: 400, y: 288, label: 'B' },
+      { type: 'token', tool: 'red', x: 520, y: 178, label: 'C' },
+      { type: 'token', tool: 'ball', x: 412, y: 406 },
+      { type: 'line', tool: 'pass', x1: 412, y1: 406, x2: 404, y2: 304, showMeasurement: true },
+      { type: 'line', tool: 'pass', x1: 392, y1: 288, x2: 380, y2: 350, showMeasurement: true },
+      { type: 'line', tool: 'pass', x1: 380, y1: 350, x2: 504, y2: 172, showMeasurement: true },
+      { type: 'line', tool: 'run', x1: 520, y1: 160, x2: 440, y2: 100, showMeasurement: true }
+    ],
     diagram: ''
   },
   {
@@ -3828,6 +3874,20 @@ const DRILL_LIBRARY = [
     players: '8 Players + 1 GK',
     description: 'Attacker receives pass from coach, turns and attacks defender in a 1v1 channel. Attacker has 6 seconds to beat defender and take a shot on goal. If defender wins ball, they score into mini-counter goals.',
     coachingPoints: '• Direct positive first touch toward goal\n• Change of pace and deceptive body feints\n• Clinical early finishing across the goalkeeper\n• Defender stays low and delays attacker',
+    pitchType: 'box',
+    boardObjects: [
+      { type: 'token', tool: 'goal', x: 400, y: 460, scale: 1.25, rotation: 180 },
+      { type: 'token', tool: 'gk', x: 400, y: 435, label: 'GK' },
+      { type: 'token', tool: 'mannequin', x: 310, y: 310 },
+      { type: 'token', tool: 'mannequin', x: 490, y: 310 },
+      { type: 'token', tool: 'cone_red', x: 310, y: 170, sequenceId: 1 },
+      { type: 'token', tool: 'cone_red', x: 490, y: 170, sequenceId: 1 },
+      { type: 'token', tool: 'red', x: 400, y: 150, label: '9' },
+      { type: 'token', tool: 'ball', x: 414, y: 160 },
+      { type: 'token', tool: 'blue', x: 400, y: 260, label: '4' },
+      { type: 'line', tool: 'dribble', x1: 414, y1: 160, x2: 360, y2: 240, showMeasurement: true },
+      { type: 'line', tool: 'pass', x1: 360, y1: 240, x2: 345, y2: 445, showMeasurement: true }
+    ],
     diagram: ''
   },
   {
@@ -3839,6 +3899,27 @@ const DRILL_LIBRARY = [
     players: '11 Players (4v4 + 3)',
     description: '4 vs 4 inside the grid with 3 Neutral/Floaters (1 at each end, 1 central #10). Team in possession looks to connect 6 passes or transfer ball from end neutral to opposite end neutral for 1 point.',
     coachingPoints: '• Create passing triangles & diamonds\n• Exploit central #10 to draw defenders and switch play\n• Counter-press instantly within 3 seconds of losing ball\n• Width and depth to stretch opposition',
+    pitchType: 'grid',
+    boardObjects: [
+      { type: 'token', tool: 'cone_yellow', x: 180, y: 90, sequenceId: 1 },
+      { type: 'token', tool: 'cone_yellow', x: 620, y: 90, sequenceId: 1 },
+      { type: 'token', tool: 'cone_yellow', x: 620, y: 430, sequenceId: 1 },
+      { type: 'token', tool: 'cone_yellow', x: 180, y: 430, sequenceId: 1 },
+      { type: 'token', tool: 'yellow', x: 400, y: 105, label: 'N1' },
+      { type: 'token', tool: 'yellow', x: 400, y: 415, label: 'N2' },
+      { type: 'token', tool: 'yellow', x: 400, y: 260, label: 'N3' },
+      { type: 'token', tool: 'red', x: 260, y: 200, label: '4' },
+      { type: 'token', tool: 'red', x: 540, y: 200, label: '6' },
+      { type: 'token', tool: 'red', x: 260, y: 320, label: '8' },
+      { type: 'token', tool: 'red', x: 540, y: 320, label: '9' },
+      { type: 'token', tool: 'blue', x: 330, y: 240, label: '5' },
+      { type: 'token', tool: 'blue', x: 470, y: 240, label: '7' },
+      { type: 'token', tool: 'blue', x: 330, y: 280, label: '10' },
+      { type: 'token', tool: 'blue', x: 470, y: 280, label: '11' },
+      { type: 'token', tool: 'ball', x: 414, y: 120 },
+      { type: 'line', tool: 'pass', x1: 414, y1: 120, x2: 396, y2: 245, showMeasurement: true },
+      { type: 'line', tool: 'pass', x1: 400, y1: 275, x2: 524, y2: 310, showMeasurement: true }
+    ],
     diagram: ''
   },
   {
@@ -3850,6 +3931,22 @@ const DRILL_LIBRARY = [
     players: '12 Players + 2 GKs',
     description: '6v6 with 2 mini target gates on the flanks. Defending team sets pressing line at midfield. If defending team wins ball in attacking half and scores within 8 seconds, the goal counts double.',
     coachingPoints: '• Pressing triggers (bad touch, back-pass, ball in the air)\n• Whole team shifts together to close passing lanes\n• Aggressive forward runs immediately on turnover\n• GK acts as sweeper-keeper high line',
+    pitchType: 'half_horizontal',
+    boardObjects: [
+      { type: 'token', tool: 'goal', x: 125, y: 260, scale: 1.1, rotation: 270 },
+      { type: 'token', tool: 'gk', x: 155, y: 260, label: 'GK' },
+      { type: 'token', tool: 'red', x: 240, y: 160, label: '4' },
+      { type: 'token', tool: 'red', x: 240, y: 360, label: '5' },
+      { type: 'token', tool: 'red', x: 340, y: 230, label: '6' },
+      { type: 'token', tool: 'red', x: 340, y: 290, label: '8' },
+      { type: 'token', tool: 'blue', x: 420, y: 200, label: '9' },
+      { type: 'token', tool: 'blue', x: 420, y: 320, label: '10' },
+      { type: 'token', tool: 'blue', x: 500, y: 160, label: '7' },
+      { type: 'token', tool: 'blue', x: 500, y: 360, label: '11' },
+      { type: 'token', tool: 'ball', x: 255, y: 172 },
+      { type: 'line', tool: 'run', x1: 420, y1: 200, x2: 275, y2: 175, showMeasurement: true },
+      { type: 'line', tool: 'pass', x1: 255, y1: 172, x2: 324, y2: 220, showMeasurement: true }
+    ],
     diagram: ''
   },
   {
@@ -3861,6 +3958,29 @@ const DRILL_LIBRARY = [
     players: 'Full Squad + 2 GKs',
     description: 'Attacking XI builds out from goalkeeper against defensive compact block. Attackers focus on breaking lines through half-spaces and overlapping full-backs. Defending XI counters into target mini-goals.',
     coachingPoints: '• Positional discipline and spacing\n• Overlaps and underlaps from full-backs\n• Defensive low-block sliding and compactness\n• Communication across defensive back-line',
+    pitchType: 'half',
+    boardObjects: [
+      { type: 'token', tool: 'goal', x: 400, y: 55, scale: 1.25, rotation: 0 },
+      { type: 'token', tool: 'gk', x: 400, y: 90, label: 'GK' },
+      { type: 'token', tool: 'blue', x: 260, y: 160, label: '2' },
+      { type: 'token', tool: 'blue', x: 350, y: 150, label: '4' },
+      { type: 'token', tool: 'blue', x: 450, y: 150, label: '5' },
+      { type: 'token', tool: 'blue', x: 540, y: 160, label: '3' },
+      { type: 'token', tool: 'blue', x: 340, y: 230, label: '6' },
+      { type: 'token', tool: 'blue', x: 460, y: 230, label: '8' },
+      { type: 'token', tool: 'red', x: 200, y: 340, label: '2' },
+      { type: 'token', tool: 'red', x: 320, y: 380, label: '4' },
+      { type: 'token', tool: 'red', x: 480, y: 380, label: '5' },
+      { type: 'token', tool: 'red', x: 600, y: 340, label: '3' },
+      { type: 'token', tool: 'red', x: 400, y: 320, label: '6' },
+      { type: 'token', tool: 'red', x: 320, y: 270, label: '8' },
+      { type: 'token', tool: 'red', x: 480, y: 270, label: '10' },
+      { type: 'token', tool: 'red', x: 210, y: 220, label: '7' },
+      { type: 'token', tool: 'red', x: 400, y: 200, label: '9' },
+      { type: 'token', tool: 'red', x: 590, y: 220, label: '11' },
+      { type: 'token', tool: 'ball', x: 415, y: 320 },
+      { type: 'line', tool: 'pass', x1: 415, y1: 320, x2: 470, y2: 275, showMeasurement: true }
+    ],
     diagram: ''
   },
   {
@@ -3872,256 +3992,460 @@ const DRILL_LIBRARY = [
     players: 'Full Squad',
     description: 'Light jog and dynamic mobility followed by full-body static stretching (hamstrings, quads, calves, hip flexors, groin). Coach reviews session highlights and assigns match preparations.',
     coachingPoints: '• Deep breathing and gradual heart-rate recovery\n• Hold each stretch for 20-30 seconds\n• Hydration and nutritional recovery intake\n• Team unity and constructive coach feedback',
+    pitchType: 'half',
+    boardObjects: [
+      { type: 'token', tool: 'cone_yellow', x: 240, y: 360, sequenceId: 1 },
+      { type: 'token', tool: 'cone_yellow', x: 560, y: 360, sequenceId: 1 },
+      { type: 'token', tool: 'red', x: 400, y: 200, label: '1' },
+      { type: 'token', tool: 'red', x: 460, y: 220, label: '2' },
+      { type: 'token', tool: 'red', x: 490, y: 270, label: '3' },
+      { type: 'token', tool: 'red', x: 460, y: 320, label: '4' },
+      { type: 'token', tool: 'red', x: 400, y: 340, label: '5' },
+      { type: 'token', tool: 'red', x: 340, y: 320, label: '6' },
+      { type: 'token', tool: 'red', x: 310, y: 270, label: '7' },
+      { type: 'token', tool: 'red', x: 340, y: 220, label: '8' },
+      { type: 'token', tool: 'ball', x: 400, y: 270 }
+    ],
+    diagram: ''
+  },
+  {
+    id: 'd_coerver_mastery',
+    phase: 'Warm-Up',
+    name: 'Wiel Coerver: 1,000-Touch Agility & Ball Mastery',
+    duration: 15,
+    dimensions: '15x15m Grid',
+    players: 'All Players (Each with a Ball)',
+    description: 'High-tempo footwork sequences inside the grid: toe taps, Brazilian sole rolls, inside-outside cuts, and scissors. On whistle, explode 5 yards into open space.',
+    coachingPoints: '• Soft, rhythmic touches with both feet\n• Keep head up between touches to scan open space\n• Accelerate sharply after performing a move\n• Stay on balls of feet with knees bent',
+    pitchType: 'grid',
+    boardObjects: [
+      { type: 'token', tool: 'cone_yellow', x: 200, y: 120, sequenceId: 1 },
+      { type: 'token', tool: 'cone_yellow', x: 600, y: 120, sequenceId: 1 },
+      { type: 'token', tool: 'cone_yellow', x: 600, y: 420, sequenceId: 1 },
+      { type: 'token', tool: 'cone_yellow', x: 200, y: 420, sequenceId: 1 },
+      { type: 'token', tool: 'blue', x: 280, y: 200, label: '7' },
+      { type: 'token', tool: 'ball', x: 295, y: 200 },
+      { type: 'token', tool: 'blue', x: 520, y: 200, label: '11' },
+      { type: 'token', tool: 'ball', x: 535, y: 200 },
+      { type: 'token', tool: 'blue', x: 320, y: 340, label: '8' },
+      { type: 'token', tool: 'ball', x: 335, y: 340 },
+      { type: 'token', tool: 'blue', x: 480, y: 340, label: '10' },
+      { type: 'token', tool: 'ball', x: 495, y: 340 },
+      { type: 'token', tool: 'red', x: 400, y: 260, label: '9' },
+      { type: 'token', tool: 'ball', x: 415, y: 260 },
+      { type: 'line', tool: 'dribble', x1: 295, y1: 200, x2: 360, y2: 170, showMeasurement: true },
+      { type: 'line', tool: 'dribble', x1: 415, y1: 260, x2: 440, y2: 310, showMeasurement: true }
+    ],
+    diagram: ''
+  },
+  {
+    id: 'd_coerver_1v1_gates',
+    phase: 'Technical',
+    name: 'Wiel Coerver: 1v1 Mirror Gate Attack & Dribble Battle',
+    duration: 20,
+    dimensions: '20x15m with 2 Target Gates',
+    players: 'Pairs (1v1)',
+    description: 'Attacker commits defender 1v1. Attacker must use a body feint, step-over, or change of direction to dribble through either the left or right cone gate. Defender mirrors on endline.',
+    coachingPoints: '• Commit defender with positive forward dribble\n• Sell the fake with upper body movement\n• Sudden change of pace through gate\n• Defender stays low and patient',
+    pitchType: 'half_horizontal',
+    boardObjects: [
+      { type: 'token', tool: 'cone_red', x: 180, y: 190, sequenceId: 1 },
+      { type: 'token', tool: 'cone_red', x: 180, y: 230, sequenceId: 1 },
+      { type: 'token', tool: 'cone_red', x: 180, y: 290, sequenceId: 1 },
+      { type: 'token', tool: 'cone_red', x: 180, y: 330, sequenceId: 1 },
+      { type: 'token', tool: 'blue', x: 460, y: 260, label: '9' },
+      { type: 'token', tool: 'ball', x: 445, y: 260 },
+      { type: 'token', tool: 'red', x: 260, y: 260, label: '4' },
+      { type: 'line', tool: 'dribble', x1: 445, y1: 260, x2: 340, y2: 240, showMeasurement: true },
+      { type: 'line', tool: 'run', x1: 340, y1: 240, x2: 180, y2: 210, showMeasurement: true }
+    ],
+    diagram: ''
+  },
+  {
+    id: 'd_ajax_3v1_triangle',
+    phase: 'Warm-Up',
+    name: 'Ajax TIPS: 3v1 Triangle Passing & Quick Support Rondo',
+    duration: 15,
+    dimensions: '12x12m Grid',
+    players: 'Squad in 4s (3v1)',
+    description: '3 attackers form a dynamic passing triangle around 1 defender inside a small grid. 2 touches maximum. Attackers constantly adjust angles to offer left and right options.',
+    coachingPoints: '• Never stay flat; create acute passing triangles\n• Receive on back foot to open passing angles\n• Defender presses on ball travel, not after touch\n• Instant transition on mistake',
+    pitchType: 'grid',
+    boardObjects: [
+      { type: 'token', tool: 'cone_yellow', x: 250, y: 150, sequenceId: 1 },
+      { type: 'token', tool: 'cone_yellow', x: 550, y: 150, sequenceId: 1 },
+      { type: 'token', tool: 'cone_yellow', x: 550, y: 390, sequenceId: 1 },
+      { type: 'token', tool: 'cone_yellow', x: 250, y: 390, sequenceId: 1 },
+      { type: 'token', tool: 'blue', x: 400, y: 175, label: '6' },
+      { type: 'token', tool: 'blue', x: 300, y: 345, label: '8' },
+      { type: 'token', tool: 'blue', x: 500, y: 345, label: '10' },
+      { type: 'token', tool: 'red', x: 400, y: 280, label: '9' },
+      { type: 'token', tool: 'ball', x: 415, y: 185 },
+      { type: 'line', tool: 'pass', x1: 415, y1: 185, x2: 485, y2: 335, showMeasurement: true },
+      { type: 'line', tool: 'pass', x1: 485, y1: 345, x2: 315, y2: 345, showMeasurement: true }
+    ],
+    diagram: ''
+  },
+  {
+    id: 'd_ajax_multi_gate',
+    phase: 'SSG',
+    name: 'Ajax Academy: 4v4 Multi-Goal Directional Transition Match',
+    duration: 25,
+    dimensions: '35x25m with 4 Corner Gates',
+    players: '8 Players (4v4)',
+    description: '4v4 game played to 4 corner mini-goals. Scoring in any goal counts as 1 point. Forces players to look up, switch play away from pressure, and exploit open spaces.',
+    coachingPoints: '• Head up before receiving to spot open goal\n• Switch play quickly if one side is blocked\n• Immediate defensive transition to protect target gates\n• Width and depth in attack',
+    pitchType: 'half',
+    boardObjects: [
+      { type: 'token', tool: 'goal', x: 220, y: 100, scale: 0.6, rotation: 0 },
+      { type: 'token', tool: 'goal', x: 580, y: 100, scale: 0.6, rotation: 0 },
+      { type: 'token', tool: 'goal', x: 220, y: 430, scale: 0.6, rotation: 180 },
+      { type: 'token', tool: 'goal', x: 580, y: 430, scale: 0.6, rotation: 180 },
+      { type: 'token', tool: 'blue', x: 300, y: 200, label: '2' },
+      { type: 'token', tool: 'blue', x: 500, y: 200, label: '3' },
+      { type: 'token', tool: 'blue', x: 340, y: 350, label: '7' },
+      { type: 'token', tool: 'blue', x: 460, y: 350, label: '11' },
+      { type: 'token', tool: 'red', x: 400, y: 180, label: '4' },
+      { type: 'token', tool: 'red', x: 320, y: 270, label: '6' },
+      { type: 'token', tool: 'red', x: 480, y: 270, label: '8' },
+      { type: 'token', tool: 'red', x: 400, y: 370, label: '9' },
+      { type: 'token', tool: 'ball', x: 415, y: 200 },
+      { type: 'line', tool: 'pass', x1: 415, y1: 200, x2: 490, y2: 205, showMeasurement: true }
+    ],
+    diagram: ''
+  },
+  {
+    id: 'd_bielsa_up_back_through',
+    phase: 'Technical',
+    name: 'Marcelo Bielsa: "Up-Back-Through" Penetration Circuit',
+    duration: 20,
+    dimensions: '35x25m Corridor with Goal',
+    players: '8-10 Players in Waves',
+    description: 'Player A plays up to B (#9 with back to goal). B sets back to advancing midfielder C. C plays diagonal through-ball to winger D sprinting in behind mannequins for a cross/finish.',
+    coachingPoints: '• Up pass must be punched firmly into striker feet\n• Bounce pass (Back) must be cushioned into the path of midfielder\n• Through pass timed precisely with winger blindside sprint\n• Maximum speed of ball circulation',
+    pitchType: 'half',
+    boardObjects: [
+      { type: 'token', tool: 'goal', x: 400, y: 60, scale: 1.1, rotation: 0 },
+      { type: 'token', tool: 'gk', x: 400, y: 95, label: 'GK' },
+      { type: 'token', tool: 'mannequin', x: 330, y: 210 },
+      { type: 'token', tool: 'mannequin', x: 470, y: 210 },
+      { type: 'token', tool: 'red', x: 400, y: 430, label: 'A' },
+      { type: 'token', tool: 'ball', x: 400, y: 415 },
+      { type: 'token', tool: 'red', x: 400, y: 260, label: 'B' },
+      { type: 'token', tool: 'red', x: 320, y: 350, label: 'C' },
+      { type: 'token', tool: 'red', x: 530, y: 290, label: 'D' },
+      { type: 'line', tool: 'pass', x1: 400, y1: 415, x2: 400, y2: 280, showMeasurement: true },
+      { type: 'line', tool: 'pass', x1: 395, y1: 275, x2: 335, y2: 340, showMeasurement: true },
+      { type: 'line', tool: 'pass', x1: 335, y1: 340, x2: 490, y2: 170, showMeasurement: true },
+      { type: 'line', tool: 'run', x1: 530, y1: 285, x2: 490, y2: 170, showMeasurement: true }
+    ],
+    diagram: ''
+  },
+  {
+    id: 'd_ancelotti_crossing',
+    phase: 'Technical',
+    name: 'Carlo Ancelotti: Dynamic Wing Overlap & 3-Run Box Finishing',
+    duration: 20,
+    dimensions: 'Final Third with 1 Main Goal',
+    players: 'Attackers, Fullbacks & Strikers + 2 GKs',
+    description: 'Winger checks inside, drawing mannequin defender. Fullback overlaps on the outside and delivers early whipped or low driven cross. 3 Staggered box runners attack: Near Post, Central Penalty Spot, and Edge of Box Cutback.',
+    coachingPoints: '• Fullback crosser looks up before striking\n• Run 1: Near post dart across front of defender to redirect\n• Run 2: Central striker attacks penalty spot with momentum\n• Run 3: Late arriving midfielder hovers for loose cutback\n• High clinical conversion rate on first-time finish',
+    pitchType: 'half',
+    boardObjects: [
+      { type: 'token', tool: 'goal', x: 400, y: 60, scale: 1.2, rotation: 0 },
+      { type: 'token', tool: 'gk', x: 400, y: 95, label: 'GK' },
+      { type: 'token', tool: 'mannequin', x: 350, y: 160 },
+      { type: 'token', tool: 'mannequin', x: 450, y: 160 },
+      { type: 'token', tool: 'blue', x: 510, y: 260, label: '7' },
+      { type: 'token', tool: 'ball', x: 524, y: 260 },
+      { type: 'token', tool: 'blue', x: 570, y: 340, label: '2' },
+      { type: 'token', tool: 'blue', x: 340, y: 180, label: '9' },
+      { type: 'token', tool: 'blue', x: 400, y: 220, label: '10' },
+      { type: 'token', tool: 'blue', x: 450, y: 280, label: '8' },
+      { type: 'line', tool: 'pass', x1: 524, y1: 260, x2: 565, y2: 240, showMeasurement: true },
+      { type: 'line', tool: 'run', x1: 570, y1: 330, x2: 565, y2: 235, showMeasurement: true },
+      { type: 'line', tool: 'lob', x1: 565, y1: 235, x2: 380, y2: 120, showMeasurement: true }
+    ],
+    diagram: ''
+  },
+  {
+    id: 'd_simeone_low_block',
+    phase: 'Tactical',
+    name: 'Diego Simeone: 8 vs 6 Low-Block Compactness & Slide',
+    duration: 25,
+    dimensions: 'Defensive Half Pitch',
+    players: '8 Defenders vs 6 Attackers + 1 GK',
+    description: 'Defending unit of 4 defenders and 4 midfielders stays ultra-compact (8-10m line distance). Attackers try to penetrate central half-spaces. Defenders slide in unison, force play wide, and clear to target mini-goals.',
+    coachingPoints: '• Never allow passes between CB and FB\n• Midfield screen prevents passes to opponent #10\n• Side-on body shape ready to sprint back\n• Instant transition pass to target counter goals on turnover',
+    pitchType: 'half',
+    boardObjects: [
+      { type: 'token', tool: 'goal', x: 400, y: 60, scale: 1.15, rotation: 0 },
+      { type: 'token', tool: 'gk', x: 400, y: 95, label: 'GK' },
+      { type: 'token', tool: 'blue', x: 250, y: 160, label: '2' },
+      { type: 'token', tool: 'blue', x: 350, y: 140, label: '4' },
+      { type: 'token', tool: 'blue', x: 450, y: 140, label: '5' },
+      { type: 'token', tool: 'blue', x: 550, y: 160, label: '3' },
+      { type: 'token', tool: 'blue', x: 270, y: 240, label: '7' },
+      { type: 'token', tool: 'blue', x: 360, y: 220, label: '6' },
+      { type: 'token', tool: 'blue', x: 440, y: 220, label: '8' },
+      { type: 'token', tool: 'blue', x: 530, y: 240, label: '11' },
+      { type: 'token', tool: 'red', x: 220, y: 310, label: '2' },
+      { type: 'token', tool: 'red', x: 320, y: 300, label: '8' },
+      { type: 'token', tool: 'red', x: 400, y: 270, label: '10' },
+      { type: 'token', tool: 'red', x: 480, y: 300, label: '6' },
+      { type: 'token', tool: 'red', x: 580, y: 310, label: '7' },
+      { type: 'token', tool: 'red', x: 400, y: 180, label: '9' },
+      { type: 'token', tool: 'ball', x: 415, y: 270 },
+      { type: 'line', tool: 'pass', x1: 415, y1: 270, x2: 470, y2: 290, showMeasurement: true }
+    ],
+    diagram: ''
+  },
+  {
+    id: 'd_dezerbi_buildup',
+    phase: 'Tactical',
+    name: 'Roberto De Zerbi: Baiting the Press from Goal Kicks',
+    duration: 25,
+    dimensions: 'Penalty Box & Build-up Zone',
+    players: 'GK + 4 Defenders vs 4 Pressing Attackers',
+    description: 'Goalkeeper puts sole on the ball to bait the opponent striker forward. Center-backs split deep on the 6-yard line. When striker commits, GK plays to CB or dropping pivot to break the first pressing line vertically.',
+    coachingPoints: '• High composure on the ball; invite the pressure\n• Wait until the defender is 1 yard away before releasing pass\n• Pivot drops at an angle, never directly behind striker\n• Third-man pass out of the pressing trap',
+    pitchType: 'box',
+    boardObjects: [
+      { type: 'token', tool: 'goal', x: 400, y: 60, scale: 1.25, rotation: 0 },
+      { type: 'token', tool: 'gk', x: 400, y: 110, label: 'GK' },
+      { type: 'token', tool: 'ball', x: 416, y: 115 },
+      { type: 'token', tool: 'blue', x: 270, y: 160, label: '4' },
+      { type: 'token', tool: 'blue', x: 530, y: 160, label: '5' },
+      { type: 'token', tool: 'blue', x: 190, y: 280, label: '2' },
+      { type: 'token', tool: 'blue', x: 610, y: 280, label: '3' },
+      { type: 'token', tool: 'blue', x: 400, y: 230, label: '6' },
+      { type: 'token', tool: 'red', x: 370, y: 155, label: '9' },
+      { type: 'token', tool: 'red', x: 430, y: 155, label: '10' },
+      { type: 'token', tool: 'red', x: 300, y: 240, label: '7' },
+      { type: 'token', tool: 'red', x: 500, y: 240, label: '11' },
+      { type: 'line', tool: 'pass', x1: 416, y1: 115, x2: 285, y2: 155, showMeasurement: true },
+      { type: 'line', tool: 'run', x1: 370, y1: 155, x2: 295, y2: 150, showMeasurement: true }
+    ],
     diagram: ''
   }
 ];
 
+function getLibDrill(id) {
+  const found = DRILL_LIBRARY.find(d => d.id === id);
+  return found ? JSON.parse(JSON.stringify(found)) : null;
+}
+
 const SESSION_PRESETS = [
+  // ── U6–U9: Foundation Phase ──
   {
-    id: 'preset_high_press_433',
-    title: '4-3-3 High Pressing & Rapid Counter-Attack',
-    category: 'Tactical',
-    intensity: 'High',
-    duration: 90,
-    objectives: '• Establish high-intensity pressing triggers in the opponent half\n• Cut off central passing lanes and force play wide\n• Rapid 3-second transition to score upon winning possession',
-    equipment: ['balls', 'cones_orange', 'cones_yellow', 'bibs_yellow', 'bibs_blue', 'goals_mini', 'stopwatch', 'board'],
-    drills: [
-      {
-        phase: 'Warm-Up',
-        name: 'Dynamic SAQ Activation & 5v2 Rondo',
-        duration: 15,
-        dimensions: '15x15m',
-        players: 'Squad split in 2 groups',
-        description: '5 minutes of ladder/hurdle agility activation followed by 10 minutes of high-tempo 5v2 keep-away with 2 touches max.',
-        coachingPoints: '• Quick footwork and sharp acceleration\n• Instant pressing response on ball loss',
-        diagram: ''
-      },
-      {
-        phase: 'Technical',
-        name: 'Forward Penetration & Quick 1-2 Combinations',
-        duration: 20,
-        dimensions: '25x20m',
-        players: 'Full Squad',
-        description: 'Fast combination passing drill simulating midfield line-breaking passes into winger and striker check-runs.',
-        coachingPoints: '• Crisp passing velocity\n• Open body shape to see forward options\n• Third-man off-the-ball run',
-        diagram: ''
-      },
-      {
-        phase: 'Tactical',
-        name: '4v4+3 Central Positional Pressing Grid',
-        duration: 25,
-        dimensions: '35x25m',
-        players: '11 Players (4v4+3)',
-        description: 'Team out of possession works as a 4-man pressing unit to intercept and immediately hit target neutral striker.',
-        coachingPoints: '• Compact 4-man block movement\n• Curved pressing runs to block return pass\n• Direct vertical pass on turnover',
-        diagram: ''
-      },
-      {
-        phase: 'SSG',
-        name: '7v7 + 1 Neutral High Press Transition Game',
-        duration: 20,
-        dimensions: '55x40m (2 Box-to-Box)',
-        players: '15 Players + 2 GKs',
-        description: '7v7 match. Goals scored within 8 seconds of winning the ball in attacking half count as 2 goals.',
-        coachingPoints: '• Aggressive hunt in packs\n• Quick forward shot or cross before opponent recovers\n• Sweeper-keeper communication',
-        diagram: ''
-      },
-      {
-        phase: 'Cool Down',
-        name: 'Recovery Walk, Static Stretch & Tactical Review',
-        duration: 10,
-        dimensions: 'Half Pitch',
-        players: 'All Players',
-        description: 'Light active recovery, hamstring & groin stretches, followed by 5-minute tactical recap with the coaching staff.',
-        coachingPoints: '• Lower heart rate\n• Reinforce key tactical takeaways for upcoming match',
-        diagram: ''
-      }
-    ]
-  },
-  {
-    id: 'preset_tikitaka_possession',
-    title: 'Tiki-Taka 3rd Man Possession & Combination Play',
+    id: 'preset_coerver_mastery',
+    title: 'Wiel Coerver: 1v1 Ball Mastery & Mirror Gate Challenge',
+    coach: 'Wiel Coerver',
+    coachBadge: 'Wiel Coerver (Ball Mastery)',
+    ageGroup: 'u6_u9',
+    ageGroupLabel: '🟡 U6–U9 (Foundation)',
     category: 'Technical',
     intensity: 'Medium',
-    duration: 90,
-    objectives: '• Master triangle & diamond passing structures\n• Exploit third-man runs to break defensive lines\n• Maintain high ball retention under aggressive pressure',
+    duration: 60,
+    objectives: '• Target 1,000 clean touches per player using sole, inside, and outside\n• Build 1v1 attacking confidence with step-overs, scissors, and body fakes\n• Quick decisions to exploit open gates with zero waiting in lines',
     equipment: ['balls', 'cones_orange', 'cones_yellow', 'bibs_yellow', 'bibs_blue', 'goals_mini', 'stopwatch'],
     drills: [
-      {
-        phase: 'Warm-Up',
-        name: 'Passing Diamond & Continuous Overlaps',
-        duration: 15,
-        dimensions: '18x18m Diamond',
-        players: 'Squad in 2 groups',
-        description: 'Continuous 1-touch and 2-touch passing diamond with give-and-go overlaps and blindside check-runs.',
-        coachingPoints: '• Weight of pass to back foot\n• Disguise intentions with eye movement\n• Sharp deceleration into space',
-        diagram: ''
-      },
-      {
-        phase: 'Technical',
-        name: '3v1 to 3v3 Positional Transfer Channels',
-        duration: 20,
-        dimensions: '30x15m (3 Channels)',
-        players: '12 Players (4 teams of 3)',
-        description: 'Teams keep 3v1 in end zone, after 4 passes they must transfer ball through central midfield zone to opposite end.',
-        coachingPoints: '• Calmness on the ball under tight pressure\n• Penetrative pass through the central pocket\n• Supporting angles from midfielders',
-        diagram: ''
-      },
-      {
-        phase: 'Tactical',
-        name: '6v6 + 3 Possession Overload Game',
-        duration: 25,
-        dimensions: '40x35m',
-        players: '15 Players',
-        description: '6v6 with 3 neutral players creating a constant +3 attacking overload. Aim is 10 consecutive passes for 1 point.',
-        coachingPoints: '• Constant movement off the ball\n• Use neutrals to reset tempo when closed down\n• Quick one-touch switch to weak side',
-        diagram: ''
-      },
-      {
-        phase: 'SSG',
-        name: '8v8 Small-Sided Game with 4 Mini Goals',
-        duration: 20,
-        dimensions: '50x40m',
-        players: '16 Players',
-        description: '8v8 playing to 4 wide mini-goals to encourage switching play and combination passing into wide channels.',
-        coachingPoints: '• Quick ball circulation from side to side\n• Exploit underloaded side with overlapping run\n• Speed of play in final third',
-        diagram: ''
-      },
-      {
-        phase: 'Cool Down',
-        name: 'Gradual De-load & Hip Mobility Routine',
-        duration: 10,
-        dimensions: 'Center Circle',
-        players: 'All Players',
-        description: 'Gentle mobility flow, calf/hip stretches, and hydration check-in.',
-        coachingPoints: '• Controlled deep breathing\n• Rehydrate with electrolytes',
-        diagram: ''
-      }
-    ]
+      getLibDrill('d_coerver_mastery'),
+      getLibDrill('d_coerver_1v1_gates'),
+      getLibDrill('d_ajax_multi_gate'),
+      getLibDrill('d_cooldown_stretch')
+    ].filter(Boolean)
   },
   {
-    id: 'preset_finishing_crossing',
-    title: 'Direct Wing Play, Crossing & Box Penetration',
+    id: 'preset_ajax_foundation',
+    title: 'Ajax Academy: TIPS Foundation Passing & 3v3 Tournament',
+    coach: 'Ajax Amsterdam Academy',
+    coachBadge: 'Ajax Academy (TIPS)',
+    ageGroup: 'u6_u9',
+    ageGroupLabel: '🟡 U6–U9 (Foundation)',
+    category: 'Technical',
+    intensity: 'Medium',
+    duration: 60,
+    objectives: '• Develop Ajax TIPS core: Technique, Intelligence, Personality, Speed\n• Foster spontaneous passing triangles without rigid positions\n• Immediate reaction to win the ball back on turnover with high energy',
+    equipment: ['balls', 'cones_orange', 'cones_yellow', 'bibs_yellow', 'bibs_blue', 'goals_mini', 'stopwatch'],
+    drills: [
+      getLibDrill('d_ajax_3v1_triangle'),
+      getLibDrill('d_coerver_1v1_gates'),
+      getLibDrill('d_ajax_multi_gate'),
+      getLibDrill('d_cooldown_stretch')
+    ].filter(Boolean)
+  },
+
+  // ── U10–U12: Youth Development Phase ──
+  {
+    id: 'preset_guardiola_possession',
+    title: 'Pep Guardiola: Positional Rondo & 3rd Man Combination',
+    coach: 'Pep Guardiola',
+    coachBadge: 'Pep Guardiola (Positional Play)',
+    ageGroup: 'u10_u12',
+    ageGroupLabel: '🟢 U10–U12 (Youth)',
+    category: 'Tactical',
+    intensity: 'High',
+    duration: 75,
+    objectives: '• Master passing triangles, open body shape, and receiving on the back foot\n• Exploit third-man runs to penetrate packed midfield lines\n• Instant 3-second counter-press trigger on ball loss',
+    equipment: ['balls', 'cones_orange', 'cones_yellow', 'bibs_yellow', 'bibs_blue', 'bibs_red', 'goals_mini', 'stopwatch', 'board'],
+    drills: [
+      getLibDrill('d_rondo_5v2'),
+      getLibDrill('d_y_passing'),
+      getLibDrill('d_4v4_3_possession'),
+      getLibDrill('d_cooldown_stretch')
+    ].filter(Boolean)
+  },
+  {
+    id: 'preset_klopp_reaction',
+    title: 'Jürgen Klopp: 5-Second Reaction & Gegenpress Hunt',
+    coach: 'Jürgen Klopp',
+    coachBadge: 'Jürgen Klopp (Gegenpressing)',
+    ageGroup: 'u10_u12',
+    ageGroupLabel: '🟢 U10–U12 (Youth)',
+    category: 'Tactical',
+    intensity: 'High',
+    duration: 75,
+    objectives: '• Immediate reflex hunt upon losing possession ("Gegenpressing")\n• Cut off central exit channels by pressing in tight pairs\n• Direct vertical attack: shoot within 5 seconds of regaining possession',
+    equipment: ['balls', 'cones_orange', 'cones_yellow', 'bibs_yellow', 'bibs_blue', 'goals_mini', 'hurdles', 'stopwatch'],
+    drills: [
+      getLibDrill('d_rondo_5v2'),
+      getLibDrill('d_1v1_finishing'),
+      getLibDrill('d_high_press_ssg'),
+      getLibDrill('d_cooldown_stretch')
+    ].filter(Boolean)
+  },
+  {
+    id: 'preset_bielsa_passing',
+    title: 'Marcelo Bielsa: Rapid "Up-Back-Through" Penetration',
+    coach: 'Marcelo Bielsa',
+    coachBadge: 'Marcelo Bielsa (Rotational Play)',
+    ageGroup: 'u10_u12',
+    ageGroupLabel: '🟢 U10–U12 (Youth)',
+    category: 'Technical',
+    intensity: 'High',
+    duration: 75,
+    objectives: '• Relentless off-the-ball movement and high-velocity passing\n• Rehearse classic Up-Back-Through combinations to bypass pressing lines\n• Dynamic blindside runs behind defensive lines with clinical near-post finishes',
+    equipment: ['balls', 'cones_orange', 'cones_yellow', 'bibs_yellow', 'bibs_blue', 'mannequins', 'goals_mini', 'stopwatch'],
+    drills: [
+      getLibDrill('d_y_passing'),
+      getLibDrill('d_bielsa_up_back_through'),
+      getLibDrill('d_1v1_finishing'),
+      getLibDrill('d_cooldown_stretch')
+    ].filter(Boolean)
+  },
+
+  // ── U13–U15: Intermediate & Tactical Specialization ──
+  {
+    id: 'preset_guardiola_juego',
+    title: 'Pep Guardiola: Juego de Posición & Half-Space Penetration',
+    coach: 'Pep Guardiola',
+    coachBadge: 'Pep Guardiola (Positional Play)',
+    ageGroup: 'u13_u15',
+    ageGroupLabel: '🔵 U13–U15 (Development)',
+    category: 'Tactical',
+    intensity: 'High',
+    duration: 90,
+    objectives: '• Master 5 vertical corridor structure, prioritizing left and right half-spaces\n• Pin opposition fullbacks to create 1v1 isolation overloads for wide wingers\n• Fluid rotational interchanges between #8 and #10 attacking midfielders',
+    equipment: ['balls', 'cones_orange', 'cones_yellow', 'bibs_yellow', 'bibs_blue', 'bibs_red', 'goals_mini', 'stopwatch', 'board'],
+    drills: [
+      getLibDrill('d_rondo_5v2'),
+      getLibDrill('d_y_passing'),
+      getLibDrill('d_4v4_3_possession'),
+      getLibDrill('d_high_press_ssg'),
+      getLibDrill('d_cooldown_stretch')
+    ].filter(Boolean)
+  },
+  {
+    id: 'preset_ancelotti_crossing',
+    title: 'Carlo Ancelotti: Direct Wing Overlaps & 3-Run Box Finishing',
+    coach: 'Carlo Ancelotti',
+    coachBadge: 'Carlo Ancelotti (Clinical Finishing)',
+    ageGroup: 'u13_u15',
+    ageGroupLabel: '🔵 U13–U15 (Development)',
     category: 'Technical',
     intensity: 'High',
     duration: 90,
-    objectives: '• Deliver accurate early crosses into danger zones\n• Attack near post, far post, and cut-back areas with staggered runs\n• High clinical conversion rate on first-time finishes',
-    equipment: ['balls', 'cones_orange', 'bibs_yellow', 'bibs_blue', 'mannequins', 'stopwatch'],
+    objectives: '• Deliver early whipped and low driven crosses into prime danger zones\n• Coordinate 3 staggered box runs: Near Post dart, Penalty Spot arrival, Edge of Box cutback\n• High clinical conversion rate on first-time finishes under pressure',
+    equipment: ['balls', 'cones_orange', 'cones_yellow', 'bibs_yellow', 'bibs_blue', 'mannequins', 'stopwatch', 'board'],
     drills: [
-      {
-        phase: 'Warm-Up',
-        name: 'Dynamic Box Agility & Header/Volley Warmup',
-        duration: 15,
-        dimensions: '20x20m',
-        players: 'Pairs with ball',
-        description: 'Dynamic movement across cones with aerial ball control, headers, and half-volleys to partner hands/feet.',
-        coachingPoints: '• Attack the ball at the highest point\n• Soft cushioned touch on chest control\n• Knee over ball on volleys',
-        diagram: ''
-      },
-      {
-        phase: 'Technical',
-        name: 'Overlap Combination & Unopposed Crossing Circuit',
-        duration: 20,
-        dimensions: 'Full Width Final Third',
-        players: 'Wingers, Full-backs, Strikers + 2 GKs',
-        description: 'Fullback overlaps winger around mannequin, delivers low hard cross or whipped far-post ball to 3 attacking runners.',
-        coachingPoints: '• Crosser looks up before striking\n• Run 1: Near post dart across front of defender\n• Run 2: Central penalty spot late arrival\n• Run 3: Far post sweep / cut-back edge of box',
-        diagram: ''
-      },
-      {
-        phase: 'Tactical',
-        name: '3v2 / 4v3 Rapid Box Overload Attacks',
-        duration: 25,
-        dimensions: 'Half Pitch with 1 Main Goal',
-        players: 'Attackers vs Defenders + 1 GK',
-        description: 'Wave after wave of 3v2 and 4v3 attacks originating from wide areas against 2-3 retreating center-backs.',
-        coachingPoints: '• Drive at defenders with speed\n• Commit the center-back before releasing wide\n• Rebound anticipation from all attackers',
-        diagram: ''
-      },
-      {
-        phase: 'SSG',
-        name: '7v7 + 2 Wide Floaters Crossing Match',
-        duration: 20,
-        dimensions: 'Penalty Box to Penalty Box with Wings',
-        players: '14 Players + 2 Wide Floaters + 2 GKs',
-        description: '7v7 game where wide floaters have 2 touch free crossing zones. Goals scored from crosses count for 2 points.',
-        coachingPoints: '• Early delivery before defense is set\n• Aggressive aerial duels in both boxes\n• Defensive clearance away from danger zone',
-        diagram: ''
-      },
-      {
-        phase: 'Cool Down',
-        name: 'Quad & Groin Recovery Stretching',
-        duration: 10,
-        dimensions: 'Penalty Box',
-        players: 'Full Squad',
-        description: 'Static stretching for legs, lower back, and coach feedback on finishing metrics.',
-        coachingPoints: '• Stretch hip flexors and quads\n• Celebrate clinical execution and goal scorers',
-        diagram: ''
-      }
-    ]
+      getLibDrill('d_y_passing'),
+      getLibDrill('d_ancelotti_crossing'),
+      getLibDrill('d_1v1_finishing'),
+      getLibDrill('d_high_press_ssg'),
+      getLibDrill('d_cooldown_stretch')
+    ].filter(Boolean)
   },
+
+  // ── U16+ & Senior: High Performance / Match Strategy ──
   {
-    id: 'preset_low_block_defense',
-    title: 'Defensive Low-Block Organization & Compactness',
+    id: 'preset_klopp_heavy_metal',
+    title: 'Jürgen Klopp: Heavy Metal High Press & 4-Second Vertical Counter',
+    coach: 'Jürgen Klopp',
+    coachBadge: 'Jürgen Klopp (Gegenpressing)',
+    ageGroup: 'u16_plus',
+    ageGroupLabel: '🟣 U16+ (Senior / Elite)',
     category: 'Tactical',
-    intensity: 'Medium',
+    intensity: 'High',
     duration: 90,
-    objectives: '• Maintain tight vertical and horizontal distances (compact 4-4-2 or 5-3-2)\n• Deny central penetration and protect the penalty area\n• Force opponent into low-probability wide crosses and win second balls',
+    objectives: '• Trap opponent build-up against the touchline with 3-man aggressive pressing units\n• Exploit pressing triggers: back-passes, heavy touches, lofted balls\n• Rapid 4-second vertical counter-attack to score before defense recovers shape',
     equipment: ['balls', 'cones_orange', 'cones_yellow', 'bibs_yellow', 'bibs_blue', 'goals_mini', 'stopwatch', 'board'],
     drills: [
-      {
-        phase: 'Warm-Up',
-        name: 'Back-4 Sliding & Shift Reaction Drill',
-        duration: 15,
-        dimensions: '35x20m',
-        players: 'Back 4 + 2 Midfielders',
-        description: 'Coach points or plays ball to different zones; back line slides, steps up, or drops in unison maintaining 8-10m distances.',
-        coachingPoints: '• Vocal communication from center-backs and GK\n• Body shape side-on ready to sprint back\n• Step up together when ball is played backwards',
-        diagram: ''
-      },
-      {
-        phase: 'Technical',
-        name: 'Defending 1v1 & 2v2 Duels in the Box',
-        duration: 20,
-        dimensions: 'Penalty Box Area',
-        players: 'Defenders & Attackers + 1 GK',
-        description: 'High-intensity 1v1 and 2v2 duels. Defender works on body positioning, blocking shots, and avoiding cheap fouls in the box.',
-        coachingPoints: '• Stay on feet, do not dive into tackles\n• Force attacker onto their weaker foot\n• Hands tucked in to avoid handball',
-        diagram: ''
-      },
-      {
-        phase: 'Tactical',
-        name: '8 vs 6 Low Block Defense vs Waves of Attack',
-        duration: 25,
-        dimensions: 'Defensive Half Pitch',
-        players: '8 Defenders vs 6 Attackers + 1 GK',
-        description: 'Attacking team attempts to break through central zones. Defending unit slides and stays ultra-compact.',
-        coachingPoints: '• Deny the half-spaces and #10 pocket\n• Clearances must be high and wide\n• Instant transition pass to target mini-goals',
-        diagram: ''
-      },
-      {
-        phase: 'Match Play',
-        name: '10v10 Game with Zonal Constraints',
-        duration: 20,
-        dimensions: '65x45m Pitch',
-        players: '20 Players + 2 GKs',
-        description: 'Full match where team defending low block earns points for clean sheet every 5 minutes + counter goals.',
-        coachingPoints: '• Game management under pressure\n• Defensive discipline without losing shape',
-        diagram: ''
-      },
-      {
-        phase: 'Cool Down',
-        name: 'Team Circle Stretch & Leadership Review',
-        duration: 10,
-        dimensions: 'Center Circle',
-        players: 'All Players',
-        description: 'Static stretching and captain/coach debrief on defensive resilience.',
-        coachingPoints: '• Praise defensive work ethic\n• Mental focus reinforcement',
-        diagram: ''
-      }
-    ]
+      getLibDrill('d_rondo_5v2'),
+      getLibDrill('d_bielsa_up_back_through'),
+      getLibDrill('d_4v4_3_possession'),
+      getLibDrill('d_high_press_ssg'),
+      getLibDrill('d_cooldown_stretch')
+    ].filter(Boolean)
+  },
+  {
+    id: 'preset_simeone_low_block',
+    title: 'Diego Simeone: Low-Block Compactness & Central Denial',
+    coach: 'Diego Simeone',
+    coachBadge: 'Diego Simeone (Low Block Defense)',
+    ageGroup: 'u16_plus',
+    ageGroupLabel: '🟣 U16+ (Senior / Elite)',
+    category: 'Tactical',
+    intensity: 'High',
+    duration: 90,
+    objectives: '• Maintain compact 8-10m unit distance between back-4 and midfield-4\n• Deny central pocket access and force opponent into low-percentage wide crosses\n• Secure second balls and execute instant counter-attacking transition into open wings',
+    equipment: ['balls', 'cones_orange', 'cones_yellow', 'bibs_yellow', 'bibs_blue', 'goals_mini', 'stopwatch', 'board'],
+    drills: [
+      getLibDrill('d_rondo_5v2'),
+      getLibDrill('d_simeone_low_block'),
+      getLibDrill('d_1v1_finishing'),
+      getLibDrill('d_high_press_ssg'),
+      getLibDrill('d_cooldown_stretch')
+    ].filter(Boolean)
+  },
+  {
+    id: 'preset_dezerbi_buildup',
+    title: 'Roberto De Zerbi: Baiting the Press & Progressive GK Build-Up',
+    coach: 'Roberto De Zerbi',
+    coachBadge: 'Roberto De Zerbi (Build-Up Play)',
+    ageGroup: 'u16_plus',
+    ageGroupLabel: '🟣 U16+ (Senior / Elite)',
+    category: 'Tactical',
+    intensity: 'High',
+    duration: 90,
+    objectives: '• Goalkeeper and CBs invite opponent first pressing line deep into our defensive box\n• Use sole on the ball to pause tempo and commit opponent strikers\n• Penetrate vertically through dropping pivot to release wide attacking runners',
+    equipment: ['balls', 'cones_orange', 'cones_yellow', 'bibs_yellow', 'bibs_blue', 'goals_mini', 'stopwatch', 'board'],
+    drills: [
+      getLibDrill('d_y_passing'),
+      getLibDrill('d_dezerbi_buildup'),
+      getLibDrill('d_4v4_3_possession'),
+      getLibDrill('d_11v11_phase'),
+      getLibDrill('d_cooldown_stretch')
+    ].filter(Boolean)
   }
 ];
+
+// Legacy ID aliases for backwards compatibility with any previously saved sessions
+SESSION_PRESETS.find(p => p.id === 'preset_klopp_heavy_metal') && (SESSION_PRESETS.push({ ...SESSION_PRESETS.find(p => p.id === 'preset_klopp_heavy_metal'), id: 'preset_high_press_433' }));
+SESSION_PRESETS.find(p => p.id === 'preset_guardiola_possession') && (SESSION_PRESETS.push({ ...SESSION_PRESETS.find(p => p.id === 'preset_guardiola_possession'), id: 'preset_tikitaka_possession' }));
+SESSION_PRESETS.find(p => p.id === 'preset_ancelotti_crossing') && (SESSION_PRESETS.push({ ...SESSION_PRESETS.find(p => p.id === 'preset_ancelotti_crossing'), id: 'preset_finishing_crossing' }));
+SESSION_PRESETS.find(p => p.id === 'preset_simeone_low_block') && (SESSION_PRESETS.push({ ...SESSION_PRESETS.find(p => p.id === 'preset_simeone_low_block'), id: 'preset_low_block_defense' }));
+
 
 function subscribeSessions(targetTeamId){
   if(sessionsUnsub){sessionsUnsub(); sessionsUnsub = null;}
@@ -4131,16 +4455,36 @@ function subscribeSessions(targetTeamId){
   const isSpecificTeam = tid && tid !== 'all';
   const cacheKey = isSpecificTeam ? ('fhq_sessions_' + tid) : 'fhq_sessions_all';
 
-  // Load from local storage cache first for instant response (deduplicated)
+  // Load from local storage cache first for instant response (aggregated & deduplicated)
   try {
-    const cached = localStorage.getItem(cacheKey);
-    if(cached) {
-      const parsed = JSON.parse(cached);
-      const uniqueMap = new Map();
-      (Array.isArray(parsed) ? parsed : []).forEach(s => {
-        if(s && s.id) uniqueMap.set(s.id, s);
+    let allCached = [];
+    const directCached = localStorage.getItem(cacheKey);
+    if(directCached) {
+      try { allCached = JSON.parse(directCached) || []; } catch(e){}
+    }
+    // Also scan all fhq_sessions_* keys in localStorage to aggregate sessions
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith('fhq_sessions_') && k !== cacheKey) {
+        try {
+          const items = JSON.parse(localStorage.getItem(k));
+          if (Array.isArray(items)) {
+            items.forEach(it => {
+              if (it && it.id && !allCached.some(x => x.id === it.id)) {
+                if (!isSpecificTeam || it.teamId === tid) {
+                  allCached.push(it);
+                }
+              }
+            });
+          }
+        } catch(e){}
+      }
+    }
+    if (allCached.length > 0) {
+      sessions = allCached.sort((a, b) => (String(b.date || '') + String(b.time || '')).localeCompare(String(a.date || '') + String(a.time || '')));
+      sessions.forEach(s => {
+        (s.drills || []).forEach(d => { if(typeof ensureDrillDiagram === 'function') ensureDrillDiagram(d); });
       });
-      sessions = Array.from(uniqueMap.values());
       renderSessions();
     }
   } catch(e){}
@@ -4159,6 +4503,9 @@ function subscribeSessions(targetTeamId){
         });
         sessions = Array.from(uniqueMap.values())
           .sort((a, b) => (String(b.date || '') + String(b.time || '')).localeCompare(String(a.date || '') + String(a.time || '')));
+        sessions.forEach(s => {
+          (s.drills || []).forEach(d => { if(typeof ensureDrillDiagram === 'function') ensureDrillDiagram(d); });
+        });
         try { localStorage.setItem(cacheKey, JSON.stringify(sessions)); } catch(e){}
         renderSessions();
       },
@@ -4489,6 +4836,11 @@ function openSessionWithPreset(presetId){
   if(!preset) return;
   const today = new Date().toISOString().split('T')[0];
   const assignedTeamId = (currentStudioTeamId && currentStudioTeamId !== 'all') ? currentStudioTeamId : (curTeam ? curTeam.id : (teams[0] ? teams[0].id : ''));
+
+  const clonedDrills = JSON.parse(JSON.stringify((preset.drills || []).filter(Boolean)));
+  // Pre-generate pitch diagrams so thumbnails show immediately when editor opens
+  clonedDrills.forEach(d => { if(typeof ensureDrillDiagram === 'function') ensureDrillDiagram(d); });
+
   currentEditingSession = {
     id: null,
     teamId: assignedTeamId,
@@ -4501,7 +4853,7 @@ function openSessionWithPreset(presetId){
     coach: '',
     objectives: preset.objectives,
     equipment: [...(preset.equipment || ['balls', 'cones_orange', 'bibs_yellow', 'bibs_blue', 'stopwatch'])],
-    drills: JSON.parse(JSON.stringify(preset.drills)),
+    drills: clonedDrills,
     attendance: {},
     debrief: { rating: '', status: 'scheduled', notes: '' }
   };
@@ -4677,6 +5029,7 @@ function renderDrillTimeline(){
   }
 
   listEl.innerHTML = drills.map((d, idx) => {
+    ensureDrillDiagram(d);
     const cardClass = getPhaseClass(d.phase).replace('phase-', '');
     return `
       <div class="sp-drill-card ${cardClass}">
@@ -4765,10 +5118,21 @@ function renderDrillTimeline(){
 let currentViewingDrillIdx = null;
 
 function openPitchDiagramPopup(drillIdx){
-  currentViewingDrillIdx = drillIdx;
   if(!currentEditingSession || !currentEditingSession.drills || !currentEditingSession.drills[drillIdx]) return;
   const d = currentEditingSession.drills[drillIdx];
+  openPitchDiagramViewerForDrill(d, currentEditingSession.title || 'Training Session', drillIdx);
+}
+
+function openPitchDiagramViewerForDrill(d, contextTitle = '', editorDrillIdx = null) {
+  if(!d) return;
+  if(typeof ensureDrillDiagram === 'function') ensureDrillDiagram(d);
   if(!d.diagram) return;
+
+  currentViewingDrillIdx = editorDrillIdx;
+  const editBtn = $('diag-view-edit-btn');
+  if(editBtn) {
+    editBtn.style.display = (editorDrillIdx !== null) ? 'inline-flex' : 'none';
+  }
 
   if($('diag-view-title')) $('diag-view-title').textContent = (d.name || 'Tactical Drill').toUpperCase();
   if($('diag-view-phase')) {
@@ -4793,6 +5157,13 @@ function editCurrentViewingDiagram(){
     closeM('m-drill-diagram-viewer');
     openDrillBoard(currentViewingDrillIdx);
   }
+}
+
+function viewPresetDrillDiagram(presetId, drillIdx){
+  const p = SESSION_PRESETS.find(item => item.id === presetId);
+  if(!p || !p.drills || !p.drills[drillIdx]) return;
+  const d = p.drills[drillIdx];
+  openPitchDiagramViewerForDrill(d, p.title || 'Session Preset');
 }
 
 function updateDrillField(idx, field, value){
@@ -5579,11 +5950,13 @@ function redrawCanvas(){
 }
 
 // Automatically connects and displays distances between placed equipment of the SAME sequence and SAME color/type
-function drawSameEquipmentDistances(ctx){
+function drawSameEquipmentDistances(ctx, objectsList = null, pitchType = null){
+  const items = objectsList || boardObjects;
+  const pType = pitchType || boardPitchType;
   const eqKeys = ['cone_yellow', 'cone_red', 'cone', 'marker_yellow', 'marker_red', 'hurdle', 'ladder', 'pole', 'mannequin'];
 
   eqKeys.forEach(k => {
-    const allOfTool = boardObjects.filter(o => o.type === 'token' && (o.tool === k || (k === 'cone_red' && o.tool === 'cone')));
+    const allOfTool = items.filter(o => o.type === 'token' && (o.tool === k || (k === 'cone_red' && o.tool === 'cone')));
     // Group by sequenceId
     const groups = {};
     allOfTool.forEach(o => {
@@ -5620,7 +5993,7 @@ function drawSameEquipmentDistances(ctx){
               ctx.fill();
 
               // Whole-number yard badge placed on the side outside the line
-              const yds = pxToYds(dist, boardPitchType);
+              const yds = pxToYds(dist, pType);
               drawAlignedSegmentYardBadge(ctx, p1.x, p1.y, p2.x, p2.y, `${yds} yds`, 16, '#ffffff', 'rgba(10, 30, 20, 0.94)');
             }
           }
@@ -6256,10 +6629,14 @@ function drawRealisticSoccerBall(ctx, bx, by, R = 12.5){
   }
 }
 
-function drawSingleObject(obj, isPreview){
-  const canvas = $('sp-canvas');
-  if(!canvas) return;
-  const ctx = canvas.getContext('2d');
+function drawSingleObject(obj, isPreview, targetCtx = null, targetPitchType = null){
+  let ctx = targetCtx;
+  const pType = targetPitchType || boardPitchType;
+  if(!ctx){
+    const canvas = $('sp-canvas');
+    if(!canvas) return;
+    ctx = canvas.getContext('2d');
+  }
 
   if(obj.type === 'token'){
     if(obj.tool === 'ball'){
@@ -7044,7 +7421,7 @@ function drawSingleObject(obj, isPreview){
       const dist = Math.hypot(obj.x2 - obj.x1, obj.y2 - obj.y1);
       const showDist = isPreview ? isRulerEnabled : (obj.showMeasurement === true);
       if(showDist && dist > 15){
-        const yds = pxToYds(dist, boardPitchType);
+        const yds = pxToYds(dist, pType);
         drawAlignedSegmentYardBadge(ctx, obj.x1, obj.y1, obj.x2, obj.y2, `Dribble: ${yds} yds`, 16, '#ff9800', 'rgba(10, 30, 20, 0.94)');
       }
     } else if(obj.tool === 'zone'){
@@ -7064,8 +7441,8 @@ function drawSingleObject(obj, isPreview){
 
       const showDist = isPreview ? isRulerEnabled : (obj.showMeasurement === true);
       if(showDist && rw > 15 && rh > 15){
-        const ydsW = pxToYds(rw, boardPitchType);
-        const ydsH = pxToYds(rh, boardPitchType);
+        const ydsW = pxToYds(rw, pType);
+        const ydsH = pxToYds(rh, pType);
         drawYardBadge(ctx, rx + rw / 2, ry - 12 < 12 ? ry + rh + 12 : ry - 12, `📐 ${ydsW} × ${ydsH} yds`, '#ffffff', 'rgba(10, 30, 20, 0.94)');
       }
     } else if(obj.tool === 'ruler'){
@@ -7188,6 +7565,49 @@ function saveBoardDiagram(){
   renderDrillTimeline();
 }
 
+function ensureDrillDiagram(drill){
+  if(!drill) return '';
+  if(drill.diagram && drill.diagram.startsWith('data:image/')) return drill.diagram;
+  if(!drill.boardObjects || !drill.boardObjects.length) return '';
+
+  const prevPitchType = boardPitchType;
+  try {
+    const offCanvas = document.createElement('canvas');
+    offCanvas.width = 800;
+    offCanvas.height = 520;
+    const offCtx = offCanvas.getContext('2d');
+    const pitchType = drill.pitchType || 'half';
+    boardPitchType = pitchType;
+
+    drawFootballPitchBackground(offCtx, 800, 520, pitchType);
+    drawSameEquipmentDistances(offCtx, drill.boardObjects, pitchType);
+    (drill.boardObjects || []).forEach(obj => {
+      drawSingleObject(obj, false, offCtx, pitchType);
+    });
+    drawPitchScaleBar(offCtx, 800, 520, pitchType);
+
+    drill.diagram = offCanvas.toDataURL('image/png', 0.88);
+    return drill.diagram;
+  } catch(e){
+    console.warn('Could not auto-generate drill diagram:', e);
+    return '';
+  } finally {
+    boardPitchType = prevPitchType;
+  }
+}
+
+function initDrillLibraryDiagrams(){
+  DRILL_LIBRARY.forEach(d => {
+    ensureDrillDiagram(d);
+  });
+  SESSION_PRESETS.forEach(p => {
+    (p.drills || []).forEach(d => {
+      ensureDrillDiagram(d);
+    });
+  });
+}
+try { initDrillLibraryDiagrams(); } catch(e){ console.warn('[CMS] initDrillLibraryDiagrams failed at load time:', e); }
+
 window.addEventListener('beforeunload', (e) => {
   if(typeof isSessionEditorDirty === 'function' && isSessionEditorDirty()){
     e.preventDefault();
@@ -7246,39 +7666,93 @@ function renderDrillLibrary(){
 function selectDrillFromLibrary(drillId){
   const d = DRILL_LIBRARY.find(item => item.id === drillId);
   if(!d) return;
-  if(isInsertToSessionMode && currentEditingSession){
+  if(currentEditingSession){
     addDrillBlock(d);
-    closeM('m-drill-library');
   } else {
     // Open new session with this drill
     openNewSession();
     currentEditingSession.drills = [JSON.parse(JSON.stringify(d))];
-    renderDrillTimeline();
-    closeM('m-drill-library');
+    if(!currentEditingSession.title) currentEditingSession.title = d.name;
+    populateSessionEditorForm();
   }
+  closeM('m-drill-library');
+  openM('m-session-editor');
 }
 
-function openTemplatePicker(){
-  const grid = $('preset-grid');
-  if(!grid) return;
+let currentTemplateAgeFilter = 'all';
 
-  grid.innerHTML = SESSION_PRESETS.map(p => `
+function setTemplateAgeFilter(age){
+  currentTemplateAgeFilter = age;
+  const container = $('preset-age-filters') || $('tp-age-filters');
+  if(container){
+    container.querySelectorAll('.sp-age-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.age === age);
+    });
+  }
+  renderTemplatePresetsFilter();
+}
+
+function renderTemplatePresetsFilter(){
+  const grid = $('preset-grid') || $('tp-presets-list');
+  if(!grid) return;
+  const searchInput = $('preset-search') || $('tp-preset-search');
+  const search = (searchInput?.value || '').toLowerCase().trim();
+
+  // Filter out duplicate legacy aliases for clean card display
+  const primaryPresets = SESSION_PRESETS.filter(p => !['preset_high_press_433', 'preset_tikitaka_possession', 'preset_finishing_crossing', 'preset_low_block_defense'].includes(p.id) || p.coach);
+
+  const filtered = primaryPresets.filter(p => {
+    if(currentTemplateAgeFilter !== 'all' && p.ageGroup !== currentTemplateAgeFilter) return false;
+    if(search){
+      const matchTitle = (p.title || '').toLowerCase().includes(search);
+      const matchCoach = (p.coach || '').toLowerCase().includes(search) || (p.coachBadge || '').toLowerCase().includes(search);
+      const matchObj = (p.objectives || '').toLowerCase().includes(search);
+      const matchCat = (p.category || '').toLowerCase().includes(search);
+      if(!matchTitle && !matchCoach && !matchObj && !matchCat) return false;
+    }
+    return true;
+  });
+
+  if(filtered.length === 0){
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--mt);">No session presets found matching your filter.</div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(p => `
     <div class="sp-lib-card" onclick="openSessionWithPreset('${p.id}')">
       <div class="sp-lib-head">
-        <span class="sp-badge ${getCategoryBadgeClass(p.category)}">${esc(p.category)}</span>
-        <span style="font-size:12px;font-weight:700;color:var(--g);">⚡ ${p.duration} mins</span>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          ${p.ageGroup ? `<span class="sp-age-tag sp-age-${p.ageGroup}">${esc(p.ageGroupLabel || p.ageGroup)}</span>` : ''}
+          ${p.coachBadge ? `<span class="sp-coach-tag">👤 ${esc(p.coachBadge)}</span>` : ''}
+          <span class="sp-badge ${getCategoryBadgeClass(p.category)}">${esc(p.category)}</span>
+        </div>
+        <span style="font-size:12px;font-weight:700;color:var(--g);white-space:nowrap;">⚡ ${p.duration} mins</span>
       </div>
-      <div class="sp-lib-title">${esc(p.title)}</div>
+      <div class="sp-lib-title" style="margin-top:6px;font-size:14.5px;">${esc(p.title)}</div>
       <div class="sp-lib-desc">${esc(p.objectives)}</div>
       <div class="sp-drills-chips" style="margin-top:8px;">
-        ${(p.drills || []).map(d => `<div class="sp-drill-chip"><span class="dot ${getPhaseClass(d.phase)}"></span>${esc(d.name)}</div>`).join('')}
+        ${(p.drills || []).filter(Boolean).map((d, dIdx) => `
+          <div class="sp-drill-chip" onclick="event.stopPropagation();viewPresetDrillDiagram('${p.id}', ${dIdx})" title="Click to view pitch diagram for ${esc(d.name)}" style="cursor:pointer;">
+            <span class="dot ${getPhaseClass(d ? d.phase : '')}"></span>${esc(d ? d.name : 'Drill')}
+            <span style="font-size:11px;opacity:0.8;margin-left:3px;">🏟️</span>
+          </div>
+        `).join('')}
       </div>
-      <div style="margin-top:auto;padding-top:10px;display:flex;justify-content:flex-end;">
-        <button class="mok" style="padding:6px 12px;font-size:12px;">⚡ Use Preset</button>
+      <div style="margin-top:auto;padding-top:10px;display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:11.5px;color:var(--mt);">${p.intensity || 'Medium'} Intensity · ${p.drills ? p.drills.filter(Boolean).length : 0} Drills</span>
+        <button class="mok" style="padding:6px 14px;font-size:12px;" onclick="event.stopPropagation();openSessionWithPreset('${p.id}')">⚡ Load This Session</button>
       </div>
     </div>
   `).join('');
+}
 
+function openTemplatePicker(){
+  currentTemplateAgeFilter = 'all';
+  const searchInput = $('preset-search') || $('tp-preset-search');
+  if(searchInput) searchInput.value = '';
+  const filterBtns = document.querySelectorAll('.sp-age-btn');
+  filterBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.age === 'all'));
+  renderTemplatePresetsFilter();
   openM('m-template-picker');
 }
 
@@ -7530,6 +8004,7 @@ function setupStudioScrollTrap() {
 
 document.addEventListener('DOMContentLoaded', () => {
   setupStudioScrollTrap();
+  if (typeof initDrillLibraryDiagrams === 'function') initDrillLibraryDiagrams();
 });
 setTimeout(setupStudioScrollTrap, 200);
 setTimeout(setupStudioScrollTrap, 1000);

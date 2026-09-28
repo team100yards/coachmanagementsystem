@@ -191,6 +191,8 @@ textarea{resize:vertical;min-height:78px;}
 /* MODALS */
 .mov{display:none;position:fixed;inset:0;background:rgba(0,40,0,.55);z-index:999;align-items:center;justify-content:center;padding:20px;pointer-events:none;}
 .mov.open{display:flex;pointer-events:all;}
+#m-drill-board { z-index: 1050; }
+#m-drill-library, #m-template-picker, #m-drill-diagram-viewer { z-index: 1010; }
 .mbox{background:var(--card);border:1.5px solid var(--bd);border-radius:22px;box-shadow:0 12px 40px rgba(26,92,26,.15);padding:30px;max-width:360px;width:100%;text-align:center;}
 .mbox.wide{max-width:500px;text-align:left;max-height:90vh;overflow-y:auto;}
 .mico{font-size:38px;margin-bottom:10px;}
@@ -875,6 +877,12 @@ textarea{resize:vertical;min-height:78px;}
   display: flex;
   align-items: center;
   gap: 4px;
+  transition: all .15s ease;
+}
+.sp-drill-chip[onclick]:hover {
+  border-color: var(--g);
+  background: rgba(26, 92, 26, 0.1);
+  transform: translateY(-1px);
 }
 .sp-drill-chip .dot {
   width: 6px;
@@ -1472,6 +1480,56 @@ textarea{resize:vertical;min-height:78px;}
   line-height: 1.35;
   margin-bottom: 8px;
 }
+
+/* Age Filter Pills & Coach Tags for Preset Templates */
+.sp-age-btn {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 11.5px;
+  font-weight: 700;
+  border: 1.5px solid var(--bd);
+  background: var(--card);
+  color: var(--tx);
+  cursor: pointer;
+  transition: all .15s ease;
+  white-space: nowrap;
+}
+.sp-age-btn:hover {
+  border-color: var(--g);
+  color: var(--g);
+}
+.sp-age-btn.active {
+  background: var(--g);
+  color: #fff;
+  border-color: var(--g);
+  box-shadow: 0 2px 8px rgba(26, 92, 26, .25);
+}
+.sp-coach-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(30, 136, 229, 0.12);
+  color: #1976d2;
+  border: 1px solid rgba(30, 136, 229, 0.25);
+}
+.sp-age-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+.sp-age-u6_u9 { background: #fff8e1; color: #f57f17; border: 1px solid #ffe082; }
+.sp-age-u10_u12 { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+.sp-age-u13_u15 { background: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; }
+.sp-age-u16_plus { background: #f3e5f5; color: #7b1fa2; border: 1px solid #e1bee7; }
+
 
 /* Printable A4 Coaching Sheet Styles */
 .sp-print-page {

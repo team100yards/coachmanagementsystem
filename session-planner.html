@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20260901q">
+  <link rel="stylesheet" href="style.css?v=20260928b">
   <style>
     body {
       margin: 0;
@@ -44,7 +44,7 @@
       align-items: center;
       justify-content: center;
     }
-    #pitch-canvas {
+    #sp-canvas, #pitch-canvas {
       display: block;
       cursor: crosshair;
       touch-action: none;
@@ -336,59 +336,194 @@
 
   <!-- TACTICAL BOARD SKETCHER MODAL -->
   <div class="mov" id="m-drill-board" onclick="if(event.target===this)closeBoardSketcher()">
-    <div class="mbox wide" style="max-width:920px;max-height:94vh;display:flex;flex-direction:column;padding:0;overflow:hidden;">
-      <div style="padding:16px 20px;border-bottom:1.5px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div style="font-size:22px;">📐</div>
-          <div>
-            <div class="mtit" style="margin:0;font-size:18px;">TACTICAL PITCH DIAGRAM SKETCHER</div>
-            <div style="font-size:11.5px;color:var(--mt);">Draw player movements, passing lines, cones, and pressing zones</div>
-          </div>
+    <div class="mbox wide sp-board-modal">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-shrink:0;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:22px;">🎨</span>
+          <div class="mtit" style="margin:0;font-size:20px;">TACTICAL DRILL SKETCHER</div>
         </div>
-        <button class="chat-act-btn" style="font-size:16px;padding:4px 8px;" onclick="closeBoardSketcher()">✕</button>
+        <button class="chat-act-btn" style="font-size:18px;padding:4px 8px;border:none!important;outline:none!important;background:none!important;box-shadow:none!important;" onclick="closeBoardSketcher()">✕</button>
       </div>
 
-      <div style="padding:16px 20px;overflow-y:auto;flex:1;">
-        <div class="board-toolbar">
-          <div style="display:flex;align-items:center;gap:4px;margin-right:10px;">
-            <span style="font-size:11px;font-weight:700;color:var(--mt);text-transform:uppercase;">Pitch:</span>
-            <button type="button" class="board-tool-btn" id="bt-pitch-half" onclick="setBoardPitch('half')">Half Pitch</button>
-            <button type="button" class="board-tool-btn" id="bt-pitch-full" onclick="setBoardPitch('full')">Full Pitch</button>
-            <button type="button" class="board-tool-btn" id="bt-pitch-box" onclick="setBoardPitch('box')">Penalty Box</button>
-          </div>
+      <!-- Sketcher Toolbar -->
+      <div class="sp-board-toolbar" style="flex-shrink:0;">
+        <select id="board-pitch-type" class="db-filter" style="padding:6px 10px;font-size:12px;" onchange="changePitchBackground(this.value)">
+          <option value="half" selected>⚽ Half Pitch (Vertical)</option>
+          <option value="half_horizontal">⚽ Half Pitch (Horizontal)</option>
+          <option value="full">🏟️ Full Pitch</option>
+          <option value="box">🥅 Penalty Box (Final Third)</option>
+          <option value="grid">▦ Training Grid (3x3)</option>
+          <option value="plain">🔲 Plain Green Pitch</option>
+        </select>
 
-          <div style="width:1px;height:24px;background:var(--bd);margin:0 4px;"></div>
+        <div style="height:20px;width:1px;background:var(--bd);margin:0 2px;"></div>
 
-          <div style="display:flex;align-items:center;gap:4px;">
-            <span style="font-size:11px;font-weight:700;color:var(--mt);text-transform:uppercase;">Add:</span>
-            <button type="button" class="board-tool-btn active" id="bt-red" onclick="setBoardTool('red')">🔴 Attackers</button>
-            <button type="button" class="board-tool-btn" id="bt-blue" onclick="setBoardTool('blue')">🔵 Defenders</button>
-            <button type="button" class="board-tool-btn" id="bt-yellow" onclick="setBoardTool('yellow')">🟡 Neutral</button>
-            <button type="button" class="board-tool-btn" id="bt-ball" onclick="setBoardTool('ball')">⚽ Ball</button>
-            <button type="button" class="board-tool-btn" id="bt-cone" onclick="setBoardTool('cone')">▲ Cone</button>
-            <button type="button" class="board-tool-btn" id="bt-line" onclick="setBoardTool('line')">── Pass Line</button>
-            <button type="button" class="board-tool-btn" id="bt-arrow" onclick="setBoardTool('arrow')">➔ Run Arrow</button>
-            <button type="button" class="board-tool-btn" id="bt-text" onclick="setBoardTool('text')">🏷️ Text</button>
-          </div>
+        <button class="sp-tool-btn" id="tool-select" onclick="setBoardTool('select')" title="Select and drag any goal, cone, or player around the pitch">
+          <svg class="sp-tb-icon" viewBox="0 0 16 16"><path d="M2 2l4.5 11.5 2-4 4-2L2 2z" fill="#3949ab" stroke="#1a237e" stroke-width="1.2" stroke-linejoin="round"/></svg> Move
+        </button>
 
-          <div style="width:1px;height:24px;background:var(--bd);margin:0 4px;"></div>
+        <!-- Players & Ball -->
+        <button class="sp-tool-btn active" id="tool-red" onclick="setBoardTool('red')">
+          <svg class="sp-tb-icon" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" fill="#e53935" stroke="#b71c1c" stroke-width="1.2"/><ellipse cx="6" cy="5.5" rx="2.5" ry="1.2" fill="rgba(255,255,255,0.6)"/></svg> Red
+        </button>
+        <button class="sp-tool-btn" id="tool-blue" onclick="setBoardTool('blue')" title="Blue Player Token">
+          <svg class="sp-tb-icon" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" fill="#1e88e5" stroke="#0d47a1" stroke-width="1.2"/><ellipse cx="6" cy="5.5" rx="2.5" ry="1.2" fill="rgba(255,255,255,0.6)"/></svg> Blue
+        </button>
+        <button class="sp-tool-btn" id="tool-yellow" onclick="setBoardTool('yellow')">
+          <svg class="sp-tb-icon" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" fill="#ffd600" stroke="#f57f17" stroke-width="1.2"/><ellipse cx="6" cy="5.5" rx="2.5" ry="1.2" fill="rgba(255,255,255,0.7)"/></svg> Yellow
+        </button>
+        <button class="sp-tool-btn" id="tool-green" onclick="setBoardTool('green')">
+          <svg class="sp-tb-icon" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" fill="#00e676" stroke="#1b5e20" stroke-width="1.2"/><ellipse cx="6" cy="5.5" rx="2.5" ry="1.2" fill="rgba(255,255,255,0.6)"/></svg> Green
+        </button>
+        <button class="sp-tool-btn" id="tool-gk" onclick="setBoardTool('gk')">
+          <svg class="sp-tb-icon" viewBox="0 0 16 16">
+            <circle cx="8" cy="8" r="6.5" fill="#ffffff" stroke="#37474f" stroke-width="1.2"/>
+            <ellipse cx="6" cy="5.5" rx="2.5" ry="1.2" fill="rgba(255,255,255,0.9)"/>
+            <text x="8" y="10.8" font-size="6.5" font-weight="bold" font-family="sans-serif" text-anchor="middle" fill="#11161b">GK</text>
+          </svg> GK
+        </button>
+        <button class="sp-tool-btn" id="tool-ball" onclick="setBoardTool('ball')" title="Match Football">
+          <img src="soccer-ball.svg" style="width:16px;height:16px;vertical-align:middle;display:inline-block;" alt="Ball" /> Ball
+        </button>
 
-          <div style="display:flex;align-items:center;gap:4px;">
-            <button type="button" class="board-tool-btn" onclick="undoBoardObject()">↩ Undo</button>
-            <button type="button" class="board-tool-btn" onclick="clearBoardObjects()" style="color:#d32f2f;">🗑️ Clear</button>
-          </div>
-        </div>
+        <div style="height:20px;width:1px;background:var(--bd);margin:0 2px;"></div>
 
-        <div class="board-canvas-wrap">
-          <canvas id="pitch-canvas" width="800" height="520"></canvas>
+        <!-- Cones & Markers -->
+        <button class="sp-tool-btn" id="tool-cone_yellow" onclick="setBoardTool('cone_yellow')">
+          <svg class="sp-tb-icon" viewBox="0 0 16 16">
+            <ellipse cx="8" cy="13.5" rx="6.5" ry="2" fill="#e65100"/>
+            <path d="M3 13.5L7 3h2l4 10.5H3z" fill="#ffd600" stroke="#f57f17" stroke-width="0.8"/>
+            <path d="M5 9h6l.8 2.2H4.2L5 9z" fill="#ffffff" stroke="rgba(0,0,0,0.15)" stroke-width="0.5"/>
+            <ellipse cx="8" cy="3" rx="1" ry="0.5" fill="#bf360c"/>
+          </svg> Y-Cone
+        </button>
+        <button class="sp-tool-btn" id="tool-cone_red" onclick="setBoardTool('cone_red')">
+          <svg class="sp-tb-icon" viewBox="0 0 16 16">
+            <ellipse cx="8" cy="13.5" rx="6.5" ry="2" fill="#880e4f"/>
+            <path d="M3 13.5L7 3h2l4 10.5H3z" fill="#ff3d00" stroke="#c62828" stroke-width="0.8"/>
+            <path d="M5 9h6l.8 2.2H4.2L5 9z" fill="#ffffff" stroke="rgba(0,0,0,0.15)" stroke-width="0.5"/>
+            <ellipse cx="8" cy="3" rx="1" ry="0.5" fill="#4a148c"/>
+          </svg> R-Cone
+        </button>
+        <button class="sp-tool-btn" id="tool-marker_yellow" onclick="setBoardTool('marker_yellow')">
+          <svg class="sp-tb-icon" viewBox="0 0 16 16">
+            <ellipse cx="8" cy="10" rx="7" ry="3.2" fill="#ffd600" stroke="#f57f17" stroke-width="0.8"/>
+            <ellipse cx="8" cy="9.2" rx="4.5" ry="1.8" fill="#fff9c4"/>
+            <ellipse cx="8" cy="9.5" rx="1.6" ry="0.8" fill="#bf360c"/>
+          </svg> Y-Marker
+        </button>
+        <button class="sp-tool-btn" id="tool-marker_red" onclick="setBoardTool('marker_red')">
+          <svg class="sp-tb-icon" viewBox="0 0 16 16">
+            <ellipse cx="8" cy="10" rx="7" ry="3.2" fill="#ff3d00" stroke="#b71c1c" stroke-width="0.8"/>
+            <ellipse cx="8" cy="9.2" rx="4.5" ry="1.8" fill="#ffcdd2"/>
+            <ellipse cx="8" cy="9.5" rx="1.6" ry="0.8" fill="#4a148c"/>
+          </svg> R-Marker
+        </button>
+
+        <div style="height:20px;width:1px;background:var(--bd);margin:0 2px;"></div>
+
+        <!-- Equipment -->
+        <button class="sp-tool-btn" id="tool-mannequin" onclick="setBoardTool('mannequin')">
+          <svg class="sp-tb-icon" viewBox="0 0 16 16">
+            <ellipse cx="8" cy="2.5" rx="2.2" ry="2.2" fill="#00e676" stroke="#1b5e20" stroke-width="0.7"/>
+            <rect x="7" y="4.5" width="2" height="9" fill="#37474f"/>
+            <rect x="3" y="5.5" width="10" height="1.8" rx="0.8" fill="#00e676" stroke="#1b5e20" stroke-width="0.6"/>
+            <rect x="3.5" y="8" width="9" height="1.8" rx="0.8" fill="#00e676" stroke="#1b5e20" stroke-width="0.6"/>
+            <rect x="4.5" y="10.5" width="7" height="1.8" rx="0.8" fill="#00e676" stroke="#1b5e20" stroke-width="0.6"/>
+            <line x1="4" y1="14.5" x2="12" y2="14.5" stroke="#212121" stroke-width="1.2"/>
+          </svg> Mannequin
+        </button>
+        <button class="sp-tool-btn" id="tool-hurdle" onclick="setBoardTool('hurdle')">
+          <svg class="sp-tb-icon" viewBox="0 0 16 16">
+            <path d="M2 13v-7c0-1.1.9-2 2-2h8c1.1 0 2 .9 2 2v7" fill="none" stroke="#ff6d00" stroke-width="2" stroke-linecap="round"/>
+            <line x1="6" y1="4" x2="10" y2="4" stroke="#ffffff" stroke-width="2"/>
+            <line x1="1" y1="13" x2="4" y2="13" stroke="#263238" stroke-width="1.8"/>
+            <line x1="12" y1="13" x2="15" y2="13" stroke="#263238" stroke-width="1.8"/>
+          </svg> Hurdle
+        </button>
+        <button class="sp-tool-btn" id="tool-ladder" onclick="setBoardTool('ladder')">
+          <svg class="sp-tb-icon" viewBox="0 0 16 16">
+            <line x1="4" y1="1" x2="4" y2="15" stroke="#1a237e" stroke-width="1.6"/>
+            <line x1="12" y1="1" x2="12" y2="15" stroke="#1a237e" stroke-width="1.6"/>
+            <line x1="3" y1="3.5" x2="13" y2="3.5" stroke="#ffd600" stroke-width="1.5"/>
+            <line x1="3" y1="7.5" x2="13" y2="7.5" stroke="#ffd600" stroke-width="1.5"/>
+            <line x1="3" y1="11.5" x2="13" y2="11.5" stroke="#ffd600" stroke-width="1.5"/>
+          </svg> Ladder
+        </button>
+        <button class="sp-tool-btn" id="tool-pole" onclick="setBoardTool('pole')">
+          <svg class="sp-tb-icon" viewBox="0 0 16 16">
+            <ellipse cx="8" cy="14" rx="4.5" ry="1.6" fill="#263238"/>
+            <line x1="8" y1="2" x2="8" y2="14" stroke="#ffd600" stroke-width="1.8"/>
+            <line x1="8" y1="5" x2="8" y2="8" stroke="#d50000" stroke-width="1.8"/>
+            <line x1="8" y1="10" x2="8" y2="12.5" stroke="#d50000" stroke-width="1.8"/>
+            <polygon points="8,2 14,4.5 8,7" fill="#ff1744"/>
+          </svg> Pole
+        </button>
+        <button class="sp-tool-btn" id="tool-goal" onclick="setBoardTool('goal')">
+          <svg class="sp-tb-icon" viewBox="0 0 16 16">
+            <rect x="2" y="3" width="12" height="10" fill="rgba(255,255,255,0.25)" stroke="#cfd8dc" stroke-width="0.8"/>
+            <line x1="2" y1="6.5" x2="14" y2="6.5" stroke="#cfd8dc" stroke-width="0.6"/>
+            <line x1="2" y1="10" x2="14" y2="10" stroke="#cfd8dc" stroke-width="0.6"/>
+            <line x1="6" y1="3" x2="6" y2="13" stroke="#cfd8dc" stroke-width="0.6"/>
+            <line x1="10" y1="3" x2="10" y2="13" stroke="#cfd8dc" stroke-width="0.6"/>
+            <rect x="2" y="3" width="12" height="10" fill="none" stroke="#ffffff" stroke-width="1.8"/>
+          </svg> 3D Goal
+        </button>
+
+        <div style="height:20px;width:1px;background:var(--bd);margin:0 2px;"></div>
+
+        <!-- Tactical Lines & Measures -->
+        <button class="sp-tool-btn" id="tool-pass" onclick="setBoardTool('pass')" title="Ground Pass Line (Yellow)">
+          <svg class="sp-tb-icon" viewBox="0 0 16 16">
+            <circle cx="2.5" cy="8" r="1.8" fill="#ffd600" stroke="#11161b" stroke-width="0.5"/>
+            <path d="M4.5 8h6.5m0 0l-3-3m3 3l-3 3" fill="none" stroke="#ffd600" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 1.2"/>
+          </svg> Pass
+        </button>
+        <button class="sp-tool-btn" id="tool-lob" onclick="setBoardTool('lob')" title="Aerial / Lofted Arc Pass (Yellow)">
+          <svg class="sp-tb-icon" viewBox="0 0 16 16">
+            <path d="M2 13 Q8 2 13 10" fill="none" stroke="#ffd600" stroke-width="2" stroke-linecap="round" stroke-dasharray="3 2"/>
+            <path d="M10.5 9.5l3.2.8-.8-3.2" fill="none" stroke="#ffd600" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg> Lob Pass
+        </button>
+        <button class="sp-tool-btn" id="tool-run" onclick="setBoardTool('run')" title="Player Off-the-ball Run (Red)">
+          <svg class="sp-tb-icon" viewBox="0 0 16 16"><path d="M2 8h9m0 0l-3.5-3.5M11 8l-3.5 3.5" fill="none" stroke="#e53935" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Run
+        </button>
+        <button class="sp-tool-btn" id="tool-dribble" onclick="setBoardTool('dribble')">
+          <svg class="sp-tb-icon" viewBox="0 0 16 16"><path d="M2 8l2.5-3 3 6 3-6 2.5 3" fill="none" stroke="#ff9800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Dribble
+        </button>
+        <button class="sp-tool-btn" id="tool-zone" onclick="setBoardTool('zone')">
+          <svg class="sp-tb-icon" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" fill="rgba(255,214,0,0.2)" stroke="#ffd600" stroke-width="1.5" stroke-dasharray="2 2"/></svg> Zone
+        </button>
+        <button class="sp-tool-btn" id="tool-ruler" onclick="setBoardTool('ruler')">
+          <svg class="sp-tb-icon" viewBox="0 0 16 16"><path d="M2 13L13 2m-8 0l1 1m-2 2l1.5 1.5m-2 2l1 1m-2 2l1.5 1.5" fill="none" stroke="#0288d1" stroke-width="1.8" stroke-linecap="round"/></svg> Measure
+        </button>
+        <button class="sp-tool-btn active" id="btn-toggle-ruler" onclick="toggleRulerMeasurement()" style="background:#1b5e20;color:#fff;border-color:#43a047;font-weight:700;" title="Toggle Distance Measuring Ruler (ON/OFF)">
+          <svg class="sp-tb-icon" viewBox="0 0 16 16"><path d="M2 8h12M2 5v6M14 5v6M8 6v4" fill="none" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round"/></svg> Ruler: <span id="ruler-toggle-status">ON</span>
+        </button>
+        <button class="sp-tool-btn" id="tool-eraser" onclick="setBoardTool('eraser')" style="border-color:#e53935;color:#e53935;" title="Click any token, equipment, goal or line to remove it">
+          <svg class="sp-tb-icon" viewBox="0 0 16 16"><path d="M5 13h8M4 11l6-6 3 3-6 6H4v-3z" fill="none" stroke="#e53935" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Eraser
+        </button>
+
+        <div style="margin-left:auto;display:flex;gap:5px;">
+          <button class="obtn" style="padding:5px 9px;font-size:11.5px;" onclick="undoBoard()">↩️ Undo</button>
+          <button class="obtn d" style="padding:5px 9px;font-size:11.5px;" onclick="clearBoardCanvas()">🗑️ Clear</button>
         </div>
       </div>
 
-      <div style="padding:14px 20px;border-top:1.5px solid var(--bd);background:var(--card2);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
-        <div style="font-size:12px;color:var(--mt);">Click pitch to drop markers. Drag to move. Click &amp; drag for lines and run arrows.</div>
-        <div style="display:flex;gap:10px;">
-          <button class="mc" style="padding:8px 16px;border-radius:8px;font-size:12.5px;" onclick="closeBoardSketcher()">Cancel</button>
-          <button class="mok" style="padding:8px 20px;font-size:13px;font-weight:700;" onclick="saveBoardToDrill()">✓ Attach Diagram to Drill</button>
+      <!-- Canvas -->
+      <div class="sp-canvas-container">
+        <div class="sp-canvas-wrap">
+          <canvas id="sp-canvas" width="800" height="520"></canvas>
+        </div>
+      </div>
+
+      <div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+        <div style="font-size:11.5px;color:var(--mt);">
+          💡 Click pitch to place equipment or drag to draw lines. Click or use <b>[−] [🔄] [+]</b> directly on 3D Goal to resize &amp; rotate. Real-time yard distances automatically displayed.
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="mc" style="border:none!important;box-shadow:none!important;" onclick="closeBoardSketcher()">Cancel</button>
+          <button class="mok" onclick="saveBoardDiagram()">💾 ATTACH TO DRILL</button>
         </div>
       </div>
     </div>
@@ -431,21 +566,33 @@
 
   <!-- SESSION PRESETS MODAL -->
   <div class="mov" id="m-template-picker" onclick="if(event.target===this)closeM('m-template-picker')">
-    <div class="mbox wide" style="max-width:820px;max-height:88vh;display:flex;flex-direction:column;padding:0;overflow:hidden;">
-      <div style="padding:18px 22px;border-bottom:1.5px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+    <div class="mbox wide" style="max-width:920px;max-height:90vh;display:flex;flex-direction:column;padding:0;overflow:hidden;">
+      <div style="padding:18px 24px;border-bottom:1.5px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
         <div style="display:flex;align-items:center;gap:10px;">
           <div style="font-size:24px;">⚡</div>
           <div>
-            <div class="mtit" style="margin:0;font-size:20px;">PRO SESSION PRESETS</div>
-            <div style="font-size:12px;color:var(--mt);">Load pre-structured professional training sessions with complete drill progressions</div>
+            <div class="mtit" style="margin:0;font-size:20px;">PRO COACHING SESSION PRESETS</div>
+            <div style="font-size:12px;color:var(--mt);">World-class session plans by age category from Guardiola, Klopp, Coerver, Bielsa, Ancelotti &amp; more</div>
           </div>
         </div>
         <button class="chat-act-btn" style="font-size:16px;padding:4px 8px;" onclick="closeM('m-template-picker')">✕</button>
       </div>
 
-      <div style="overflow-y:auto;padding:20px;flex:1;display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;" id="tp-presets-list"></div>
+      <!-- Search & Age Group Filter Controls -->
+      <div style="padding:12px 24px;background:var(--card2);border-bottom:1.5px solid var(--bd);display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;flex-shrink:0;">
+        <input type="text" id="tp-preset-search" class="f-in" style="flex:1;min-width:240px;font-size:12.5px;padding:6px 12px;" placeholder="🔍 Search coach (Guardiola, Klopp, Coerver...), topic, or tactical principle..." oninput="renderTemplatePresetsFilter()" />
+        <div style="display:flex;gap:6px;flex-wrap:wrap;" id="tp-age-filters">
+          <button class="sp-age-btn active" data-age="all" onclick="setTemplateAgeFilter('all')">All Ages</button>
+          <button class="sp-age-btn" data-age="u6_u9" onclick="setTemplateAgeFilter('u6_u9')">🟡 U6–U9 (Foundation)</button>
+          <button class="sp-age-btn" data-age="u10_u12" onclick="setTemplateAgeFilter('u10_u12')">🟢 U10–U12 (Youth)</button>
+          <button class="sp-age-btn" data-age="u13_u15" onclick="setTemplateAgeFilter('u13_u15')">🔵 U13–U15 (Development)</button>
+          <button class="sp-age-btn" data-age="u16_plus" onclick="setTemplateAgeFilter('u16_plus')">🟣 U16+ (Senior / Elite)</button>
+        </div>
+      </div>
 
-      <div style="padding:12px 22px;border-top:1.5px solid var(--bd);background:var(--card2);display:flex;justify-content:flex-end;">
+      <div style="overflow-y:auto;padding:20px 24px;flex:1;display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:14px;" id="tp-presets-list"></div>
+
+      <div style="padding:12px 24px;border-top:1.5px solid var(--bd);background:var(--card2);display:flex;justify-content:flex-end;">
         <button class="mc" style="padding:8px 18px;border-radius:8px;font-size:12.5px;" onclick="closeM('m-template-picker')">Close</button>
       </div>
     </div>
@@ -479,7 +626,10 @@
             <div id="diag-view-subtitle" style="font-size:12px;color:var(--mt);margin-top:2px;">Full high-definition pitch diagram demonstration</div>
           </div>
         </div>
-        <button class="chat-act-btn" style="font-size:16px;padding:4px 8px;" onclick="closeM('m-drill-diagram-viewer')">✕</button>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button class="obtn" id="diag-view-edit-btn" style="padding:6px 12px;font-size:12px;" onclick="editCurrentViewingDiagram()">✏️ Edit in Tactical Board</button>
+          <button class="chat-act-btn" style="font-size:16px;padding:4px 8px;" onclick="closeM('m-drill-diagram-viewer')">✕</button>
+        </div>
       </div>
 
       <div style="flex:1;overflow-y:auto;padding:20px;background:#0d2818;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:380px;">
@@ -501,6 +651,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 
   <!-- Session Planner Core Logic Script -->
-  <script src="session-planner.js"></script>
+  <script src="session-planner.js?v=20260928b"></script>
 </body>
 </html>
