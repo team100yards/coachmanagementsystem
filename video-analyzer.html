@@ -6254,32 +6254,47 @@
     let _ytRecoverTimer = null;
 
     function onYouTubeIframeAPIReady() {
-      ytPlayer = new YT.Player('youtube-player-div', {
-        height: '100%',
-        width: '100%',
-        playerVars: {
-          autoplay: 0,
-          controls: 0,
-          disablekb: 1,
-          enablejsapi: 1,
-          fs: 0,
-          modestbranding: 1,
-          rel: 0,
-          iv_load_policy: 3,
-          playsinline: 1,
-          origin: window.location.origin
-        },
-        events: {
-          'onReady': onPlayerReady,
-          'onStateChange': onPlayerStateChange,
-          'onError': onPlayerError
-        }
-      });
+      const isHttp = window.location.protocol.startsWith('http') && window.location.origin && window.location.origin !== 'null';
+      const playerVars = {
+        autoplay: 0,
+        controls: 0,
+        disablekb: 1,
+        enablejsapi: 1,
+        fs: 0,
+        modestbranding: 1,
+        rel: 0,
+        iv_load_policy: 3,
+        playsinline: 1
+      };
+      if (isHttp) {
+        playerVars.origin = window.location.origin;
+      }
+      try {
+        ytPlayer = new YT.Player('youtube-player-div', {
+          height: '100%',
+          width: '100%',
+          playerVars: playerVars,
+          events: {
+            'onReady': onPlayerReady,
+            'onStateChange': onPlayerStateChange,
+            'onError': onPlayerError
+          }
+        });
+      } catch (err) {
+        console.warn('YouTube player initialization note:', err);
+      }
     }
 
     function onPlayerReady(event) {
       isYtReady = true;
-      videoDuration = lastLoadedVideoId ? (ytPlayer.getDuration() || 0) : 0;
+      if (lastLoadedVideoId && ytPlayer && typeof ytPlayer.cueVideoById === 'function') {
+        try {
+          ytPlayer.cueVideoById(lastLoadedVideoId);
+          videoDuration = ytPlayer.getDuration() || 0;
+        } catch (e) { }
+      } else {
+        videoDuration = 0;
+      }
 
       // Enhance iframe sandbox permissions for rock-solid media decoding without buffer drops
       const iframe = document.querySelector('#player-frame-wrapper iframe') || document.querySelector('#youtube-player-div iframe');
@@ -6504,6 +6519,8 @@
       lastLoadedVideoId = videoId; // remember for "go back to video" from pitch mode
       if (typeof resetStageZoom === 'function') resetStageZoom();
 
+      startTimelineSyncLoop();
+
       document.querySelectorAll('.header-dropdown-item').forEach(b => b.classList.remove('active'));
       const ytPill = document.getElementById('preset-yt');
       if (ytPill) ytPill.classList.add('active');
@@ -6532,7 +6549,7 @@
         try {
           ytPlayer.loadVideoById({ videoId: videoId, startSeconds: 0 });
         } catch (e) {
-          ytPlayer.cueVideoById(videoId);
+          try { ytPlayer.cueVideoById(videoId); } catch (err) { }
         }
       }
     }
@@ -6547,13 +6564,15 @@
 
     // Local Video File Upload (MP4 / WebM)
     function loadLocalVideoFile(input) {
-      const file = input.files[0];
+      const file = (input && input.files) ? input.files[0] : null;
       if (!file) return;
-      try { input.value = ''; } catch (e) { }
+      try { if (input.value) input.value = ''; } catch (e) { }
 
       isSyntheticDemo = false;
       isUsingLocalVideo = true;
       if (typeof resetStageZoom === 'function') resetStageZoom();
+
+      startTimelineSyncLoop();
 
       if (isYtReady && ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
         try { ytPlayer.pauseVideo(); } catch (e) { }
@@ -6584,9 +6603,19 @@
       switchActiveClip(`local_${file.name}_${file.size}`);
 
       videoEl.onloadedmetadata = () => {
-        videoDuration = videoEl.duration;
+        videoDuration = videoEl.duration || 60;
         updateTimecodeDisplay();
+        updateTimelineProgressBar();
         playVideo();
+      };
+
+      videoEl.ontimeupdate = () => {
+        if (isUsingLocalVideo && !isScrubbingTimeline) {
+          currentVideoTime = videoEl.currentTime || 0;
+          if (videoEl.duration && !isNaN(videoEl.duration) && videoEl.duration > 0) {
+            videoDuration = videoEl.duration;
+          }
+        }
       };
     }
 
@@ -6605,6 +6634,8 @@
       videoDuration = 60.0;
       currentVideoTime = 0;
       demoLastTime = performance.now();
+
+      startTimelineSyncLoop();
 
       if (isYtReady && ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
         try { ytPlayer.pauseVideo(); } catch (e) { }
@@ -6626,7 +6657,7 @@
       document.getElementById('youtube-url-input').value = "⚽ Tactical Pitch Board (UEFA Regulation Dimensions)";
 
       switchActiveClip('demo_synthetic_pitch');
-      renderSyntheticPitch();
+      renderSyntheticPitch(0);
       pauseVideo();
       updateTimecodeDisplay();
       updateTimelineProgressBar();
@@ -6758,12 +6789,475 @@
       ctx.restore();
     }
 
-    function renderSyntheticPitch() {
+    function renderSyntheticPitch(time) {
       const pCanvas = document.getElementById('synthetic-pitch-canvas');
       if (!pCanvas) return;
       const ctx = pCanvas.getContext('2d');
       if (!ctx) return;
+      const t = (typeof time === 'number' && !isNaN(time)) ? time : currentVideoTime;
       drawTacticalPitchGeometry(ctx, pCanvas.width, pCanvas.height);
+      drawTacticalPitchSimulation(ctx, pCanvas.width, pCanvas.height, t);
+    }
+
+    function drawTacticalPitchSimulation(ctx, W = 1920, H = 1080, time = 0) {
+      if (!ctx) return;
+      const cycle = ((time % 60) + 60) % 60; // 0 to 60.0s loop
+
+      function ease(v) {
+        return v < 0.5 ? 2 * v * v : -1 + (4 - 2 * v) * v;
+      }
+
+      function interp(pts, curT) {
+        if (curT <= pts[0][0]) return pts[0];
+        if (curT >= pts[pts.length - 1][0]) return pts[pts.length - 1];
+        for (let i = 0; i < pts.length - 1; i++) {
+          const p1 = pts[i];
+          const p2 = pts[i + 1];
+          if (curT >= p1[0] && curT <= p2[0]) {
+            const span = p2[0] - p1[0];
+            const frac = span > 0 ? (curT - p1[0]) / span : 0;
+            const eased = ease(frac);
+            const x = p1[1] + (p2[1] - p1[1]) * eased;
+            const y = p1[2] + (p2[2] - p1[2]) * eased;
+            const z = (p1[3] || 0) + ((p2[3] || 0) - (p1[3] || 0)) * eased;
+            const angle = (p1[4] !== undefined && p2[4] !== undefined)
+              ? p1[4] + (p2[4] - p1[4]) * eased
+              : (p1[4] || 0);
+            return [curT, x, y, z, angle];
+          }
+        }
+        return pts[0];
+      }
+
+      const blueSquad = [
+        {
+          num: 1, role: 'GK', isGk: true,
+          pts: [
+            [0, 160, 540, 0, 0],
+            [10, 175, 520, 0, 0],
+            [25, 210, 530, 0, 0],
+            [40, 190, 550, 0, 0],
+            [50, 170, 540, 0, 0],
+            [60, 160, 540, 0, 0]
+          ]
+        },
+        {
+          num: 5, role: 'CB',
+          pts: [
+            [0, 430, 440, 0, 0.1],
+            [2, 480, 440, 0, 0.2],
+            [6, 560, 420, 0, 0.3],
+            [8, 590, 430, 0, 0.2],
+            [25, 750, 450, 0, 0.1],
+            [45, 620, 460, 0, -0.2],
+            [55, 450, 440, 0, 0],
+            [60, 430, 440, 0, 0.1]
+          ]
+        },
+        {
+          num: 4, role: 'CB',
+          pts: [
+            [0, 430, 640, 0, 0],
+            [12, 580, 630, 0, 0.1],
+            [25, 770, 620, 0, 0.1],
+            [42, 920, 560, 0, -0.3],
+            [48, 650, 600, 0, -0.5],
+            [55, 450, 640, 0, 0],
+            [60, 430, 640, 0, 0]
+          ]
+        },
+        {
+          num: 2, role: 'RB',
+          pts: [
+            [0, 470, 850, 0, 0.1],
+            [12, 780, 870, 0, 0.2],
+            [22, 1220, 870, 0, 0.3],
+            [30, 1280, 820, 0, 0],
+            [45, 720, 850, 0, -0.5],
+            [55, 490, 850, 0, 0],
+            [60, 470, 850, 0, 0.1]
+          ]
+        },
+        {
+          num: 3, role: 'LB',
+          pts: [
+            [0, 470, 230, 0, 0.1],
+            [15, 740, 220, 0, 0.2],
+            [28, 920, 230, 0, 0.2],
+            [45, 680, 230, 0, -0.3],
+            [55, 490, 230, 0, 0],
+            [60, 470, 230, 0, 0.1]
+          ]
+        },
+        {
+          num: 6, role: 'CDM',
+          pts: [
+            [0, 640, 540, 0, 0],
+            [5, 620, 490, 0, -0.2],
+            [7.5, 680, 500, 0, 0.2],
+            [11, 780, 530, 0, 0.3],
+            [13, 810, 535, 0, 0.3],
+            [25, 960, 540, 0, 0.1],
+            [42, 850, 540, 0, -0.2],
+            [55, 660, 540, 0, 0],
+            [60, 640, 540, 0, 0]
+          ]
+        },
+        {
+          num: 8, role: 'CM',
+          pts: [
+            [0, 840, 380, 0, 0.1],
+            [12, 980, 360, 0, 0.2],
+            [24, 1240, 380, 0, 0.3],
+            [35, 1320, 430, 0, 0.1],
+            [48, 960, 380, 0, -0.3],
+            [60, 840, 380, 0, 0.1]
+          ]
+        },
+        {
+          num: 10, role: 'CAM',
+          pts: [
+            [0, 920, 560, 0, 0.1],
+            [12, 960, 540, 0, 0.2],
+            [13, 990, 540, 0, 0.3],
+            [17, 1160, 590, 0, 0.4],
+            [19.5, 1220, 610, 0, 0.4],
+            [26, 1420, 540, 0, 0.2],
+            [35, 1380, 520, 0, -0.1],
+            [48, 1040, 550, 0, -0.3],
+            [60, 920, 560, 0, 0.1]
+          ]
+        },
+        {
+          num: 7, role: 'RW',
+          pts: [
+            [0, 1140, 840, 0, 0.1],
+            [15, 1240, 860, 0, 0.2],
+            [19.5, 1380, 860, 0, 0.4],
+            [22, 1520, 860, 0, 0.4],
+            [24, 1540, 840, 0, -0.3],
+            [32, 1450, 780, 0, -0.3],
+            [48, 1220, 820, 0, -0.4],
+            [60, 1140, 840, 0, 0.1]
+          ]
+        },
+        {
+          num: 9, role: 'ST',
+          pts: [
+            [0, 1260, 540, 0, 0.1],
+            [12, 1340, 540, 0, 0.2],
+            [22, 1540, 530, 0, 0.3],
+            [26.5, 1680, 510, 0, 0.2],
+            [30, 1660, 490, 0, -0.2],
+            [45, 1380, 530, 0, -0.3],
+            [60, 1260, 540, 0, 0.1]
+          ]
+        },
+        {
+          num: 11, role: 'LW',
+          pts: [
+            [0, 1140, 240, 0, 0.1],
+            [15, 1240, 220, 0, 0.2],
+            [24, 1420, 280, 0, 0.3],
+            [31, 1580, 400, 0, 0.2],
+            [34, 1620, 420, 0, 0.1],
+            [48, 1260, 260, 0, -0.4],
+            [60, 1140, 240, 0, 0.1]
+          ]
+        }
+      ];
+
+      const redSquad = [
+        {
+          num: 1, role: 'GK', isGk: true,
+          pts: [
+            [0, 1800, 540, 0, Math.PI],
+            [22, 1790, 535, 0, Math.PI],
+            [25, 1760, 520, 0, Math.PI - 0.2],
+            [27.2, 1790, 490, 0, Math.PI - 0.3],
+            [32, 1780, 510, 0, Math.PI],
+            [45, 1800, 540, 0, Math.PI],
+            [60, 1800, 540, 0, Math.PI]
+          ]
+        },
+        {
+          num: 4, role: 'CB',
+          pts: [
+            [0, 1500, 480, 0, Math.PI],
+            [15, 1460, 490, 0, Math.PI - 0.1],
+            [24, 1560, 490, 0, Math.PI - 0.2],
+            [26.5, 1660, 500, 0, Math.PI - 0.1],
+            [34.5, 1480, 480, 0, Math.PI],
+            [60, 1500, 480, 0, Math.PI]
+          ]
+        },
+        {
+          num: 5, role: 'CB',
+          pts: [
+            [0, 1500, 600, 0, Math.PI],
+            [15, 1460, 590, 0, Math.PI + 0.1],
+            [24, 1580, 580, 0, Math.PI + 0.2],
+            [34.5, 1490, 590, 0, Math.PI],
+            [60, 1500, 600, 0, Math.PI]
+          ]
+        },
+        {
+          num: 2, role: 'RB',
+          pts: [
+            [0, 1520, 260, 0, Math.PI],
+            [15, 1460, 250, 0, Math.PI],
+            [24, 1480, 310, 0, Math.PI + 0.3],
+            [33, 1540, 380, 0, Math.PI],
+            [60, 1520, 260, 0, Math.PI]
+          ]
+        },
+        {
+          num: 6, role: 'LB',
+          pts: [
+            [0, 1520, 820, 0, Math.PI],
+            [15, 1460, 830, 0, Math.PI],
+            [22, 1490, 840, 0, Math.PI],
+            [24, 1520, 830, 0, Math.PI - 0.3],
+            [60, 1520, 820, 0, Math.PI]
+          ]
+        },
+        {
+          num: 8, role: 'CM',
+          pts: [
+            [0, 1260, 480, 0, Math.PI],
+            [16, 1180, 510, 0, Math.PI],
+            [26, 1380, 500, 0, Math.PI],
+            [38, 1300, 520, 0, 0.2],
+            [60, 1260, 480, 0, Math.PI]
+          ]
+        },
+        {
+          num: 9, role: 'CM',
+          pts: [
+            [0, 1260, 600, 0, Math.PI],
+            [16, 1200, 620, 0, Math.PI],
+            [26, 1400, 600, 0, Math.PI],
+            [60, 1260, 600, 0, Math.PI]
+          ]
+        },
+        {
+          num: 7, role: 'RM',
+          pts: [
+            [0, 1280, 280, 0, Math.PI],
+            [18, 1050, 260, 0, Math.PI],
+            [35, 1220, 300, 0, Math.PI],
+            [60, 1280, 280, 0, Math.PI]
+          ]
+        },
+        {
+          num: 11, role: 'LM',
+          pts: [
+            [0, 1280, 800, 0, Math.PI],
+            [18, 1160, 820, 0, Math.PI],
+            [24, 1380, 830, 0, Math.PI],
+            [60, 1280, 800, 0, Math.PI]
+          ]
+        },
+        {
+          num: 10, role: 'CF',
+          pts: [
+            [0, 1050, 480, 0, Math.PI],
+            [4, 660, 460, 0, Math.PI],
+            [14, 860, 500, 0, Math.PI],
+            [60, 1050, 480, 0, Math.PI]
+          ]
+        },
+        {
+          num: 12, role: 'ST',
+          pts: [
+            [0, 1050, 600, 0, Math.PI],
+            [4, 660, 620, 0, Math.PI],
+            [42, 900, 580, 0, Math.PI],
+            [60, 1050, 600, 0, Math.PI]
+          ]
+        }
+      ];
+
+      const ballTrajectory = [
+        [0, 160, 540, 0],
+        [2, 480, 440, 0],
+        [6, 560, 420, 0],
+        [7.5, 680, 500, 0],
+        [11, 780, 530, 0],
+        [13, 990, 540, 0],
+        [17, 1160, 590, 0],
+        [19.5, 1420, 850, 0],
+        [22, 1520, 860, 0],
+        [24, 1540, 840, 0],
+        [26.5, 1680, 510, 45],
+        [27.2, 1800, 485, 55],
+        [28, 1580, 390, 20],
+        [31, 1580, 400, 0],
+        [33, 1790, 440, 35],
+        [34.5, 1450, 500, 0],
+        [38, 1300, 520, 0],
+        [42, 920, 550, 0],
+        [48, 200, 540, 0],
+        [60, 160, 540, 0]
+      ];
+
+      const ballPt = interp(ballTrajectory, cycle);
+      const bx = ballPt[1];
+      const by = ballPt[2];
+      const bz = ballPt[3] || 0;
+
+      // Find player nearest to the ball when ball is grounded (z < 15)
+      let ballCarrier = null;
+      let minD = 55;
+      if (bz < 15) {
+        blueSquad.forEach(pl => {
+          const pt = interp(pl.pts, cycle);
+          const d = Math.hypot(pt[1] - bx, pt[2] - by);
+          if (d < minD) { minD = d; ballCarrier = { num: pl.num, team: 'blue' }; }
+        });
+        redSquad.forEach(pl => {
+          const pt = interp(pl.pts, cycle);
+          const d = Math.hypot(pt[1] - bx, pt[2] - by);
+          if (d < minD) { minD = d; ballCarrier = { num: pl.num, team: 'red' }; }
+        });
+      }
+
+      function drawSimPlayer(x, y, num, role, team, isGk, angle) {
+        ctx.save();
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+        ctx.shadowBlur = 8;
+        ctx.shadowOffsetY = 4;
+
+        // Animated possession indicator
+        const isPossessor = (ballCarrier && ballCarrier.num === num && ballCarrier.team === team);
+        if (isPossessor) {
+          ctx.beginPath();
+          ctx.arc(x, y, 32, 0, Math.PI * 2);
+          ctx.strokeStyle = '#00e676';
+          ctx.lineWidth = 2.5;
+          ctx.setLineDash([5, 4]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+
+        // Circular token badge
+        const r = 21;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        const grad = ctx.createRadialGradient(x - 5, y - 5, 2, x, y, r);
+        if (team === 'blue') {
+          if (isGk) {
+            grad.addColorStop(0, '#fff176');
+            grad.addColorStop(1, '#fbc02d');
+          } else {
+            grad.addColorStop(0, '#42a5f5');
+            grad.addColorStop(1, '#1565c0');
+          }
+        } else {
+          if (isGk) {
+            grad.addColorStop(0, '#80cbc4');
+            grad.addColorStop(1, '#00897b');
+          } else {
+            grad.addColorStop(0, '#ef5350');
+            grad.addColorStop(1, '#c62828');
+          }
+        }
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+
+        // Directional facing indicator
+        const dirLen = r + 6;
+        const tipX = x + Math.cos(angle) * dirLen;
+        const tipY = y + Math.sin(angle) * dirLen;
+        const side1X = x + Math.cos(angle + 0.35) * (r - 1);
+        const side1Y = y + Math.sin(angle + 0.35) * (r - 1);
+        const side2X = x + Math.cos(angle - 0.35) * (r - 1);
+        const side2Y = y + Math.sin(angle - 0.35) * (r - 1);
+        ctx.beginPath();
+        ctx.moveTo(tipX, tipY);
+        ctx.lineTo(side1X, side1Y);
+        ctx.lineTo(side2X, side2Y);
+        ctx.closePath();
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+
+        // Number in center
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetY = 0;
+        ctx.fillStyle = (team === 'blue' && isGk) ? '#111827' : '#ffffff';
+        ctx.font = 'bold 15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(String(num), x, y);
+
+        // Role badge below
+        ctx.fillStyle = 'rgba(8, 12, 20, 0.78)';
+        const bW = 34, bH = 14;
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(x - bW / 2, y + r + 3, bW, bH, 4);
+        } else {
+          ctx.rect(x - bW / 2, y + r + 3, bW, bH);
+        }
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = '700 9px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        ctx.fillText(role, x, y + r + 10);
+
+        ctx.restore();
+      }
+
+      // Draw all Blue Players
+      blueSquad.forEach(pl => {
+        const pt = interp(pl.pts, cycle);
+        drawSimPlayer(pt[1], pt[2], pl.num, pl.role, 'blue', Boolean(pl.isGk), pt[4] || 0);
+      });
+
+      // Draw all Red Players
+      redSquad.forEach(pl => {
+        const pt = interp(pl.pts, cycle);
+        drawSimPlayer(pt[1], pt[2], pl.num, pl.role, 'red', Boolean(pl.isGk), pt[4] || 0);
+      });
+
+      // Draw Ball Shadow & Ball
+      ctx.save();
+      ctx.beginPath();
+      const shadowY = by + (bz * 0.45);
+      const shadowR = Math.max(3, 9 - bz * 0.05);
+      ctx.ellipse(bx, shadowY, shadowR * 1.3, shadowR * 0.7, 0, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(0, 0, 0, ${Math.max(0.12, 0.45 - bz * 0.003)})`;
+      ctx.fill();
+
+      // Ball Sphere
+      const ballY = by - bz;
+      const bRad = 9 + Math.min(6, bz * 0.05);
+      ctx.beginPath();
+      ctx.arc(bx, ballY, bRad, 0, Math.PI * 2);
+      const ballGrad = ctx.createRadialGradient(bx - bRad * 0.35, ballY - bRad * 0.35, bRad * 0.1, bx, ballY, bRad);
+      ballGrad.addColorStop(0, '#ffffff');
+      ballGrad.addColorStop(0.7, '#e0e0e0');
+      ballGrad.addColorStop(1, '#9e9e9e');
+      ctx.fillStyle = ballGrad;
+      ctx.fill();
+      ctx.strokeStyle = '#212121';
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      // Hexagonal black patch pattern
+      ctx.beginPath();
+      ctx.arc(bx, ballY, bRad * 0.42, 0, Math.PI * 2);
+      ctx.fillStyle = '#1e293b';
+      ctx.fill();
+
+      ctx.restore();
     }
 
     /* ==========================================================================
@@ -14029,15 +14523,21 @@
     let _lastDisplayedTime = -1;
     let _lastProgressPct = -1;
     let _trackerRingFrameSkip = 0;
+    let _timelineSyncLoopActive = false;
+    let _lastUserPlayTime = 0;
+    let _suppressedAutoPauseKfIds = new Set();
 
     function startTimelineSyncLoop() {
+      if (_timelineSyncLoopActive) return;
+      _timelineSyncLoopActive = true;
+
       function syncFrame() {
         if (!isScrubbingTimeline) {
           let rawTime = currentVideoTime;
 
           if (isSyntheticDemo) {
             const now = performance.now();
-            const dt = (now - demoLastTime) / 1000;
+            const dt = (demoLastTime > 0) ? Math.min(0.1, (now - demoLastTime) / 1000) : 0.016;
             demoLastTime = now;
             if (isPlaying) {
               currentVideoTime += dt * (currentPlaybackRate || 1.0);
@@ -14051,7 +14551,9 @@
             const videoEl = document.getElementById('local-video-element');
             if (videoEl) {
               rawTime = videoEl.currentTime || 0;
-              videoDuration = videoEl.duration || videoDuration || 0;
+              if (videoEl.duration && !isNaN(videoEl.duration) && videoEl.duration > 0) {
+                videoDuration = videoEl.duration;
+              }
             }
           } else if (isYtReady && ytPlayer && typeof ytPlayer.getCurrentTime === 'function') {
             try {
@@ -14251,12 +14753,35 @@
       const visibleKfs = getVisibleKeyframesAtTime(currentVideoTime);
       const currentKfKey = visibleKfs.map(k => k.id).sort().join(',');
 
+      // Remove from suppressed set once playhead moves safely past the keyframe
+      if (_suppressedAutoPauseKfIds.size > 0) {
+        for (const kfId of _suppressedAutoPauseKfIds) {
+          const kf = tacticalKeyframes.find(k => k.id === kfId);
+          if (kf) {
+            const kfEnd = kf.timestamp + (kf.duration !== undefined ? kf.duration : defaultHoldDuration);
+            if (currentVideoTime > kfEnd + 0.20 || currentVideoTime < kf.timestamp - 0.5) {
+              _suppressedAutoPauseKfIds.delete(kfId);
+            }
+          } else {
+            _suppressedAutoPauseKfIds.delete(kfId);
+          }
+        }
+      }
+
       if (visibleKfs.length > 0) {
         const primaryKf = visibleKfs[visibleKfs.length - 1];
 
-        // Auto-pause triggers ONLY ONCE when entering each tactical keyframe
+        // Auto-pause triggers ONLY ONCE when entering each tactical keyframe during playback
         if (autoPauseOnKeyframes) {
-          const newlyEnteredKf = visibleKfs.find(kf => kf.autoPause !== false && kf.autoPauseDuration !== 'off' && lastPausedKeyframeId !== kf.id && Math.abs(currentVideoTime - kf.timestamp) < 0.15);
+          const isRecentUserPlay = (performance.now() - _lastUserPlayTime < 750);
+          const newlyEnteredKf = visibleKfs.find(kf => {
+            if (kf.autoPause === false || kf.autoPauseDuration === 'off') return false;
+            if (lastPausedKeyframeId === kf.id) return false;
+            if (_suppressedAutoPauseKfIds.has(kf.id)) return false;
+            if (isRecentUserPlay && Math.abs(currentVideoTime - kf.timestamp) < 0.35) return false;
+            return Math.abs(currentVideoTime - kf.timestamp) < 0.15;
+          });
+
           if (newlyEnteredKf) {
             lastPausedKeyframeId = newlyEnteredKf.id;
             pauseVideo();
@@ -14769,6 +15294,7 @@
         return;
       }
       _lastPlayActionTime = Date.now();
+      _lastUserPlayTime = performance.now();
       _userWantsPlayback = true;
       if (_ytRecoverTimer) {
         clearTimeout(_ytRecoverTimer);
@@ -14777,18 +15303,24 @@
       window.focus();
       clearAutoPauseTimers(true);
 
-      // If we are currently sitting at a keyframe, mark it so auto-pause doesn't immediately re-pause on frame 0
-      if (activeKeyframeId) {
-        lastPausedKeyframeId = activeKeyframeId;
-      } else if (tacticalKeyframes && tacticalKeyframes.length > 0) {
-        const activeKf = tacticalKeyframes.find(kf => {
-          const start = kf.timestamp;
-          const end = kf.timestamp + (kf.duration !== undefined ? kf.duration : 0.5);
-          return currentVideoTime >= start && currentVideoTime <= end;
+      startTimelineSyncLoop();
+
+      // Coach explicitly unpaused / commanded playback!
+      // Suppress auto-pause on any keyframe at or near current playhead so it doesn't immediately re-pause on frame 0
+      _suppressedAutoPauseKfIds.clear();
+      if (tacticalKeyframes && tacticalKeyframes.length > 0) {
+        tacticalKeyframes.forEach(kf => {
+          const kfStart = kf.timestamp;
+          const kfEnd = kf.timestamp + (kf.duration !== undefined ? kf.duration : defaultHoldDuration);
+          if ((currentVideoTime >= kfStart - 0.25 && currentVideoTime <= kfEnd + 0.15) || Math.abs(currentVideoTime - kfStart) < 0.35) {
+            _suppressedAutoPauseKfIds.add(kf.id);
+            lastPausedKeyframeId = kf.id;
+          }
         });
-        if (activeKf) {
-          lastPausedKeyframeId = activeKf.id;
-        }
+      }
+      if (activeKeyframeId) {
+        _suppressedAutoPauseKfIds.add(activeKeyframeId);
+        lastPausedKeyframeId = activeKeyframeId;
       }
 
       if (isSyntheticDemo) {
@@ -14796,7 +15328,9 @@
         updatePlaybackUIState(true);
       } else if (isUsingLocalVideo) {
         const videoEl = document.getElementById('local-video-element');
-        videoEl.play().catch(e => console.log('play error:', e));
+        if (videoEl) {
+          videoEl.play().catch(e => console.log('play error:', e));
+        }
         updatePlaybackUIState(true);
       } else if (isYtReady && ytPlayer && typeof ytPlayer.playVideo === 'function') {
         try { ytPlayer.unMute(); } catch (e) { }
@@ -14843,6 +15377,7 @@
 
     function seekToTime(seconds) {
       lastPausedKeyframeId = null; // Re-arm auto-pause on manual seek
+      _suppressedAutoPauseKfIds.clear();
       seconds = Math.max(0, Math.min((videoDuration && videoDuration > 0) ? videoDuration : 60, seconds));
 
       // Lock currentVideoTime briefly so timeline sync loop does not bounce backwards while video buffers
@@ -16847,6 +17382,7 @@
     window.addEventListener('keydown', handleRootKeydown, { capture: true });
 
     window.addEventListener('DOMContentLoaded', () => {
+      startTimelineSyncLoop();
       initTelestrationCanvas();
       initTimelineScrubber();
       updateDrawZoneToolUI();
