@@ -10,6 +10,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="cms-tokens.css">
+  <link rel="stylesheet" href="cms-nav.css">
 
   <style>
     :root {
@@ -1990,6 +1992,20 @@
           <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>
         </svg>
         <span id="fs-btn-label">Full Screen</span>
+      </button>
+
+      <!-- CROSS-TOOL NAVIGATION & SWITCHER -->
+      <a href="session-planner.html" target="_blank" class="btn" style="text-decoration:none;" title="Session Planner Studio">
+        <span>📋 Session Planner</span>
+      </a>
+      <a href="video-analyzer.html" target="_blank" class="btn" style="text-decoration:none;border-color:rgba(0,230,118,0.4);color:#00e676;" title="Tactical Video Analyzer">
+        <span>📹 Analyzer</span>
+      </a>
+      <a href="match-report.html" target="_blank" class="btn" style="text-decoration:none;" title="Match Report Studio">
+        <span>📋 Match Report</span>
+      </a>
+      <button type="button" class="btn" onclick="CMSNav.openCommandPalette()" title="Quick Switcher (Press Ctrl+K or Cmd+K)">
+        <span>⚡ Switcher (⌘K)</span>
       </button>
 
       <!-- RETURN TO DASHBOARD -->
@@ -7322,6 +7338,7 @@
     // Launch Application
     window.addEventListener('DOMContentLoaded', init);
   </script>
+  <script src="cms-nav.js"></script>
   <datalist id="squad-players-datalist"></datalist>
 </body>
 </html>

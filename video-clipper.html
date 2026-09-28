@@ -10,6 +10,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="cms-tokens.css">
+  <link rel="stylesheet" href="cms-nav.css">
   <!-- High-Performance MP4 Muxer for WebCodecs Hardware Export -->
   <script src="mp4-muxer.min.js"></script>
   <script>
@@ -907,12 +909,28 @@
         <input type="file" id="match-file-input" accept="video/mp4,video/webm,video/quicktime,video/*" style="display:none;" onchange="handleMatchFileSelect(this)">
       </label>
 
+      <a href="session-planner.html" target="_blank" class="btn-header" title="Open Session Planner Studio">
+        <span>📋 Session Planner ↗</span>
+      </a>
+
+      <a href="match-report.html" target="_blank" class="btn-header" title="Open Match Report Studio">
+        <span>📋 Match Report ↗</span>
+      </a>
+
       <a href="player-tracker-lab.html" target="_blank" class="btn-header" title="Open Tactical Vision &amp; Player Tracking System" style="border-color:rgba(0,240,255,0.45);color:#00f0ff;">
-        <span>🎯 Player Tracking System ↗</span>
+        <span>🎯 Player Tracking ↗</span>
       </a>
 
       <a href="video-analyzer.html" target="_blank" class="btn-header" title="Open Telestration &amp; Tactical Analyzer">
-        <span>📹 Open Video Analyzer ↗</span>
+        <span>📹 Video Analyzer ↗</span>
+      </a>
+
+      <button type="button" class="btn-header" onclick="CMSNav.openCommandPalette()" title="Quick Switcher (Press Ctrl+K or Cmd+K)" style="border-color:rgba(0,240,255,0.4);color:#00f0ff;">
+        <span>⚡ Switcher (⌘K)</span>
+      </button>
+
+      <a href="index.html" class="btn-header" title="Back to Squad Dashboard">
+        <span>🏠 Dashboard</span>
       </a>
     </div>
   </header>
@@ -2251,5 +2269,6 @@
       closeExportModal();
     }
   </script>
+  <script src="cms-nav.js"></script>
 </body>
 </html>

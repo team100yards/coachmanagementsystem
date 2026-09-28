@@ -8,6 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="cms-tokens.css">
+  <link rel="stylesheet" href="cms-nav.css">
   <style>
     :root {
       --bg-base:#080c14; --bg-surface:#0f1724; --bg-card:#131d2e; --bg-card-2:#182438;
@@ -657,10 +659,19 @@
     <div class="header-sep"></div>
     <div class="header-title">&#x1F4CB; Match Report Studio</div>
     <div class="header-spacer"></div>
-    <a href="player-tracker-lab.html" target="_blank" class="btn-back" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;margin-right:8px;border-color:rgba(0,240,255,0.4);color:#00f0ff;" title="Open Tactical Vision &amp; Player Tracking System">
-      <span>🎯 Player Tracking System ↗</span>
+    <a href="session-planner.html" target="_blank" class="btn-back" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;margin-right:6px;" title="Open Session Planner Studio">
+      <span>📋 Session Planner</span>
     </a>
-    <button class="btn-back" onclick="history.back()">&#x2190; Back to Dashboard</button>
+    <a href="video-analyzer.html" target="_blank" class="btn-back" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;margin-right:6px;border-color:rgba(0,230,118,0.4);color:#00e676;" title="Open Video Telestration &amp; Tactical Analyzer">
+      <span>📹 Video Analyzer</span>
+    </a>
+    <a href="player-tracker-lab.html" target="_blank" class="btn-back" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;margin-right:6px;border-color:rgba(0,240,255,0.4);color:#00f0ff;" title="Open Tactical Vision &amp; Player Tracking System">
+      <span>🎯 Player Tracking</span>
+    </a>
+    <button type="button" class="btn-back" onclick="CMSNav.openCommandPalette()" style="margin-right:8px;border-color:rgba(0,240,255,0.3);color:var(--text);" title="Quick Switcher (Press Ctrl+K or Cmd+K)">
+      <span>⚡ Switcher (⌘K)</span>
+    </button>
+    <button class="btn-back" onclick="location.href='index.html'">&#x2190; Dashboard</button>
   </header>
   <div class="app-body">
     <div class="left-panel">
@@ -3282,5 +3293,6 @@
       toastTimer = setTimeout(function(){ el.classList.remove('show'); }, 3000);
     }
   </script>
+  <script src="cms-nav.js"></script>
 </body>
 </html>

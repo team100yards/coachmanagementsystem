@@ -24,6 +24,8 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&family=Montserrat:wght@600;700;800;900&family=Oswald:wght@500;600;700&family=Outfit:wght@500;600;700;800&family=Russo+One&family=Teko:wght@600;700&display=swap"
     rel="stylesheet">
+  <link rel="stylesheet" href="cms-tokens.css">
+  <link rel="stylesheet" href="cms-nav.css">
 
   <!-- Fabric.js for high-performance canvas telestration -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
@@ -2688,7 +2690,17 @@
       </div>
 
       <nav class="header-nav-menu">
-        <!-- PLACE 1: Match Clipper & Player Tracking System -->
+        <!-- Cross-Tool Suite Links -->
+        <a href="session-planner.html" target="_blank" class="preset-pill" id="preset-session"
+          title="Open Session Planner Studio in new tab"
+          style="text-decoration:none;display:inline-flex;align-items:center;">
+          <span>📋 Session Planner ↗</span>
+        </a>
+        <a href="match-report.html" target="_blank" class="preset-pill" id="preset-report"
+          title="Open Match Report Studio in new tab"
+          style="text-decoration:none;display:inline-flex;align-items:center;">
+          <span>📋 Match Report ↗</span>
+        </a>
         <a href="player-tracker-lab.html" target="_blank" class="preset-pill" id="preset-tracker"
           title="Open Tactical Vision &amp; Player Tracking System in new tab"
           style="text-decoration:none;display:inline-flex;align-items:center;border-color:rgba(0,240,255,0.45);color:#00f0ff;">
@@ -2810,8 +2822,12 @@
       <input type="text" id="youtube-url-input" style="display:none;" value="">
     </div>
 
-    <!-- RIGHT: Exit to Dashboard -->
+    <!-- RIGHT: Switcher & Exit to Dashboard -->
     <div class="header-right-cluster">
+      <button class="preset-pill" onclick="CMSNav.openCommandPalette()" title="Quick Switcher (Press Ctrl+K or Cmd+K)"
+        style="border-color:rgba(0,240,255,0.4);color:#00f0ff;">
+        <span>⚡ Switcher (⌘K)</span>
+      </button>
       <button class="preset-pill" onclick="confirmExitToApp('index.html')" title="Back to Squad Dashboard"
         style="border-color:rgba(255,255,255,0.15);color:#94a3b8;">
         <span>🏠 Dashboard</span>
@@ -16846,6 +16862,7 @@
       }
     });
   </script>
+  <script src="cms-nav.js"></script>
 </body>
 
 </html>

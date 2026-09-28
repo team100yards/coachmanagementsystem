@@ -1,0 +1,95 @@
+/**
+ * Coach Management System (CMS) — GA Edition
+ * Unified Design Tokens (Material 3 & Pro Tactical Sports Palette)
+ */
+:root {
+  /* Surface Elevation Scale */
+  --cms-surface-0: #060911;
+  --cms-surface-1: #0c121e;
+  --cms-surface-2: #131b2c;
+  --cms-surface-3: #1a253c;
+  --cms-surface-glass: rgba(12, 18, 30, 0.88);
+  --cms-surface-glass-heavy: rgba(8, 12, 20, 0.96);
+
+  /* Tactical Accents */
+  --cms-accent-green: #00e676;
+  --cms-accent-green-glow: rgba(0, 230, 118, 0.35);
+  --cms-accent-green-dim: rgba(0, 230, 118, 0.12);
+  
+  --cms-accent-cyan: #00f0ff;
+  --cms-accent-cyan-glow: rgba(0, 240, 255, 0.35);
+  --cms-accent-cyan-dim: rgba(0, 240, 255, 0.12);
+
+  --cms-accent-blue: #00b0ff;
+  --cms-accent-blue-dim: rgba(0, 176, 255, 0.12);
+
+  --cms-accent-amber: #ffab00;
+  --cms-accent-amber-dim: rgba(255, 171, 0, 0.12);
+
+  --cms-accent-rose: #ff3b5c;
+  --cms-accent-rose-dim: rgba(255, 59, 92, 0.14);
+
+  --cms-accent-purple: #c77dff;
+  --cms-accent-purple-dim: rgba(199, 125, 255, 0.12);
+
+  /* Typography Colors */
+  --cms-text-primary: #f8fafc;
+  --cms-text-secondary: #94a3b8;
+  --cms-text-tertiary: #64748b;
+  --cms-text-dim: #475569;
+
+  /* Borders & Dividers */
+  --cms-border-subtle: rgba(255, 255, 255, 0.08);
+  --cms-border-medium: rgba(255, 255, 255, 0.14);
+  --cms-border-accent: rgba(0, 230, 118, 0.4);
+  --cms-border-cyan: rgba(0, 240, 255, 0.4);
+
+  /* Standard Border Radii */
+  --cms-radius-xs: 4px;
+  --cms-radius-sm: 8px;
+  --cms-radius-md: 12px;
+  --cms-radius-lg: 16px;
+  --cms-radius-xl: 20px;
+  --cms-radius-full: 9999px;
+
+  /* Typography Families */
+  --cms-font-sans: 'Inter', 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --cms-font-display: 'Bebas Neue', sans-serif;
+  --cms-font-mono: 'JetBrains Mono', monospace;
+
+  /* Touch Target Standard (WCAG 2.5.5 / Google Android & iOS Ergonomics) */
+  --cms-touch-target: 44px;
+  --cms-touch-target-sm: 38px;
+
+  /* Shadows & Depth */
+  --cms-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --cms-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --cms-shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.6);
+  --cms-shadow-glow-green: 0 0 24px rgba(0, 230, 118, 0.28);
+  --cms-shadow-glow-cyan: 0 0 24px rgba(0, 240, 255, 0.25);
+}
+
+/* Touch Ergonomic Base Utility */
+.cms-touch-target {
+  min-width: var(--cms-touch-target);
+  min-height: var(--cms-touch-target);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Scrollbar Harmonization across the entire CMS suite */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--cms-surface-0);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--cms-border-medium);
+  border-radius: var(--cms-radius-full);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cms-text-tertiary);
+}

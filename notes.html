@@ -13,6 +13,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="cms-tokens.css">
+  <link rel="stylesheet" href="cms-nav.css">
 
   <style>
     :root {
@@ -1003,9 +1005,14 @@
         <p>Live iPhone Sync</p>
       </div>
     </div>
-    <div class="status-pill" id="sync-status-pill">
-      <div class="status-dot"></div>
-      <span id="sync-status-label">Live Synced</span>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button type="button" onclick="CMSNav.openCommandPalette()" style="background:rgba(0,240,255,0.12);border:1px solid rgba(0,240,255,0.3);color:#00f0ff;border-radius:18px;padding:5px 10px;font-size:11px;font-weight:700;display:flex;align-items:center;gap:4px;cursor:pointer;" title="Quick Switcher">
+        <span>⚡ Switcher</span>
+      </button>
+      <div class="status-pill" id="sync-status-pill">
+        <div class="status-dot"></div>
+        <span id="sync-status-label">Live Synced</span>
+      </div>
     </div>
   </header>
 
@@ -1997,5 +2004,6 @@
         .replace(/"/g, '&quot;');
     }
   </script>
+  <script src="cms-nav.js"></script>
 </body>
 </html>

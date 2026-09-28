@@ -8,6 +8,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css?v=20260928b">
+  <link rel="stylesheet" href="cms-tokens.css">
+  <link rel="stylesheet" href="cms-nav.css">
   <style>
     body {
       margin: 0;
@@ -117,6 +119,10 @@
       <button type="button" class="tb-tool-btn" onclick="window.open('match-report.html', '_blank')" title="AI-Powered Match Report Studio">
         <span class="tb-tool-icon">📋</span>
         <span class="tb-tool-lbl">Match Report</span>
+      </button>
+      <button type="button" class="tb-tool-btn" onclick="CMSNav.openCommandPalette()" title="Quick Switcher (Press Ctrl+K or Cmd+K)">
+        <span class="tb-tool-icon">⚡</span>
+        <span class="tb-tool-lbl">Switcher (⌘K)</span>
       </button>
     </div>
     <button class="tbtn back" onclick="location.href='index.html'" style="margin-left:8px;margin-right:8px;">← Dashboard</button>
@@ -652,5 +658,6 @@
 
   <!-- Session Planner Core Logic Script -->
   <script src="session-planner.js?v=20260928b"></script>
+  <script src="cms-nav.js"></script>
 </body>
 </html>
