@@ -1519,7 +1519,44 @@ function FormationBuilder() {
               📋 Send to Match Report
             </button>
 
-            {/* 3. Team View Link with share and whatsapp icons below */}
+            {/* 3. Load Sample Roster */}
+            {manualPlayers.filter(p => p.name.trim()).length === 0 && (
+              <button
+                onClick={() => {
+                  const sampleRoster = [
+                    { id: 's1',  name: 'David Raya',        number: '22', position: 'GK',  type: 'start' },
+                    { id: 's2',  name: 'Ben White',         number: '4',  position: 'RB',  type: 'start' },
+                    { id: 's3',  name: 'William Saliba',    number: '12', position: 'CB',  type: 'start' },
+                    { id: 's4',  name: 'Gabriel Magalhães', number: '6',  position: 'CB',  type: 'start' },
+                    { id: 's5',  name: 'Oleksandr Zinchenko', number: '35', position: 'LB', type: 'start' },
+                    { id: 's6',  name: 'Thomas Partey',     number: '5',  position: 'CDM', type: 'start' },
+                    { id: 's7',  name: 'Martin Ødegaard',   number: '8',  position: 'CAM', type: 'start' },
+                    { id: 's8',  name: 'Declan Rice',       number: '41', position: 'CM',  type: 'start' },
+                    { id: 's9',  name: 'Bukayo Saka',       number: '7',  position: 'RW',  type: 'start' },
+                    { id: 's10', name: 'Leandro Trossard',  number: '19', position: 'LW',  type: 'start' },
+                    { id: 's11', name: 'Gabriel Martinelli', number: '11', position: 'ST', type: 'start' },
+                    { id: 'u1',  name: 'Karl Hein',         number: '31', position: 'GK',  type: 'sub' },
+                    { id: 'u2',  name: 'Takehiro Tomiyasu', number: '18', position: 'RB',  type: 'sub' },
+                    { id: 'u3',  name: 'Jakub Kiwior',      number: '15', position: 'CB',  type: 'sub' },
+                    { id: 'u4',  name: 'Jorginho',          number: '20', position: 'CM',  type: 'sub' },
+                    { id: 'u5',  name: 'Fabio Vieira',      number: '21', position: 'CM',  type: 'sub' },
+                    { id: 'u6',  name: 'Emile Smith Rowe',  number: '10', position: 'AM',  type: 'sub' },
+                    { id: 'u7',  name: 'Eddie Nketiah',     number: '14', position: 'ST',  type: 'sub' },
+                  ];
+                  setManualPlayers(sampleRoster);
+                  setFormationKey('4-3-3');
+                  setExactStarters(null);
+                  setExactSubs(null);
+                  setIsDirty(false);
+                  setSyncInfo('Sample Arsenal 4-3-3 Roster');
+                }}
+                className="oswald"
+                style={{ fontSize: 13, letterSpacing: "0.02em", height: 42, padding: "0 14px", borderRadius: 8, border: "1px solid rgba(0,176,255,0.5)", color: "#00b0ff", background: "rgba(0,176,255,0.08)", fontWeight: 700, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5 }}
+                title="Load a sample Premier League squad to get started"
+              >
+                ⚡ Load Sample Roster
+              </button>
+            )}
             <div
               style={{
                 height: 42,

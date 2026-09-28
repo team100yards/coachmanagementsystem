@@ -4856,8 +4856,12 @@
       const a = document.createElement('a');
       a.href = url;
       a.download = filename;
+      document.body.appendChild(a);
       a.click();
-      URL.revokeObjectURL(url);
+      setTimeout(() => {
+        try { document.body.removeChild(a); } catch (e) { }
+        URL.revokeObjectURL(url);
+      }, 10000);
     }
 
     function toggleVideoRecording() {
@@ -4916,12 +4920,18 @@
       };
 
       mediaRecorder.onstop = () => {
-        const outputMime = selectedMime.includes('mp4') ? 'video/mp4' : (selectedMime || 'video/mp4');
+        const isMp4 = selectedMime.includes('mp4');
+        const ext = isMp4 ? 'mp4' : 'webm';
+        const outputMime = isMp4 ? 'video/mp4' : (selectedMime || 'video/webm');
         const blob = new Blob(recordedChunks, { type: outputMime });
-        const filename = `tactical_video_${Date.now()}.mp4`;
+        const filename = `tactical_video_${Date.now()}.${ext}`;
         downloadBlob(blob, filename);
 
-        bannerText.textContent = `Tactical MP4 exported: ${filename}`;
+        if (stream) {
+          try { stream.getTracks().forEach(t => t.stop()); } catch (e) { }
+        }
+
+        bannerText.textContent = `Tactical ${ext.toUpperCase()} exported: ${filename}`;
         placementBanner.style.display = 'flex';
         setTimeout(() => {
           if (!isContinuousDropMode && !isCalibrating2Point) {
@@ -7348,6 +7358,22 @@
         }
       } catch (e) { }
     }
+
+    // Lifecycle & Memory Management: dispose recording streams and video playback
+    function cleanupTrackerLifecycle() {
+      try {
+        if (typeof isRecordingVideo !== 'undefined' && isRecordingVideo) {
+          stopVideoRecording();
+        }
+        if (typeof video !== 'undefined' && video) {
+          video.pause();
+        }
+      } catch (e) {
+        console.warn('Tracker lifecycle teardown note:', e);
+      }
+    }
+    window.addEventListener('pagehide', cleanupTrackerLifecycle);
+    window.addEventListener('beforeunload', cleanupTrackerLifecycle);
 
     // Launch Application
     window.addEventListener('DOMContentLoaded', init);

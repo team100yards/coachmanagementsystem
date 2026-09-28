@@ -986,13 +986,17 @@ function renderSessions() {
   if(!listEl) return;
 
   if(!filtered.length) {
+    const isSearching = (document.getElementById('sp-search')?.value || '').trim() !== '' ||
+      (document.getElementById('sp-filter-cat')?.value || '') !== '' ||
+      (document.getElementById('sp-filter-status')?.value || '') !== '';
     listEl.innerHTML = `
       <div class="empty" style="grid-column: 1/-1; padding: 48px 20px; text-align: center; background: var(--card); border-radius: 16px; border: 1.5px dashed var(--bd);">
         <div style="font-size: 40px; margin-bottom: 12px;">📋</div>
-        <h3 style="margin: 0 0 6px; font-size: 18px; color: var(--tx);">No training sessions found</h3>
-        <p style="margin: 0 0 16px; font-size: 13px; color: var(--mt);">Plan a new training session or select ready-made pro presets.</p>
-        <div style="display: flex; justify-content: center; gap: 10px;">
-          <button class="obtn" onclick="openTemplatePicker()">⚡ Load Presets</button>
+        <h3 style="margin: 0 0 6px; font-size: 18px; color: var(--tx);">${isSearching ? 'No matching sessions' : 'No training sessions yet'}</h3>
+        <p style="margin: 0 0 16px; font-size: 13px; color: var(--mt);">${isSearching ? 'Try adjusting your search or filters.' : 'Plan a new training session or load a sample to see how it works.'}</p>
+        <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+          ${!isSearching ? `<button class="obtn" style="background:linear-gradient(135deg,var(--g),#00b0ff);color:#080c14;border:none;font-weight:700;" onclick="loadSampleTrainingSession()">⚡ Load Sample Session</button>` : ''}
+          <button class="obtn" onclick="openTemplatePicker()">📚 Load Presets</button>
           <button class="mok" onclick="openNewSession()">＋ Plan New Session</button>
         </div>
       </div>
@@ -3972,4 +3976,110 @@ if (window.CMSBus) {
     if (!data) return;
     window.CMSBus.notify(`Tactical Lineup "${data.formation || 'XI'}" updated in Tactics Studio`, '🧩');
   });
+}
+
+// ══ First-Run Sample: Load a realistic pre-built session ══
+async function loadSampleTrainingSession() {
+  const today = new Date().toISOString().split('T')[0];
+  const assignedTeamId = (currentStudioTeamId && currentStudioTeamId !== 'all')
+    ? currentStudioTeamId
+    : (Array.isArray(teams) && teams[0] ? teams[0].id : '');
+
+  const sampleSession = {
+    teamId: assignedTeamId,
+    title: '4-3-3 High-Press & Rapid Counter-Attack',
+    date: today,
+    time: '17:30',
+    venue: 'Main Training Pitch 1',
+    category: 'Tactical',
+    intensity: 'High',
+    coach: '',
+    objectives: 'Establish aggressive 4-3-3 press triggers. Develop rapid transitions from defensive recovery to counter-attack. Reinforce half-space overloads on left side.',
+    duration: 90,
+    equipment: ['balls', 'cones_orange', 'cones_blue', 'bibs_yellow', 'bibs_green', 'goals_mini', 'stopwatch'],
+    drills: [
+      {
+        id: 'smpl_d1',
+        name: 'Activation & Rondos',
+        phase: 'Warm-Up',
+        duration: 15,
+        players: 14,
+        area: '20x20m',
+        description: '4v2 rondos progressing to 5v2. Focus on quick, one-touch combination play and scanning before receiving. Three sets of 3 minutes each with 1 min rest.',
+        keyPoints: 'Scan before ball arrives · Two-touch max · Immediate press triggers on turnover',
+      },
+      {
+        id: 'smpl_d2',
+        name: 'Pressing Triggers Pattern Play',
+        phase: 'Technical',
+        duration: 20,
+        players: 14,
+        area: '40x35m',
+        description: 'Shadow play in two units of 7. Coach signals trigger (goalkeeper back-pass, centre-back receives with back to goal). Entire unit presses in 4-3-3 shape compacting within 6 seconds. Rotate roles.',
+        keyPoints: 'Coordinate winger + striker press · Cut off switch pass lanes · Midfield trio steps aggressively',
+      },
+      {
+        id: 'smpl_d3',
+        name: '8v8 + GKs High-Press SSG',
+        phase: 'SSG',
+        duration: 25,
+        players: 18,
+        area: '65x50m',
+        description: 'Full-pitch 8v8+GKs. Pressing team earns bonus point for winning ball in final third within 5 seconds. Defending team scores bonus point if they escape press and reach opposite end within 10 seconds.',
+        keyPoints: 'Press as a coordinated unit · Prevent switch ball · GKs join build-up as 9th player',
+      },
+      {
+        id: 'smpl_d4',
+        name: '11v11 Transition Match',
+        phase: 'Match Prep',
+        duration: 20,
+        players: 22,
+        area: 'Full Pitch',
+        description: 'Full 11v11 with pressing triggers implemented. Referee signals when press is triggered — correct application earns the team a free kick possession reset from GK. Every 5 minutes, swap roles.',
+        keyPoints: 'Apply session learnings at full pace · Coach stops play to correct shape · Celebrate successful press wins',
+      },
+      {
+        id: 'smpl_d5',
+        name: 'Cool Down & Debrief',
+        phase: 'Recovery',
+        duration: 10,
+        players: 22,
+        area: 'Centre Circle',
+        description: 'Dynamic stretching and light jog around the pitch perimeter. Team huddle to debrief key moments from the SSG. Three players each summarise one pressing trigger successfully applied.',
+        keyPoints: 'Adductor & hip flexor focus · Mental debrief while fresh · Hydration',
+      }
+    ],
+    attendance: {},
+    debrief: { rating: '', status: 'scheduled', notes: '' },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
+  try {
+    if (db && navigator.onLine) {
+      const ref = await db.collection('sessions').add(sampleSession);
+      sampleSession.id = ref.id;
+    } else {
+      sampleSession.id = 'sample_' + Date.now();
+    }
+
+    sessions.unshift(sampleSession);
+
+    const cacheKey = assignedTeamId ? ('fhq_sessions_' + assignedTeamId) : 'fhq_sessions_all';
+    try {
+      if (window.CMSStorage) window.CMSStorage.set(cacheKey, sessions);
+      localStorage.setItem(cacheKey, JSON.stringify(sessions));
+    } catch (e) {}
+
+    renderSessions();
+
+    if (window.CMSBus) {
+      window.CMSBus.notify('⚡ Sample training session loaded — edit it to fit your squad!', '📋');
+    }
+  } catch (err) {
+    sampleSession.id = 'sample_' + Date.now();
+    sessions.unshift(sampleSession);
+    renderSessions();
+    console.warn('Sample session saved locally:', err);
+  }
 }

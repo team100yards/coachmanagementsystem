@@ -980,6 +980,12 @@
             <div class="empty-icon">&#x1F4CB;</div>
             <h3>Match Report Studio</h3>
             <p>Take coach notes above or speak with the mic while reviewing squad &amp; formation on the left &mdash; then tap <strong style="color:var(--green);">Generate Match Report</strong> to produce a professional, AI-written report instantly.</p>
+            <div style="margin-top:8px;">
+              <button type="button" class="btn-action" id="btn-load-sample-match" onclick="loadSampleMatchReport()" style="display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:10px;font-size:13.5px;font-weight:700;background:linear-gradient(135deg,var(--green),#00b0ff);color:#080c14;border:none;cursor:pointer;box-shadow:0 4px 18px rgba(0,230,118,0.25);transition:all .15s ease;">
+                <span>⚡</span>
+                <span>Load Sample Match Report</span>
+              </button>
+            </div>
           </div>
           <div class="report-content" id="report-content" style="display:none;"></div>
         </div>
@@ -3366,6 +3372,73 @@
       } catch(err) {
         showToast('Could not delete report: ' + (err.message || err), 'error');
       }
+    }
+
+    function loadSampleMatchReport() {
+      document.getElementById('home-team').value = 'Manchester City';
+      document.getElementById('away-team').value = 'Arsenal FC';
+      document.getElementById('home-score').value = '2';
+      document.getElementById('away-score').value = '1';
+      document.getElementById('competition').value = 'Premier League - Matchday 28';
+      document.getElementById('venue').value = 'Etihad Stadium';
+      document.getElementById('match-date').value = new Date().toISOString().split('T')[0];
+      document.getElementById('formation').value = '4-3-3 Attacking';
+      document.getElementById('team-squad').value = '1. Ederson (GK)\n2. Kyle Walker (RB)\n3. Rúben Dias (CB)\n25. Manuel Akanji (CB)\n24. Joško Gvardiol (LB)\n16. Rodri (DM)\n17. Kevin De Bruyne (AM - C)\n20. Bernardo Silva (AM)\n47. Phil Foden (RW)\n9. Erling Haaland (ST)\n11. Jérémy Doku (LW)';
+
+      const sampleNotes = "Dominant high-pressing structure in the first half. Rodri controlled tempo in transition (94% pass accuracy). Kevin De Bruyne exploited half-spaces between Arsenal's midfield line and back four with 4 progressive key passes. Second-half defensive shape dropped into mid-block 4-4-2 after 75th minute to absorb counter-attacks. Haaland scored opener (22') from cut-back, Foden added second (64') following inverted winger overload. Late goal conceded from set-piece corner.";
+      document.getElementById('coach-notes').value = sampleNotes;
+
+      const sampleMarkdown = `## Executive Summary
+A commanding **2–1 victory** showcasing clinical execution of our 4-3-3 high-press and half-space overload strategy against a structured Premier League opponent. The squad sustained 62% possession and generated 2.45 xG through disciplined positional rotation.
+
+---
+
+### Tactical Phases & Key Metrics
+- **Possession & Control**: 62% possession with 548 completed passes (89% accuracy).
+- **Pressing & Transitions**: PPDA of 7.2 in the opening 45 minutes; forced 8 high turnovers in the attacking third.
+- **Expected Goals (xG)**: 2.45 vs 0.88 opponent xG.
+
+---
+
+### Key Match Events & Timeline
+- **22' ⚽ GOAL (1–0)**: Erling Haaland finishes from 8 yards following rapid transition initiated by Rodri turnover and low Doku cut-back.
+- **38' 🟨 Caution**: Rúben Dias for tactical foul breaking counter-attack in central circle.
+- **64' ⚽ GOAL (2–0)**: Phil Foden curls into bottom corner after De Bruyne half-space delivery and blindside decoy run.
+- **78' 🔄 Substitutions**: Mateo Kovačić on for Bernardo Silva (midfield reinforcement); Jack Grealish on for Jérémy Doku.
+- **86' ⚠️ Conceded Goal (2–1)**: Arsenal score from near-post header off inswinging corner kick.
+
+---
+
+### Squad Player Ratings & Contributions
+1. **Ederson (7.8)** — 3 vital saves, exceptional distribution under heavy opposition press (12/14 long diagonals completed).
+2. **Kyle Walker (8.0)** — Completely neutralized opponent left winger; registered top sprint speed of 35.8 km/h.
+3. **Rúben Dias (8.2)** — Commanded the defensive line with 7 aerial duels won and 4 crucial clearances.
+4. **Manuel Akanji (7.9)** — Composed ball progression and seamless stepping into defensive midfield pivot.
+5. **Joško Gvardiol (8.1)** — Strong offensive overlap support, 3 successful tackles and 2 crosses.
+6. **Rodri (8.8 - ⭐ Man of the Match)** — Tactical masterclass. 104 touches, 94% pass accuracy, 9 ball recoveries, broke lines with incisive vertical balls.
+7. **Kevin De Bruyne (8.6)** — 4 key passes, 1 direct assist, dominant in the right half-space channel.
+8. **Bernardo Silva (8.3)** — Relentless engine (12.4 km covered), pressing leader, linked defense to attack cleanly.
+9. **Phil Foden (8.5)** — Dynamic movement, clinical finish for the second goal, 4 successful dribbles.
+10. **Erling Haaland (8.2)** — Ruthless finishing for the opening goal, pinned opposition centre-backs, 2 shots on target.
+11. **Jérémy Doku (8.0)** — Unpredictable 1v1 threat on left flank, provided assist for opening goal.
+
+---
+
+### Tactical Takeaways & Next Session Focus
+1. **Defensive Corner Organization**: Review near-post zonal markers to prevent flick-on headers.
+2. **Transition Rest-Defense**: Maintain compact 3-2 rest-defense structure during sustained offensive corner phases.
+3. **Praise Point**: Excellent collective pressing triggers and immediate counter-press upon loss of possession.`;
+
+      rawReportText = sampleMarkdown;
+      renderReport(rawReportText);
+      document.getElementById('empty-state').style.display = 'none';
+
+      const badge = document.getElementById('report-badge');
+      if (badge) {
+        badge.textContent = 'Sample Match Ready';
+        badge.style.display = 'inline-flex';
+      }
+      showToast('⚡ Premier League sample match report loaded!', 'success');
     }
 
     /* ==========================================================================

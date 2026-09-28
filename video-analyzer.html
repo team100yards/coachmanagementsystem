@@ -9142,6 +9142,7 @@
         }
 
         if (lblEl) lblEl.textContent = `Compositing ${formatSecondsToMMSS(totalExportDuration)} tactical video (${formatSecondsToMMSS(endTime - startTime)} clip + ${totalHoldSeconds.toFixed(1)}s drawing holds)...`;
+        const exportStartWall = performance.now();
         let lastUiUpdate = 0;
         let currentT = startTime;
         let nextMomentIdx = 0;
@@ -9181,8 +9182,11 @@
                 timestamp: timestampUs,
                 duration: frameDurationUs
               });
-              encoder.encode(vFrame, { keyFrame: isKeyFrame });
-              vFrame.close();
+              try {
+                encoder.encode(vFrame, { keyFrame: isKeyFrame });
+              } finally {
+                vFrame.close();
+              }
               outputFrameIdx++;
 
               const pct = Math.min(99, Math.round((outputFrameIdx / totalExportFrames) * 100));
@@ -9190,9 +9194,14 @@
               if (now - lastUiUpdate > 80 || h === moment.frames - 1) {
                 lastUiUpdate = now;
                 const curExportSec = Math.min(totalExportDuration, outputFrameIdx / fps);
+                const elapsedSec = Math.max(0.1, (now - exportStartWall) / 1000);
+                const frameRate = outputFrameIdx / elapsedSec;
+                const remFrames = Math.max(0, totalExportFrames - outputFrameIdx);
+                const etaSec = frameRate > 0 ? Math.ceil(remFrames / frameRate) : 0;
+                const etaStr = etaSec > 0 ? ` • ETA: ~${etaSec}s` : '';
                 if (barFill) barFill.style.width = pct + '%';
                 if (pctEl) pctEl.textContent = pct + '%';
-                if (lblEl) lblEl.textContent = `Encoding MP4: ${pct}% (${formatSecondsToMMSS(curExportSec)} / ${formatSecondsToMMSS(totalExportDuration)}) • ⏳ Holding ${moment.holdSec.toFixed(1)}s (Pin ${nextMomentIdx}/${holdMoments.length})...`;
+                if (lblEl) lblEl.textContent = `Encoding MP4: ${pct}% (${formatSecondsToMMSS(curExportSec)} / ${formatSecondsToMMSS(totalExportDuration)}${etaStr}) • ⏳ Holding ${moment.holdSec.toFixed(1)}s (Pin ${nextMomentIdx}/${holdMoments.length})...`;
                 await new Promise(r => setTimeout(r, 0));
               }
             }
@@ -9222,8 +9231,11 @@
             timestamp: timestampUs,
             duration: frameDurationUs
           });
-          encoder.encode(vFrame, { keyFrame: isKeyFrame });
-          vFrame.close();
+          try {
+            encoder.encode(vFrame, { keyFrame: isKeyFrame });
+          } finally {
+            vFrame.close();
+          }
           outputFrameIdx++;
 
           currentT += (1.0 / fps);
@@ -9233,9 +9245,14 @@
           if (now - lastUiUpdate > 80) {
             lastUiUpdate = now;
             const curExportSec = Math.min(totalExportDuration, outputFrameIdx / fps);
+            const elapsedSec = Math.max(0.1, (now - exportStartWall) / 1000);
+            const frameRate = outputFrameIdx / elapsedSec;
+            const remFrames = Math.max(0, totalExportFrames - outputFrameIdx);
+            const etaSec = frameRate > 0 ? Math.ceil(remFrames / frameRate) : 0;
+            const etaStr = etaSec > 0 ? ` • ETA: ~${etaSec}s` : '';
             if (barFill) barFill.style.width = pct + '%';
             if (pctEl) pctEl.textContent = pct + '%';
-            if (lblEl) lblEl.textContent = `Encoding MP4: ${pct}% (${formatSecondsToMMSS(curExportSec)} / ${formatSecondsToMMSS(totalExportDuration)})`;
+            if (lblEl) lblEl.textContent = `Encoding MP4: ${pct}% (${formatSecondsToMMSS(curExportSec)} / ${formatSecondsToMMSS(totalExportDuration)}${etaStr})`;
             await new Promise(r => setTimeout(r, 0));
           }
         }
@@ -9443,6 +9460,7 @@
         return;
       }
 
+      _currentExportStream = stream;
       const recorder = recData.recorder;
       const mime = recData.mimeType;
       const chunks = [];
@@ -9455,6 +9473,10 @@
         autoPauseOnKeyframes = _origAutoPauseState;
         isExportingDirectVideo = false;
         pauseVideo();
+        if (_currentExportStream) {
+          try { _currentExportStream.getTracks().forEach(t => t.stop()); } catch (e) { }
+          _currentExportStream = null;
+        }
 
         if (chunks.length > 0 && !exportDirectCancelled) {
           const isMp4 = mime.includes('mp4');
@@ -10016,6 +10038,10 @@
       exportDirectCancelled = true;
       isExportingDirectVideo = false;
       autoPauseOnKeyframes = _origAutoPauseState;
+      if (_currentExportStream) {
+        try { _currentExportStream.getTracks().forEach(t => t.stop()); } catch (e) { }
+        _currentExportStream = null;
+      }
       hideFloatingExportHUD();
       pauseVideo();
       const modal = document.getElementById('export-video-modal');
@@ -17503,6 +17529,39 @@
           loadSquadRosterFromDatabase();
         });
       }
+
+      // Lifecycle & Memory Management: dispose active streams, RAF loops, and Fabric resources on page exit
+      function cleanupAnalyzerLifecycle() {
+        try {
+          if (typeof isExportingDirectVideo !== 'undefined' && isExportingDirectVideo) {
+            cancelDirectVideoExport();
+          }
+          if (_currentExportStream) {
+            _currentExportStream.getTracks().forEach(t => t.stop());
+            _currentExportStream = null;
+          }
+          if (typeof _stageRecAnimFrame !== 'undefined' && _stageRecAnimFrame) {
+            cancelAnimationFrame(_stageRecAnimFrame);
+          }
+          if (typeof recordingTimerInterval !== 'undefined' && recordingTimerInterval) {
+            clearInterval(recordingTimerInterval);
+          }
+          const vid = document.getElementById('local-video-element');
+          if (vid) {
+            vid.pause();
+            vid.removeAttribute('src');
+            vid.load();
+          }
+          if (window.canvas && typeof window.canvas.dispose === 'function') {
+            window.canvas.dispose();
+          }
+        } catch (e) {
+          console.warn('Analyzer lifecycle teardown note:', e);
+        }
+      }
+
+      window.addEventListener('pagehide', cleanupAnalyzerLifecycle);
+      window.addEventListener('beforeunload', cleanupAnalyzerLifecycle);
     });
   </script>
   <script src="cms-nav.js"></script>
