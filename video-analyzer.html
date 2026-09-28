@@ -16860,6 +16860,18 @@
       initDraggableStageWatermark();
       initDraggableResizableModals();
 
+      // Mount floating Canvas Ergonomics HUD on video stage
+      if (window.CMSNav && typeof window.CMSNav.initCanvasHUD === 'function') {
+        window.CMSNav.initCanvasHUD('player-stage', {
+          onUndo: undoCanvas,
+          onRedo: redoCanvas,
+          getStepCount: () => (window.canvasUndoHistory ? window.canvasUndoHistory.length : 0),
+          onToggleMode: () => {
+            if (window.CMSNav) window.CMSNav.togglePitchMode();
+          }
+        });
+      }
+
       // Local video media state event listeners for rock-solid sync with transport UI
       const localVid = document.getElementById('local-video-element');
       if (localVid) {

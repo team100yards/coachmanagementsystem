@@ -819,6 +819,7 @@
             <!-- View Toggle: Pitch | Cards | Raw Text & CMS Sync -->
             <div class="view-toggle-pills">
               <button type="button" class="view-pill" onclick="syncLineupFromCMSBus()" title="Pull active lineup from Tactics Studio (CMS Bus)" style="color:var(--green);font-weight:700;border-color:rgba(0,230,118,0.4);">⚡ Sync Lineup</button>
+              <button type="button" class="view-pill" id="btn-sunlight-mode" onclick="toggleSunlightPitchMode()" title="Toggle High-Contrast Sunlight Turf for outdoor glare">☀️ Sunlight</button>
               <button class="view-pill active" id="btn-view-pitch" onclick="switchSquadView('pitch')">🏟️ Pitch</button>
               <button class="view-pill" id="btn-view-cards" onclick="switchSquadView('cards')">📋 Cards</button>
               <button class="view-pill" id="btn-view-text" onclick="switchSquadView('text')">✏️ Text</button>
@@ -3106,10 +3107,6 @@
         showToast('Generate a report first before saving', 'error');
         return;
       }
-      if (!db) {
-        showToast('Database not available offline', 'error');
-        return;
-      }
 
       var matchCtx = JSON.parse(localStorage.getItem('cms_match_report_context') || '{}');
       var selTid = document.getElementById('team-selector') ? document.getElementById('team-selector').value : '';
@@ -3153,8 +3150,34 @@
         reportStyle: reportStyle,
         markdown: rawReportText,
         updatedAt: new Date().toISOString(),
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        createdAt: (typeof firebase !== 'undefined' && firebase.firestore) ? firebase.firestore.FieldValue.serverTimestamp() : new Date().toISOString()
       };
+
+      if (!navigator.onLine || !db) {
+        if (window.CMSStorage) {
+          await window.CMSStorage.queueOfflineMutation({
+            collection: 'match_reports',
+            docId: reportId,
+            action: 'set',
+            data: reportData
+          });
+          window.CMSStorage.set('cms_last_saved_report', reportData);
+        }
+        currentReportId = reportId;
+        showToast('Saved locally offline (will sync upon reconnection) 🟡', 'info');
+        document.getElementById('report-badge').textContent = 'Saved Offline (Queued) 🟡';
+        document.getElementById('report-badge').style.display = 'inline-flex';
+        if (window.CMSBus) {
+          window.CMSBus.publish(window.CMSBus.EVENTS.MATCH_REPORT_SAVED, {
+            id: reportId,
+            title: homeTeam + ' vs ' + awayTeam,
+            matchDate: matchDate,
+            score: homeScore + ' - ' + awayScore,
+            teamId: teamId
+          });
+        }
+        return;
+      }
 
       try {
         await db.collection('match_reports').doc(reportId).set(reportData, { merge: true });
@@ -3180,7 +3203,29 @@
         sendToGoogleDriveWebhook(reportData);
       } catch (err) {
         console.error('Error saving match report:', err);
+        if (window.CMSStorage) {
+          await window.CMSStorage.queueOfflineMutation({
+            collection: 'match_reports',
+            docId: reportId,
+            action: 'set',
+            data: reportData
+          });
+          window.CMSStorage.set('cms_last_saved_report', reportData);
+          currentReportId = reportId;
+          showToast('Network error: report queued offline 🟡', 'info');
+          document.getElementById('report-badge').textContent = 'Saved Offline (Queued) 🟡';
+          document.getElementById('report-badge').style.display = 'inline-flex';
+          return;
+        }
         showToast('Failed to save to database: ' + (err.message || err), 'error');
+      }
+    }
+
+    function toggleSunlightPitchMode() {
+      if (window.CMSStorage) {
+        var next = window.CMSStorage.togglePitchMode();
+        var btn = document.getElementById('btn-sunlight-mode');
+        if (btn) btn.textContent = next === 'sunlight' ? '🌙 Midnight' : '☀️ Sunlight';
       }
     }
 

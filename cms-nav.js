@@ -1,6 +1,6 @@
 /**
  * Coach Management System (CMS) — GA Edition
- * Universal Suite Navigation & Command Palette Engine
+ * Universal Suite Navigation, Pitch-Side Resilience Pill & Ergonomics HUD
  */
 (function(window, document) {
   'use strict';
@@ -42,6 +42,8 @@
     return { name: 'Coach Management System', logo: '' };
   }
 
+  let syncDrawerOpen = false;
+
   const CMSNav = {
     currentToolId: getCurrentTool(),
 
@@ -49,6 +51,7 @@
       const current = this.currentToolId;
       const branding = getClubBranding();
       const currentToolObj = TOOLS.find(t => t.id === current) || TOOLS[0];
+      const isOnline = navigator.onLine;
 
       const navLinksHtml = TOOLS.map(t => {
         const isActive = t.id === current;
@@ -82,18 +85,179 @@
           </nav>
 
           <div class="cms-nav-right">
+            <!-- Connection & Offline Resilience Pill -->
+            <div class="cms-nav-sync-pill" id="cms-nav-sync-pill" onclick="CMSNav.toggleSyncDrawer()" title="Pitchside & Cloud Sync Status (Click to inspect)">
+              <span class="cms-sync-dot ${isOnline ? 'online' : 'offline'}" id="cms-sync-dot"></span>
+              <span class="cms-sync-label" id="cms-sync-label">${isOnline ? 'Live Sync' : 'Saved Locally (Offline)'}</span>
+            </div>
+
+            <!-- Quick Command Palette Switcher -->
             <button type="button" class="cms-nav-cmd-btn" onclick="CMSNav.openCommandPalette()" title="Quick Switcher (Press Ctrl+K or Cmd+K)">
               <span>⚡ Switcher</span>
               <span class="cms-nav-kbd">⌘K</span>
             </button>
+
             ${current !== 'squad' ? `
               <a href="index.html" class="cms-nav-action-btn" title="Back to Squad Dashboard">
                 <span>← Dashboard</span>
               </a>
             ` : ''}
+
+            <!-- Sync Drawer Dropdown -->
+            <div class="cms-nav-sync-drawer" id="cms-sync-drawer" style="display:none;">
+              <div class="cms-sync-drawer-row">
+                <span style="font-weight:700;color:#ffffff;display:flex;align-items:center;gap:6px;">
+                  <span id="cms-drawer-status-dot" class="cms-sync-dot ${isOnline ? 'online' : 'offline'}"></span>
+                  <span id="cms-drawer-status-text">${isOnline ? 'Online (Connected)' : 'Offline (Pitchside Mode)'}</span>
+                </span>
+                <span id="cms-drawer-pending-badge" style="font-family:var(--cms-font-mono);font-size:11px;color:var(--cms-text-secondary);">0 pending</span>
+              </div>
+              
+              <div style="font-size:11.5px;color:var(--cms-text-secondary);line-height:1.4;">
+                All squad edits, session notes, and match ratings are optimistically saved locally on your device and automatically synced to the cloud upon reconnection.
+              </div>
+
+              <div class="cms-sync-drawer-row" style="border-top:1px solid var(--cms-border-subtle);padding-top:10px;">
+                <span style="font-size:12px;font-weight:600;">Outdoor Sun Glare Mode:</span>
+                <button type="button" class="cms-pitch-mode-btn" onclick="CMSNav.togglePitchMode()" style="padding:4px 10px;border-radius:6px;background:rgba(255,255,255,0.08);border:1px solid var(--cms-border-medium);color:#fff;font-size:11.5px;font-weight:700;cursor:pointer;">
+                  ☀️ Sunlight Turf
+                </button>
+              </div>
+
+              <button type="button" class="cms-sync-drawer-btn" onclick="CMSNav.forceSyncNow()">
+                <span>⚡ Force Cloud Sync</span>
+              </button>
+            </div>
           </div>
         </header>
       `;
+    },
+
+    updateSyncPill: function(status, count = 0) {
+      const dot = document.getElementById('cms-sync-dot');
+      const label = document.getElementById('cms-sync-label');
+      const drawerDot = document.getElementById('cms-drawer-status-dot');
+      const drawerText = document.getElementById('cms-drawer-status-text');
+      const drawerPending = document.getElementById('cms-drawer-pending-badge');
+
+      if (!dot || !label) return;
+
+      dot.className = 'cms-sync-dot ' + status;
+      if (drawerDot) drawerDot.className = 'cms-sync-dot ' + status;
+
+      let labelText = 'Live Sync';
+      let descText = 'Online (Connected)';
+
+      if (status === 'offline') {
+        labelText = count > 0 ? `Saved Offline (${count})` : 'Saved Locally (Offline)';
+        descText = 'Offline (Pitchside Mode)';
+      } else if (status === 'syncing') {
+        labelText = 'Syncing...';
+        descText = 'Flushing changes to cloud...';
+      } else if (status === 'error') {
+        labelText = 'Network Error';
+        descText = 'Temporary network disconnect';
+      }
+
+      label.textContent = labelText;
+      if (drawerText) drawerText.textContent = descText;
+      if (drawerPending) drawerPending.textContent = `${count} pending`;
+    },
+
+    toggleSyncDrawer: function() {
+      const drawer = document.getElementById('cms-sync-drawer');
+      if (!drawer) return;
+      syncDrawerOpen = !syncDrawerOpen;
+      drawer.style.display = syncDrawerOpen ? 'flex' : 'none';
+    },
+
+    togglePitchMode: function() {
+      if (window.CMSStorage && typeof window.CMSStorage.togglePitchMode === 'function') {
+        const next = window.CMSStorage.togglePitchMode();
+        if (window.CMSBus) {
+          window.CMSBus.notify(next === 'sunlight' ? 'High-Contrast Sunlight Turf Enabled ☀️' : 'Midnight Tactical Mode Enabled 🌙');
+        }
+      }
+    },
+
+    forceSyncNow: function() {
+      if (window.CMSStorage && typeof window.CMSStorage.flushOfflineQueue === 'function') {
+        const db = window.db || null;
+        window.CMSStorage.flushOfflineQueue(db);
+        this.updateSyncPill('syncing', 0);
+      }
+    },
+
+    /**
+     * Mount floating Undo/Redo & Ergonomic gesture HUD directly onto canvas container
+     * @param {string|HTMLElement} targetContainer
+     * @param {object} options - { onUndo, onRedo, getStepCount, onToggleMode, canvas }
+     */
+    initCanvasHUD: function(targetContainer, options = {}) {
+      const container = typeof targetContainer === 'string' ? document.getElementById(targetContainer) : targetContainer;
+      if (!container) return;
+
+      let hud = container.querySelector('.cms-canvas-hud');
+      if (!hud) {
+        hud = document.createElement('div');
+        hud.className = 'cms-canvas-hud';
+        container.style.position = 'relative';
+        container.appendChild(hud);
+      }
+
+      hud.innerHTML = `
+        <button type="button" class="cms-hud-btn" id="cms-hud-undo-btn" title="Undo (Ctrl+Z)">
+          <span>↩️</span><span style="font-size:11px;">Undo</span>
+        </button>
+        <div class="cms-hud-counter" id="cms-hud-step-counter">0</div>
+        <button type="button" class="cms-hud-btn" id="cms-hud-redo-btn" title="Redo (Ctrl+Y)">
+          <span>↪️</span><span style="font-size:11px;">Redo</span>
+        </button>
+        <div class="cms-hud-sep"></div>
+        <button type="button" class="cms-hud-btn" id="cms-hud-sunlight-btn" title="Toggle Sunlight Turf Mode">
+          <span>☀️</span>
+        </button>
+      `;
+
+      const undoBtn = hud.querySelector('#cms-hud-undo-btn');
+      const redoBtn = hud.querySelector('#cms-hud-redo-btn');
+      const sunlightBtn = hud.querySelector('#cms-hud-sunlight-btn');
+
+      if (undoBtn && options.onUndo) undoBtn.onclick = (e) => { e.stopPropagation(); options.onUndo(); };
+      if (redoBtn && options.onRedo) redoBtn.onclick = (e) => { e.stopPropagation(); options.onRedo(); };
+      if (sunlightBtn) {
+        sunlightBtn.onclick = (e) => {
+          e.stopPropagation();
+          if (options.onToggleMode) options.onToggleMode();
+          else this.togglePitchMode();
+        };
+      }
+
+      // Update step count periodically or on change
+      if (options.getStepCount) {
+        const updateStep = () => {
+          const counter = hud.querySelector('#cms-hud-step-counter');
+          if (counter) counter.textContent = String(options.getStepCount() || 0);
+        };
+        updateStep();
+        setInterval(updateStep, 500);
+      }
+
+      // Touch & Palm Rejection Ergonomics on targeted canvas
+      const targetCanvas = options.canvas || container.querySelector('canvas') || container;
+      if (targetCanvas && !targetCanvas._cmsPalmGuardAttached) {
+        targetCanvas._cmsPalmGuardAttached = true;
+        targetCanvas.style.touchAction = 'none';
+
+        // Filter out palm rests (width/height > 35px or multi-finger palm contacts)
+        targetCanvas.addEventListener('pointerdown', (e) => {
+          if (e.pointerType === 'touch' && (e.width > 35 || e.height > 35)) {
+            // Palm detected: discard event to prevent accidental stray markings
+            e.stopImmediatePropagation();
+            e.preventDefault();
+          }
+        }, { capture: true, passive: false });
+      }
     },
 
     renderCommandPaletteHtml: function() {
@@ -116,10 +280,10 @@
 
       return `
         <div class="cms-cmd-backdrop" id="cms-cmd-backdrop" onclick="if(event.target===this) CMSNav.closeCommandPalette()">
-          <div class="cms-cmd-modal" role="dialog" aria-modal="true">
-            <div class="cms-cmd-input-wrap">
-              <span style="font-size:16px;">🔍</span>
-              <input type="text" id="cms-cmd-search" class="cms-cmd-input" placeholder="Type a tool name or command (e.g. Video, Session, Report)…" autocomplete="off" spellcheck="false">
+          <div class="cms-cmd-card" role="dialog" aria-modal="true">
+            <div class="cms-cmd-search-wrap">
+              <span style="font-size:18px;">🔍</span>
+              <input type="text" id="cms-cmd-input" class="cms-cmd-input" placeholder="Switch to any tactical tool or studio..." oninput="CMSNav.filterCommandPalette(this.value)">
               <span class="cms-nav-kbd">ESC</span>
             </div>
             <div class="cms-cmd-list" id="cms-cmd-list">
@@ -135,63 +299,25 @@
       if (!backdrop) {
         document.body.insertAdjacentHTML('beforeend', this.renderCommandPaletteHtml());
         backdrop = document.getElementById('cms-cmd-backdrop');
-        this.bindPaletteEvents();
       }
-      backdrop.classList.add('open');
-      const inp = document.getElementById('cms-cmd-search');
-      if (inp) {
-        inp.value = '';
-        inp.focus();
-        this.filterPalette('');
+      if (backdrop) {
+        backdrop.style.display = 'flex';
+        const input = document.getElementById('cms-cmd-input');
+        if (input) {
+          input.value = '';
+          input.focus();
+        }
       }
     },
 
     closeCommandPalette: function() {
       const backdrop = document.getElementById('cms-cmd-backdrop');
       if (backdrop) {
-        backdrop.classList.remove('open');
+        backdrop.style.display = 'none';
       }
     },
 
-    bindPaletteEvents: function() {
-      const inp = document.getElementById('cms-cmd-search');
-      const list = document.getElementById('cms-cmd-list');
-      if (!inp || !list) return;
-
-      inp.addEventListener('input', (e) => {
-        this.filterPalette(e.target.value);
-      });
-
-      inp.addEventListener('keydown', (e) => {
-        const visible = Array.from(list.querySelectorAll('.cms-cmd-item:not([style*="display: none"])'));
-        if (!visible.length) return;
-        const currentIdx = visible.findIndex(item => item.classList.contains('selected'));
-
-        if (e.key === 'ArrowDown') {
-          e.preventDefault();
-          const next = (currentIdx + 1) % visible.length;
-          visible.forEach(item => item.classList.remove('selected'));
-          visible[next].classList.add('selected');
-          visible[next].scrollIntoView({ block: 'nearest' });
-        } else if (e.key === 'ArrowUp') {
-          e.preventDefault();
-          const prev = (currentIdx - 1 + visible.length) % visible.length;
-          visible.forEach(item => item.classList.remove('selected'));
-          visible[prev].classList.add('selected');
-          visible[prev].scrollIntoView({ block: 'nearest' });
-        } else if (e.key === 'Enter') {
-          e.preventDefault();
-          const sel = visible[currentIdx >= 0 ? currentIdx : 0];
-          if (sel && sel.getAttribute('data-url')) {
-            window.location.href = sel.getAttribute('data-url');
-          }
-        } else if (e.key === 'Escape') {
-          this.closeCommandPalette();
-        }
-      });
-    },
-
-    filterPalette: function(query) {
+    filterCommandPalette: function(query) {
       const q = (query || '').toLowerCase().trim();
       const list = document.getElementById('cms-cmd-list');
       if (!list) return;
@@ -220,13 +346,26 @@
         if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
           e.preventDefault();
           const backdrop = document.getElementById('cms-cmd-backdrop');
-          if (backdrop && backdrop.classList.contains('open')) {
+          if (backdrop && backdrop.style.display === 'flex') {
             this.closeCommandPalette();
           } else {
             this.openCommandPalette();
           }
         } else if (e.key === 'Escape') {
           this.closeCommandPalette();
+          const drawer = document.getElementById('cms-sync-drawer');
+          if (drawer) drawer.style.display = 'none';
+          syncDrawerOpen = false;
+        }
+      });
+
+      // Close sync drawer when clicking outside
+      document.addEventListener('pointerdown', (e) => {
+        const drawer = document.getElementById('cms-sync-drawer');
+        const pill = document.getElementById('cms-nav-sync-pill');
+        if (drawer && syncDrawerOpen && !drawer.contains(e.target) && !pill.contains(e.target)) {
+          drawer.style.display = 'none';
+          syncDrawerOpen = false;
         }
       });
 
@@ -236,7 +375,21 @@
         if (mount && !document.getElementById('cms-universal-topbar')) {
           mount.innerHTML = this.renderHeaderHtml();
         }
+        if (window.CMSStorage) {
+          window.CMSStorage.applyPitchModeToPage();
+          window.CMSStorage.getOfflineQueueCount().then(count => {
+            this.updateSyncPill(navigator.onLine ? (count > 0 ? 'syncing' : 'online') : 'offline', count);
+          });
+        }
       };
+
+      // Listen to storage sync events
+      if (window.CMSStorage && typeof window.CMSStorage.onSyncStatusChange === 'function') {
+        window.CMSStorage.onSyncStatusChange((status, count) => {
+          this.updateSyncPill(status, count);
+        });
+      }
+
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', autoMount);
       } else {

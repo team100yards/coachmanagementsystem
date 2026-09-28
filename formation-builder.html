@@ -367,6 +367,9 @@ function FormationBuilder() {
   const [customPos, setCustomPos] = useState({});
   const [dragKey, setDragKey] = useState(null);
   const [syncInfo, setSyncInfo] = useState("");
+  const [pitchMode, setPitchMode] = useState(() => {
+    return (window.CMSStorage && window.CMSStorage.getPitchMode()) || 'midnight';
+  });
   const pitchRef = useRef(null);
   const [pitchHeight, setPitchHeight] = useState(null);
   const [showChat, setShowChat] = useState(() => {
@@ -543,12 +546,18 @@ function FormationBuilder() {
     // Real-Time Cross-Tool Suite Bus Subscriptions
     let unsubRoster = null;
     let unsubLineup = null;
+    let unsubPitchMode = null;
     if (window.CMSBus) {
       unsubRoster = window.CMSBus.subscribe(window.CMSBus.EVENTS.PLAYER_ROSTER_SYNC, (data) => {
         if (data) applySyncPayload(data);
       });
       unsubLineup = window.CMSBus.subscribe(window.CMSBus.EVENTS.LINEUP_PUBLISHED, (data) => {
         if (data) applySyncPayload(data);
+      });
+      unsubPitchMode = window.CMSBus.subscribe('cms:pitch_mode_changed', (evt) => {
+        if (evt && evt.data && evt.data.mode) {
+          setPitchMode(evt.data.mode);
+        }
       });
     }
 
@@ -570,6 +579,7 @@ function FormationBuilder() {
       window.removeEventListener("resize", reportHeight);
       if (unsubRoster) unsubRoster();
       if (unsubLineup) unsubLineup();
+      if (unsubPitchMode) unsubPitchMode();
       ro.disconnect();
       clearTimeout(t1);
       clearTimeout(t2);
@@ -1642,6 +1652,33 @@ function FormationBuilder() {
             </div>
 
             <div className="flex items-center gap-3 flex-wrap">
+              <button
+                type="button"
+                onClick={() => {
+                  if (window.CMSStorage) {
+                    const next = window.CMSStorage.togglePitchMode();
+                    setPitchMode(next);
+                  }
+                }}
+                className="oswald"
+                title="Toggle High-Contrast Sunlight Turf for outdoor glare"
+                style={{
+                  fontSize: 12,
+                  letterSpacing: "0.02em",
+                  fontWeight: 700,
+                  padding: "5px 10px",
+                  borderRadius: 6,
+                  border: `1px solid ${pitchMode === 'sunlight' ? '#22c55e' : C.border}`,
+                  background: pitchMode === 'sunlight' ? 'rgba(34,197,94,0.2)' : 'transparent',
+                  color: pitchMode === 'sunlight' ? '#86efac' : C.sage,
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4
+                }}
+              >
+                {pitchMode === 'sunlight' ? '🌙 Midnight' : '☀️ Sunlight'}
+              </button>
               <label className="flex items-center gap-1.5 oswald" style={{ fontSize: 13, color: C.creamSoft, letterSpacing: "0.02em", cursor: "pointer" }}>
                 <input
                   type="checkbox"
@@ -1767,7 +1804,7 @@ function FormationBuilder() {
           >
             <div
               ref={pitchRef}
-              className="relative w-full rounded-lg overflow-hidden pitch-stripe"
+              className={`relative w-full rounded-lg overflow-hidden pitch-stripe ${pitchMode === 'sunlight' ? 'cms-pitch-sunlight' : ''}`}
               style={{
                 aspectRatio: "68 / 100",
                 maxHeight: isFullscreen ? "calc(100vh - 140px)" : "none",

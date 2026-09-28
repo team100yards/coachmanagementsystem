@@ -1397,7 +1397,22 @@ async function saveSessionPlan() {
   };
 
   try {
-    if(currentEditingSession.id && db) {
+    if(!navigator.onLine || !db) {
+      if(!currentEditingSession.id) payload.id = 'off_sess_' + Date.now();
+      else payload.id = currentEditingSession.id;
+      const idx = sessions.findIndex(s => s.id === payload.id);
+      if(idx > -1) sessions[idx] = { ...payload };
+      else sessions.unshift(payload);
+
+      if (window.CMSStorage) {
+        await window.CMSStorage.queueOfflineMutation({
+          collection: 'sessions',
+          docId: payload.id,
+          action: currentEditingSession.id ? 'update' : 'set',
+          data: payload
+        });
+      }
+    } else if(currentEditingSession.id && db) {
       await db.collection('sessions').doc(currentEditingSession.id).update(payload);
       const idx = sessions.findIndex(s => s.id === currentEditingSession.id);
       if(idx > -1) sessions[idx] = { id: currentEditingSession.id, ...payload };
@@ -1439,8 +1454,28 @@ async function saveSessionPlan() {
 
     closeSessionEditor();
     renderSessions();
-    alert('✅ Training session saved successfully!');
+    if(!navigator.onLine) {
+      alert('🟡 Training session saved locally (queued for cloud sync)!');
+    } else {
+      alert('✅ Training session saved successfully!');
+    }
   } catch(e) {
+    if(window.CMSStorage) {
+      if(!payload.id) payload.id = currentEditingSession.id || ('off_sess_' + Date.now());
+      const idx = sessions.findIndex(s => s.id === payload.id);
+      if(idx > -1) sessions[idx] = { ...payload };
+      else sessions.unshift(payload);
+      await window.CMSStorage.queueOfflineMutation({
+        collection: 'sessions',
+        docId: payload.id,
+        action: currentEditingSession.id ? 'update' : 'set',
+        data: payload
+      });
+      closeSessionEditor();
+      renderSessions();
+      alert('🟡 Saved offline locally due to network interruption. Will sync automatically!');
+      return;
+    }
     alert('❌ Could not save session: ' + (e.message || e));
   }
 }
@@ -1588,6 +1623,7 @@ function openDrillBoard(drillIdx) {
   boardObjects = drill && drill.boardObjects ? JSON.parse(JSON.stringify(drill.boardObjects)) : [];
   initialDrillBoardSnapshot = JSON.stringify(boardObjects);
   boardHistory = [];
+  boardRedoHistory = [];
   currentBoardTool = 'red';
   currentEquipmentSequenceId = 1;
   isDistancingActive = true;
@@ -1601,6 +1637,17 @@ function openDrillBoard(drillIdx) {
   setTimeout(() => {
     initCanvasPitch();
     redrawCanvas();
+    if (window.CMSNav && typeof window.CMSNav.initCanvasHUD === 'function') {
+      window.CMSNav.initCanvasHUD(document.querySelector('.sp-canvas-wrap'), {
+        onUndo: undoBoard,
+        onRedo: redoBoard,
+        getStepCount: () => (boardObjects ? boardObjects.length : 0),
+        onToggleMode: () => {
+          if (window.CMSNav) window.CMSNav.togglePitchMode();
+          redrawCanvas();
+        }
+      });
+    }
   }, 100);
 }
 
@@ -2030,19 +2077,48 @@ function getTokenDefaultLabel(tool) {
   return '';
 }
 
+function pushBoardHistory() {
+  boardHistory.push(JSON.stringify(boardObjects));
+  boardRedoHistory = [];
+}
+
 function undoBoard() {
   if(boardHistory.length) {
+    boardRedoHistory.push(JSON.stringify(boardObjects));
     boardObjects = JSON.parse(boardHistory.pop());
     redrawCanvas();
   } else if(boardObjects.length) {
+    boardRedoHistory.push(JSON.stringify(boardObjects));
     boardObjects.pop();
     redrawCanvas();
   }
 }
 
+function redoBoard() {
+  if(boardRedoHistory && boardRedoHistory.length) {
+    boardHistory.push(JSON.stringify(boardObjects));
+    boardObjects = JSON.parse(boardRedoHistory.pop());
+    redrawCanvas();
+  }
+}
+
+// Global tactical canvas undo/redo keyboard listener
+window.addEventListener('keydown', (e) => {
+  const modal = $('m-drill-board');
+  if(!modal || modal.style.display === 'none') return;
+  if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+    e.preventDefault();
+    if(e.shiftKey) redoBoard();
+    else undoBoard();
+  } else if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
+    e.preventDefault();
+    redoBoard();
+  }
+});
+
 function clearBoardCanvas() {
   if(!confirm('Clear all tactical markings from this pitch sketch?')) return;
-  boardHistory.push(JSON.stringify(boardObjects));
+  pushBoardHistory();
   boardObjects = [];
   redrawCanvas();
 }
@@ -2167,19 +2243,20 @@ function drawLiveEquipmentPlacementGuide(ctx, cursor, tool) {
 }
 
 function drawFootballPitchBackground(ctx, w, h, type) {
-  ctx.fillStyle = '#164327';
+  const isSunlight = (window.CMS_PITCH_MODE === 'sunlight') || (window.CMSStorage && window.CMSStorage.getPitchMode() === 'sunlight');
+  ctx.fillStyle = isSunlight ? '#15803d' : '#164327';
   ctx.fillRect(0, 0, w, h);
 
-  ctx.fillStyle = '#1a4e2e';
+  ctx.fillStyle = isSunlight ? '#16a34a' : '#1a4e2e';
   const stripeCount = 10;
   const stripeWidth = w / stripeCount;
   for(let i = 0; i < stripeCount; i += 2) {
     ctx.fillRect(i * stripeWidth, 0, stripeWidth, h);
   }
 
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
-  ctx.lineWidth = 2.5;
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+  ctx.strokeStyle = isSunlight ? '#ffffff' : 'rgba(255, 255, 255, 0.9)';
+  ctx.lineWidth = isSunlight ? 3.0 : 2.5;
+  ctx.fillStyle = isSunlight ? '#ffffff' : 'rgba(255, 255, 255, 0.9)';
   ctx.setLineDash([]);
 
   const drawGoal = (x, y, gw, gh, direction) => {

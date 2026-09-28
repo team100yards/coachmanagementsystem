@@ -1958,31 +1958,64 @@
           timestamp: firebase.firestore.FieldValue.serverTimestamp()
         };
 
-        // Write to entries subcollection
-        await db.collection('match_live_notes')
-          .doc(sessionId)
-          .collection('entries')
-          .add(entryData);
-
-        // Update root session touch
-        await db.collection('match_live_notes')
-          .doc(sessionId)
-          .set({
-            lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
-            lastNote: fullText
-          }, { merge: true });
-
-        if (navigator.vibrate) {
-          navigator.vibrate(50);
+        if (!navigator.onLine || !db) {
+          const offId = 'off_entry_' + Date.now();
+          if (window.CMSStorage) {
+            await window.CMSStorage.queueOfflineMutation({
+              collection: 'match_live_notes/' + sessionId + '/entries',
+              docId: offId,
+              action: 'set',
+              data: Object.assign({}, entryData, { id: offId })
+            });
+          }
+          currentEntries.push(Object.assign({}, entryData, { id: offId }));
+          renderFeed(currentEntries);
+          if (navigator.vibrate) navigator.vibrate(50);
+          showToast('✓ Stamped [' + matchMinStr + '] (Saved Offline 🟡)');
+          clearInput();
+          return;
         }
 
-        showToast('✓ Stamped [' + matchMinStr + '] & Sent!');
-        clearInput();
+        try {
+          // Write to entries subcollection
+          await db.collection('match_live_notes')
+            .doc(sessionId)
+            .collection('entries')
+            .add(entryData);
 
-      } catch(err) {
-        console.error('Error sending note:', err);
-        showToast('Failed to send note: ' + err.message);
-      } finally {
+          // Update root session touch
+          await db.collection('match_live_notes')
+            .doc(sessionId)
+            .set({
+              lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+              lastNote: fullText
+            }, { merge: true });
+
+          if (navigator.vibrate) {
+            navigator.vibrate(50);
+          }
+
+          showToast('✓ Stamped [' + matchMinStr + '] & Sent!');
+          clearInput();
+
+        } catch(err) {
+          console.error('Error sending note:', err);
+          if (window.CMSStorage) {
+            const offId = 'off_entry_' + Date.now();
+            await window.CMSStorage.queueOfflineMutation({
+              collection: 'match_live_notes/' + sessionId + '/entries',
+              docId: offId,
+              action: 'set',
+              data: Object.assign({}, entryData, { id: offId })
+            });
+            currentEntries.push(Object.assign({}, entryData, { id: offId }));
+            renderFeed(currentEntries);
+            showToast('✓ Stamped [' + matchMinStr + '] (Queued Offline 🟡)');
+            clearInput();
+            return;
+          }
+          showToast('Failed to send note: ' + err.message);
+        } finally {
         sendBtn.disabled = false;
       }
     }

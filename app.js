@@ -16,6 +16,7 @@ try{
   app=firebase.app();
 }
 const db=firebase.firestore();
+window.db = db;
 const auth=firebase.auth();
 
 // Polyfill for CanvasRenderingContext2D.prototype.roundRect if missing in WebKit/Safari
@@ -35,12 +36,93 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
 }
 
 const collection=(db,name)=>db.collection(name);
-const addDoc=(ref,data)=>ref.add(data);
+const doc=(db,col,id)=>db.collection(col).doc(id);
+
+const addDoc = async (ref, data) => {
+  const colName = ref.id || (ref._path ? ref._path.segments[0] : 'items');
+  if (!navigator.onLine && window.CMSStorage) {
+    const tempId = 'off_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+    await window.CMSStorage.queueOfflineMutation({
+      collection: colName,
+      docId: tempId,
+      action: 'set',
+      data: Object.assign({}, data, { id: tempId })
+    });
+    return { id: tempId };
+  }
+  try {
+    return await ref.add(data);
+  } catch (err) {
+    if (window.CMSStorage) {
+      const tempId = 'off_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+      await window.CMSStorage.queueOfflineMutation({
+        collection: colName,
+        docId: tempId,
+        action: 'set',
+        data: Object.assign({}, data, { id: tempId })
+      });
+      return { id: tempId };
+    }
+    throw err;
+  }
+};
+
 const getDocs=(q)=>q.get();
 const getDoc=(ref)=>ref.get();
-const deleteDoc=(ref)=>ref.delete();
-const doc=(db,col,id)=>db.collection(col).doc(id);
-const updateDoc=(ref,data)=>ref.update(data);
+
+const deleteDoc = async (ref) => {
+  const colName = ref.parent ? ref.parent.id : (ref._path ? ref._path.segments[ref._path.segments.length - 2] : 'items');
+  const docId = ref.id;
+  if (!navigator.onLine && window.CMSStorage) {
+    await window.CMSStorage.queueOfflineMutation({
+      collection: colName,
+      docId: docId,
+      action: 'delete'
+    });
+    return;
+  }
+  try {
+    return await ref.delete();
+  } catch (err) {
+    if (window.CMSStorage) {
+      await window.CMSStorage.queueOfflineMutation({
+        collection: colName,
+        docId: docId,
+        action: 'delete'
+      });
+      return;
+    }
+    throw err;
+  }
+};
+
+const updateDoc = async (ref, data) => {
+  const colName = ref.parent ? ref.parent.id : (ref._path ? ref._path.segments[ref._path.segments.length - 2] : 'items');
+  const docId = ref.id;
+  if (!navigator.onLine && window.CMSStorage) {
+    await window.CMSStorage.queueOfflineMutation({
+      collection: colName,
+      docId: docId,
+      action: 'update',
+      data: data
+    });
+    return;
+  }
+  try {
+    return await ref.update(data);
+  } catch (err) {
+    if (window.CMSStorage) {
+      await window.CMSStorage.queueOfflineMutation({
+        collection: colName,
+        docId: docId,
+        action: 'update',
+        data: data
+      });
+      return;
+    }
+    throw err;
+  }
+};
 const onSnapshot=(q,cb,err)=>q.onSnapshot(cb,err);
 const where=(f,op,v)=>({_type:'where',f,op,v});
 const orderBy=(f,dir='asc')=>({_type:'orderBy',f,dir});
