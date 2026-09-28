@@ -8541,7 +8541,7 @@
             Pitch tactical animations, zones, player runs, and telestration will be exported into a clean 1080p video file.
           </div>
         `;
-      } else {
+      } else if (lastLoadedVideoId) {
         if (directPitchBtn) directPitchBtn.style.display = 'inline-flex';
         noticeEl.innerHTML = `
           <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
@@ -8557,11 +8557,26 @@
             Broadcast match footage &amp; drawings record seamlessly via browser capture. For 100% background direct export, click "Direct Tactical Video" or upload match MP4.
           </div>
         `;
+      } else {
+        if (directPitchBtn) directPitchBtn.style.display = 'none';
+        noticeEl.innerHTML = `
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:6px;color:var(--accent-green);font-weight:700;font-size:12px;">
+              <span>🟢</span> <span>Tactical Pitch Board Ready</span>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button type="button" class="btn-secondary" onclick="document.getElementById('local-video-file-input').click(); closeExportVideoModal();" style="font-size:10px;padding:2px 7px;">📁 Upload Match Video</button>
+            </div>
+          </div>
+          <div style="color:var(--text-muted);font-size:10.5px;margin-top:4px;line-height:1.35;">
+            Direct 1080p canvas composite active. Full pitch drill animations, player tracking, and drawings will export directly to video.
+          </div>
+        `;
       }
 
       const exportBtnLabel = document.getElementById('btn-start-export-label');
       if (exportBtnLabel) {
-        exportBtnLabel.textContent = (!isUsingLocalVideo && !isSyntheticDemo) ? '🎬 Record Match Clip' : '⬇️ Start Direct Export';
+        exportBtnLabel.textContent = (lastLoadedVideoId && !isUsingLocalVideo && !isSyntheticDemo) ? '🎬 Record Match Clip' : '⬇️ Start Direct Export';
       }
 
       // Populate Start and End range
@@ -8732,7 +8747,7 @@
       }
       const exportBtnLabel = document.getElementById('btn-start-export-label');
       if (exportBtnLabel) {
-        const actionPrefix = (!isUsingLocalVideo && !isSyntheticDemo) ? '🎬 Record Match Clip' : '⬇️ Start Direct Export';
+        const actionPrefix = (lastLoadedVideoId && !isUsingLocalVideo && !isSyntheticDemo) ? '🎬 Record Match Clip' : '⬇️ Start Direct Export';
         exportBtnLabel.textContent = `${actionPrefix} (${formatSecondsToMMSS(totalExportSec)})`;
       }
     }
@@ -8787,15 +8802,25 @@
         return;
       }
 
-      if (!isUsingLocalVideo && !isSyntheticDemo) {
+      if (isUsingLocalVideo || isSyntheticDemo) {
+        startDirectVideoExport(inSec, outSec);
+        return;
+      }
+
+      if (lastLoadedVideoId) {
         startAutomatedScreenExport(inSec, outSec);
         return;
       }
 
+      // If no video was previously selected, activate tactical pitch board and start direct export!
+      loadSyntheticPitchDemo('preset-canvas');
       startDirectVideoExport(inSec, outSec);
     }
 
     function startDirectTacticalBoardExport() {
+      if (!isSyntheticDemo) {
+        loadSyntheticPitchDemo('preset-canvas');
+      }
       const inSec = parseTimeInput(document.getElementById('export-in-input').value);
       const outSec = parseTimeInput(document.getElementById('export-out-input').value);
 
@@ -8813,7 +8838,12 @@
 
     async function startDirectVideoExport(startTime, endTime) {
       if (selectedExportFormat === 'mp4' && typeof VideoEncoder !== 'undefined' && typeof Mp4Muxer !== 'undefined') {
-        exportWithWebCodecs(startTime, endTime);
+        try {
+          await exportWithWebCodecs(startTime, endTime);
+        } catch (err) {
+          console.warn('WebCodecs export failed, falling back to MediaRecorder:', err);
+          fallbackMediaRecorderDirectExport(startTime, endTime);
+        }
       } else {
         fallbackMediaRecorderDirectExport(startTime, endTime);
       }
@@ -8858,205 +8888,214 @@
       isExportingDirectVideo = true;
       exportDirectCancelled = false;
 
-      const includeAutoPause = document.getElementById('export-autopause-enable')
-        ? document.getElementById('export-autopause-enable').checked
-        : true;
-
-      const holdMoments = includeAutoPause ? getExportHoldMoments(startTime, endTime) : [];
-      let totalHoldSeconds = 0;
-      let totalHoldFrames = 0;
-      holdMoments.forEach(m => {
-        totalHoldSeconds += m.holdSec;
-        totalHoldFrames += m.frames;
-      });
-
-      const fps = 30;
-      const frameDurationUs = Math.round(1_000_000 / fps);
-
-      const movingFrames = Math.max(1, Math.round((endTime - startTime) * fps));
-      const totalExportFrames = movingFrames + totalHoldFrames;
-      const totalExportDuration = (movingFrames / fps) + totalHoldSeconds;
-
-      // Create high-precision 1080p composition canvas
-      const compCanvas = document.createElement('canvas');
-      compCanvas.width = 1920;
-      compCanvas.height = 1080;
-      const compCtx = compCanvas.getContext('2d', { alpha: false, desynchronized: true });
-      compCtx.imageSmoothingEnabled = true;
-      compCtx.imageSmoothingQuality = 'high';
-
-      // Initialize fast-start MP4 Muxer (moov atom placed at file head for instant playback)
-      const muxer = new Mp4Muxer.Muxer({
-        target: new Mp4Muxer.ArrayBufferTarget(),
-        video: {
-          codec: 'avc',
-          width: 1920,
-          height: 1080
-        },
-        fastStart: 'in-memory',
-        firstTimestampBehavior: 'offset'
-      });
-
-      let encoderError = null;
-      const encoder = new VideoEncoder({
-        output: (chunk, meta) => {
-          if (muxer) muxer.addVideoChunk(chunk, meta);
-        },
-        error: (err) => {
-          console.error('WebCodecs VideoEncoder error:', err);
-          encoderError = err;
-        }
-      });
-
-      let chosenCodec = 'avc1.4d002a'; // H.264 Main Profile level 4.2
-      if (typeof VideoEncoder.isConfigSupported === 'function') {
-        try {
-          const high = await VideoEncoder.isConfigSupported({
-            codec: 'avc1.640028',
-            width: 1920,
-            height: 1080,
-            bitrate: 3500000
-          });
-          if (high && high.supported) chosenCodec = 'avc1.640028';
-        } catch (e) { }
-      }
-
-      let configured = false;
-      const codecProfiles = [chosenCodec, 'avc1.4d002a', 'avc1.42e01f'];
-      const accelModes = ['prefer-hardware', 'no-preference'];
-
-      for (const hw of accelModes) {
-        if (configured) break;
-        for (const c of codecProfiles) {
-          try {
-            encoder.configure({
-              codec: c,
-              width: 1920,
-              height: 1080,
-              bitrate: 3500000,
-              bitrateMode: 'variable',
-              framerate: fps,
-              hardwareAcceleration: hw,
-              avc: { format: 'avc' }
-            });
-            chosenCodec = c;
-            configured = true;
-            break;
-          } catch (cfgErr) { }
-        }
-      }
-
-      if (!configured) {
-        throw new Error('VideoEncoder configuration not supported');
-      }
-
-      let _lastExportKfKey = null;
-
-      async function renderFrameAtTime(t, kfsToRender = null, isHold = false) {
-        currentVideoTime = t;
-
-        if (isHold && kfsToRender && kfsToRender.length > 0) {
-          const currentKfKey = kfsToRender.map(k => k.id).sort().join(',');
-          if (currentKfKey !== _lastExportKfKey) {
-            _lastExportKfKey = currentKfKey;
-            await renderKeyframesToCanvas(kfsToRender);
-          } else if (canvas) {
-            canvas.renderAll();
-          }
-        } else {
-          _lastExportKfKey = null;
-          if (canvas) {
-            canvas.clear();
-            canvas.renderAll();
-          }
-        }
-
-        // Determine active magnification / tactical zoom & pan
-        let effectiveZoom = 1.0;
-        let effectivePanX = 0;
-        let effectivePanY = 0;
-
-        if (isHold && kfsToRender && kfsToRender.length > 0) {
-          const zoomedKf = [...kfsToRender].reverse().find(k => k.zoomLevel && k.zoomLevel > 1.0);
-          if (zoomedKf) {
-            effectiveZoom = zoomedKf.zoomLevel;
-            effectivePanX = zoomedKf.panX || 0;
-            effectivePanY = zoomedKf.panY || 0;
-          }
-        } else if (stageZoomLevel > 1.0) {
-          effectiveZoom = stageZoomLevel;
-          effectivePanX = stagePanX || 0;
-          effectivePanY = stagePanY || 0;
-        }
-
-        compCtx.save();
-        compCtx.beginPath();
-        compCtx.rect(0, 0, 1920, 1080);
-        compCtx.clip();
-
-        if (effectiveZoom > 1.0) {
-          const stage = document.getElementById('player-stage');
-          const stageW = stage ? (stage.clientWidth || 960) : 960;
-          const stageH = stage ? (stage.clientHeight || 540) : 540;
-          const canvasPanX = (effectivePanX / stageW) * 1920;
-          const canvasPanY = (effectivePanY / stageH) * 1080;
-
-          compCtx.translate(960 + canvasPanX, 540 + canvasPanY);
-          compCtx.scale(effectiveZoom, effectiveZoom);
-          compCtx.translate(-960, -540);
-        }
-
-        if (isLocal && localVid) {
-          try {
-            compCtx.drawImage(localVid, 0, 0, 1920, 1080);
-          } catch (e) {
-            compCtx.fillStyle = '#080c14';
-            compCtx.fillRect(0, 0, 1920, 1080);
-          }
-        } else if (isPitch && pitchCanvas) {
-          try {
-            renderSyntheticPitch(t);
-            compCtx.drawImage(pitchCanvas, 0, 0, 1920, 1080);
-          } catch (e) {
-            compCtx.fillStyle = '#080c14';
-            compCtx.fillRect(0, 0, 1920, 1080);
-            try { drawTacticalPitchGeometry(compCtx, 1920, 1080); } catch (err) { }
-          }
-        } else {
-          compCtx.fillStyle = '#080c14';
-          compCtx.fillRect(0, 0, 1920, 1080);
-          if (isSyntheticDemo) {
-            try { drawTacticalPitchGeometry(compCtx, 1920, 1080); } catch (e) { }
-          }
-        }
-
-        // FIXED: Composite both canvas layers (lower = objects, upper = active selection handles)
-        // during holds. Previously only lowerCanvasEl was drawn, missing upper layer content.
-        if (isHold && canvas) {
-          if (canvas.lowerCanvasEl) {
-            try { compCtx.drawImage(canvas.lowerCanvasEl, 0, 0, 1920, 1080); } catch (e) { }
-          }
-          if (canvas.upperCanvasEl) {
-            try { compCtx.drawImage(canvas.upperCanvasEl, 0, 0, 1920, 1080); } catch (e) { }
-          }
-        }
-
-        compCtx.restore();
-
-        // Custom transparent white watermark overlay (EPL broadcast style, safe-corner unzoomed)
-        drawWatermarkOnCanvas(compCtx, 1920, 1080);
-      }
+      let encoder = null;
+      let muxer = null;
 
       try {
-        // FIXED: Wait for the actual decoded video frame to be painted after seek.
-        // requestVideoFrameCallback fires once the new frame is available in the compositor.
-        // Falls back to a 'seeked' + 80ms settle time if rVFC is not available.
+        const includeAutoPause = document.getElementById('export-autopause-enable')
+          ? document.getElementById('export-autopause-enable').checked
+          : true;
+
+        const holdMoments = includeAutoPause ? getExportHoldMoments(startTime, endTime) : [];
+        let totalHoldSeconds = 0;
+        let totalHoldFrames = 0;
+        holdMoments.forEach(m => {
+          totalHoldSeconds += m.holdSec;
+          totalHoldFrames += m.frames;
+        });
+
+        const fps = 30;
+        const frameDurationUs = Math.round(1_000_000 / fps);
+
+        const movingFrames = Math.max(1, Math.round((endTime - startTime) * fps));
+        const totalExportFrames = movingFrames + totalHoldFrames;
+        const totalExportDuration = (movingFrames / fps) + totalHoldSeconds;
+
+        // Create high-precision 1080p composition canvas
+        const compCanvas = document.createElement('canvas');
+        compCanvas.width = 1920;
+        compCanvas.height = 1080;
+        const compCtx = compCanvas.getContext('2d', { alpha: false });
+        if (!compCtx) {
+          throw new Error('Could not obtain 2D canvas context for composition');
+        }
+        compCtx.imageSmoothingEnabled = true;
+        compCtx.imageSmoothingQuality = 'high';
+
+        // Initialize fast-start MP4 Muxer (moov atom placed at file head for instant playback)
+        muxer = new Mp4Muxer.Muxer({
+          target: new Mp4Muxer.ArrayBufferTarget(),
+          video: {
+            codec: 'avc',
+            width: 1920,
+            height: 1080
+          },
+          fastStart: 'in-memory',
+          firstTimestampBehavior: 'offset'
+        });
+
+        let encoderError = null;
+        encoder = new VideoEncoder({
+          output: (chunk, meta) => {
+            if (muxer) muxer.addVideoChunk(chunk, meta);
+          },
+          error: (err) => {
+            console.error('WebCodecs VideoEncoder error:', err);
+            encoderError = err;
+          }
+        });
+
+        let chosenCodec = 'avc1.4d002a'; // H.264 Main Profile level 4.2
+        if (typeof VideoEncoder.isConfigSupported === 'function') {
+          try {
+            const high = await VideoEncoder.isConfigSupported({
+              codec: 'avc1.640028',
+              width: 1920,
+              height: 1080,
+              bitrate: 3500000
+            });
+            if (high && high.supported) chosenCodec = 'avc1.640028';
+          } catch (e) { }
+        }
+
+        let configured = false;
+        const codecProfiles = [chosenCodec, 'avc1.4d002a', 'avc1.42e01f', 'avc1.42001f'];
+        const accelModes = ['prefer-hardware', 'no-preference'];
+
+        for (const hw of accelModes) {
+          if (configured) break;
+          for (const c of codecProfiles) {
+            try {
+              encoder.configure({
+                codec: c,
+                width: 1920,
+                height: 1080,
+                bitrate: 3500000,
+                bitrateMode: 'variable',
+                framerate: fps,
+                hardwareAcceleration: hw,
+                avc: { format: 'avc' }
+              });
+              chosenCodec = c;
+              configured = true;
+              break;
+            } catch (cfgErr) { }
+          }
+        }
+
+        if (!configured) {
+          throw new Error('VideoEncoder configuration not supported by this browser/GPU');
+        }
+
+        let _lastExportKfKey = null;
+
+        async function renderFrameAtTime(t, kfsToRender = null, isHold = false) {
+          currentVideoTime = t;
+
+          if (isHold && kfsToRender && kfsToRender.length > 0) {
+            const currentKfKey = kfsToRender.map(k => k.id).sort().join(',');
+            if (currentKfKey !== _lastExportKfKey) {
+              _lastExportKfKey = currentKfKey;
+              await renderKeyframesToCanvas(kfsToRender);
+            } else if (canvas) {
+              canvas.renderAll();
+            }
+          } else {
+            _lastExportKfKey = null;
+            if (canvas) {
+              canvas.clear();
+              canvas.renderAll();
+            }
+          }
+
+          // Determine active magnification / tactical zoom & pan
+          let effectiveZoom = 1.0;
+          let effectivePanX = 0;
+          let effectivePanY = 0;
+
+          if (isHold && kfsToRender && kfsToRender.length > 0) {
+            const zoomedKf = [...kfsToRender].reverse().find(k => k.zoomLevel && k.zoomLevel > 1.0);
+            if (zoomedKf) {
+              effectiveZoom = zoomedKf.zoomLevel;
+              effectivePanX = zoomedKf.panX || 0;
+              effectivePanY = zoomedKf.panY || 0;
+            }
+          } else if (stageZoomLevel > 1.0) {
+            effectiveZoom = stageZoomLevel;
+            effectivePanX = stagePanX || 0;
+            effectivePanY = stagePanY || 0;
+          }
+
+          compCtx.save();
+          compCtx.beginPath();
+          compCtx.rect(0, 0, 1920, 1080);
+          compCtx.clip();
+
+          if (effectiveZoom > 1.0) {
+            const stage = document.getElementById('player-stage');
+            const stageW = stage ? (stage.clientWidth || 960) : 960;
+            const stageH = stage ? (stage.clientHeight || 540) : 540;
+            const canvasPanX = (effectivePanX / stageW) * 1920;
+            const canvasPanY = (effectivePanY / stageH) * 1080;
+
+            compCtx.translate(960 + canvasPanX, 540 + canvasPanY);
+            compCtx.scale(effectiveZoom, effectiveZoom);
+            compCtx.translate(-960, -540);
+          }
+
+          if (isLocal && localVid) {
+            try {
+              compCtx.drawImage(localVid, 0, 0, 1920, 1080);
+            } catch (e) {
+              compCtx.fillStyle = '#080c14';
+              compCtx.fillRect(0, 0, 1920, 1080);
+            }
+          } else if (isPitch && pitchCanvas) {
+            try {
+              renderSyntheticPitch(t);
+              compCtx.drawImage(pitchCanvas, 0, 0, 1920, 1080);
+            } catch (e) {
+              compCtx.fillStyle = '#080c14';
+              compCtx.fillRect(0, 0, 1920, 1080);
+              try { drawTacticalPitchGeometry(compCtx, 1920, 1080); } catch (err) { }
+            }
+          } else {
+            compCtx.fillStyle = '#080c14';
+            compCtx.fillRect(0, 0, 1920, 1080);
+            if (isSyntheticDemo && pitchCanvas) {
+              try {
+                renderSyntheticPitch(t);
+                compCtx.drawImage(pitchCanvas, 0, 0, 1920, 1080);
+              } catch (e) {
+                try { drawTacticalPitchGeometry(compCtx, 1920, 1080); } catch (err) { }
+              }
+            } else if (isSyntheticDemo) {
+              try { drawTacticalPitchGeometry(compCtx, 1920, 1080); } catch (e) { }
+            }
+          }
+
+          // Composite Fabric.js telestration layers during holds
+          if (isHold && canvas) {
+            if (canvas.lowerCanvasEl) {
+              try { compCtx.drawImage(canvas.lowerCanvasEl, 0, 0, 1920, 1080); } catch (e) { }
+            }
+            if (canvas.upperCanvasEl) {
+              try { compCtx.drawImage(canvas.upperCanvasEl, 0, 0, 1920, 1080); } catch (e) { }
+            }
+          }
+
+          compCtx.restore();
+
+          // Custom transparent watermark overlay (EPL broadcast style, safe-corner unzoomed)
+          drawWatermarkOnCanvas(compCtx, 1920, 1080);
+        }
+
+        // Wait for actual decoded video frame to settle
         const seekVideoTo = (targetSec) => {
           return new Promise(resolve => {
             if (!localVid) { resolve(); return; }
             const clampedT = Math.min(localVid.duration || 999999, Math.max(0, targetSec));
             if (Math.abs(localVid.currentTime - clampedT) < 0.01) {
-              // Already at target; still wait one rVFC tick to guarantee frame is painted
               if ('requestVideoFrameCallback' in localVid) {
                 try {
                   let rVfcDone = false;
@@ -9083,21 +9122,17 @@
               localVid.removeEventListener('seeked', onSeeked);
               if ('requestVideoFrameCallback' in localVid) {
                 try {
-                  // Give the browser 2 frames to decode and paint the new frame
                   localVid.requestVideoFrameCallback(() => {
                     localVid.requestVideoFrameCallback(() => finish());
                   });
-                  // Hard timeout safety net in case rVFC never fires (e.g., video paused)
                   setTimeout(finish, 300);
                   return;
                 } catch(e){}
               }
-              // Fallback: wait 80ms after seeked for browser to paint the decoded frame
               setTimeout(finish, 80);
             };
             localVid.addEventListener('seeked', onSeeked, { once: true });
             localVid.currentTime = clampedT;
-            // Hard outer timeout in case 'seeked' never fires
             setTimeout(finish, 400);
           });
         };
@@ -9206,8 +9241,16 @@
         }
 
         if (exportDirectCancelled) {
-          try { encoder.close(); } catch (e) { }
+          try { if (encoder && encoder.state !== 'closed') encoder.close(); } catch (e) { }
           return;
+        }
+
+        if (encoderError) {
+          throw new Error('VideoEncoder failed during encode: ' + (encoderError.message || encoderError));
+        }
+
+        if (outputFrameIdx === 0) {
+          throw new Error('WebCodecs completed with 0 frames');
         }
 
         if (lblEl) lblEl.textContent = `Finalizing fast-start MP4 (${formatSecondsToMMSS(totalExportDuration)})...`;
@@ -9231,8 +9274,8 @@
         showExportToast(`✅ MP4 Export Ready: ${filename} (${formatSecondsToMMSS(totalExportDuration)} • ${sizeMB} MB)`);
 
       } catch (err) {
-        console.error('WebCodecs export encountered an error, falling back to MediaRecorder:', err);
-        try { encoder.close(); } catch (e) { }
+        console.warn('WebCodecs export encountered an error, falling back to MediaRecorder:', err);
+        try { if (encoder && encoder.state !== 'closed') encoder.close(); } catch (e) { }
         autoPauseOnKeyframes = _origAutoPauseState;
         isExportingDirectVideo = false;
         pauseVideo();
@@ -9334,7 +9377,10 @@
             compCtx.fillRect(0, 0, 1920, 1080);
           }
         } else if (isPitch && pitchCanvas) {
-          try { compCtx.drawImage(pitchCanvas, 0, 0, 1920, 1080); } catch (e) { }
+          try {
+            renderSyntheticPitch(cur);
+            compCtx.drawImage(pitchCanvas, 0, 0, 1920, 1080);
+          } catch (e) { }
         } else {
           compCtx.fillStyle = '#080c14';
           compCtx.fillRect(0, 0, 1920, 1080);
@@ -9930,7 +9976,7 @@
 
           // Resume playback after the hold (apply keyframe playback rate if set)
           if (isExportingDirectVideo && !exportDirectCancelled) {
-            const primaryKf = m.kfs[m.kfs.length - 1];
+            const primaryKf = (m.kfs && m.kfs.length > 0) ? m.kfs[m.kfs.length - 1] : null;
             if (primaryKf && primaryKf.playbackRate) {
               applyVideoPlaybackRate(primaryKf.playbackRate);
             }
@@ -17407,6 +17453,14 @@
           }
         });
       }
+
+      // Auto-initialize tactical pitch board if no video is loaded or handed off,
+      // guaranteeing the stage and telestration board are immediately live and interactive
+      setTimeout(() => {
+        if (!isUsingLocalVideo && !lastLoadedVideoId && !isSyntheticDemo) {
+          loadSyntheticPitchDemo('preset-canvas');
+        }
+      }, 300);
 
       // Local video media state event listeners for rock-solid sync with transport UI
       const localVid = document.getElementById('local-video-element');
