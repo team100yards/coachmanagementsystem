@@ -1542,6 +1542,115 @@
       transition: opacity 0.2s;
     }
 
+    /* Strictly suppress any floating onscreen undo/redo HUD or floating dialogs on the video screen */
+    .cms-canvas-hud,
+    #player-stage .cms-canvas-hud,
+    .tactical-board-hud,
+    #player-stage .tactical-board-hud {
+      display: none !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+
+    .tbh-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tbh-badge {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      padding: 3px 8px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .tbh-badge.blue {
+      background: rgba(33, 150, 243, 0.2);
+      color: #64b5f6;
+      border: 1px solid rgba(33, 150, 243, 0.45);
+    }
+
+    .tbh-badge.red {
+      background: rgba(244, 67, 54, 0.2);
+      color: #e57373;
+      border: 1px solid rgba(244, 67, 54, 0.45);
+    }
+
+    .tbh-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #cbd5e1;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .tbh-select {
+      background: rgba(15, 23, 42, 0.85);
+      color: #f8fafc;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 14px;
+      padding: 4px 10px;
+      font-size: 11.5px;
+      font-weight: 700;
+      outline: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .tbh-select:hover, .tbh-select:focus {
+      border-color: #00e676;
+      background: rgba(20, 32, 54, 0.95);
+    }
+
+    .tbh-sep {
+      width: 1px;
+      height: 18px;
+      background: rgba(255, 255, 255, 0.16);
+      margin: 0 2px;
+    }
+
+    .tbh-btn {
+      background: rgba(255, 255, 255, 0.08);
+      color: #e2e8f0;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 16px;
+      padding: 4px 11px;
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .tbh-btn:hover {
+      background: rgba(255, 255, 255, 0.16);
+      color: #ffffff;
+      border-color: rgba(255, 255, 255, 0.35);
+    }
+
+    .tbh-btn.active {
+      background: rgba(0, 230, 118, 0.16);
+      color: #00e676;
+      border-color: rgba(0, 230, 118, 0.45);
+      box-shadow: 0 0 10px rgba(0, 230, 118, 0.2);
+    }
+
+    .tbh-hint {
+      font-size: 10.5px;
+      color: #94a3b8;
+      margin-left: 2px;
+      letter-spacing: 0.2px;
+    }
+
     .canvas-status-badge .indicator-dot {
       width: 10px;
       height: 10px;
@@ -3216,6 +3325,75 @@
 
       <!-- Broadcast Contextual Sub-Toolbar (Active Tool / Selected Object Controls) -->
       <div class="tactical-context-bar" id="tactical-context-bar">
+
+        <!-- Tactical Pitch Board Formations & Movement Controls (Docked cleanly above stage) -->
+        <div id="ctx-tactical-board-group" class="ctx-group" style="display:none;align-items:center;gap:10px;flex-wrap:wrap;width:100%;">
+          <span class="ctx-label" style="color:#00e676;display:inline-flex;align-items:center;gap:4px;font-weight:900;">
+            <span>🟢</span> <span>TACTICAL BOARD:</span>
+          </span>
+
+          <!-- Blue Squad Formation -->
+          <div class="tbh-group">
+            <span class="tbh-badge blue">🔵 Blue:</span>
+            <select id="tbh-blue-formation" class="tbh-select" onchange="setTacticalFormation('blue', this.value)" title="Blue Squad Formation Preset">
+              <option value="4-3-3" selected>4-3-3</option>
+              <option value="4-4-2">4-4-2</option>
+              <option value="4-2-3-1">4-2-3-1</option>
+              <option value="3-5-2">3-5-2</option>
+              <option value="5-3-2">5-3-2</option>
+              <option value="3-4-3">3-4-3</option>
+            </select>
+          </div>
+
+          <div class="tbh-sep"></div>
+
+          <!-- Red Squad Formation -->
+          <div class="tbh-group">
+            <span class="tbh-badge red">🔴 Red:</span>
+            <select id="tbh-red-formation" class="tbh-select" onchange="setTacticalFormation('red', this.value)" title="Red Squad Formation Preset">
+              <option value="4-4-2" selected>4-4-2</option>
+              <option value="4-3-3">4-3-3</option>
+              <option value="4-2-3-1">4-2-3-1</option>
+              <option value="3-5-2">3-5-2</option>
+              <option value="5-3-2">5-3-2</option>
+              <option value="5-4-1">5-4-1</option>
+            </select>
+          </div>
+
+          <div class="tbh-sep"></div>
+
+          <!-- Ball Position Shortcut -->
+          <div class="tbh-group">
+            <span class="tbh-label">⚽ Ball:</span>
+            <select id="tbh-ball-preset" class="tbh-select" onchange="setTacticalBallPreset(this.value)" title="Ball Position Shortcut">
+              <option value="center" selected>Center / Kick-off</option>
+              <option value="blue-penalty">Left Penalty Spot</option>
+              <option value="red-penalty">Right Penalty Spot</option>
+              <option value="blue-attack">Blue Attack Zone</option>
+              <option value="red-attack">Red Attack Zone</option>
+              <option value="corner-bl">Top Left Corner</option>
+              <option value="corner-br">Bottom Left Corner</option>
+              <option value="corner-tl">Top Right Corner</option>
+              <option value="corner-tr">Bottom Right Corner</option>
+            </select>
+          </div>
+
+          <div class="tbh-sep"></div>
+
+          <!-- Mode Toggle -->
+          <button type="button" id="tbh-mode-toggle" class="tbh-btn active" onclick="toggleTacticalBoardMode()" title="Toggle between manual token drag & auto simulation">
+            <span id="tbh-mode-icon">✋</span>
+            <span id="tbh-mode-text">Manual Drag (Active)</span>
+          </button>
+
+          <!-- Reset Button -->
+          <button type="button" class="tbh-btn" onclick="resetTacticalBoardPositions()" title="Reset formations & ball to center">
+            <span>🔄</span>
+            <span>Reset</span>
+          </button>
+
+          <span class="tbh-hint" style="margin-left:auto;">💡 Drag any player or ball directly to reposition</span>
+        </div>
 
         <!-- Default Status info when in Select Mode -->
         <div id="ctx-default-group" class="ctx-group" style="width:100%;align-items:center;">
@@ -6531,6 +6709,7 @@
 
       const pitchCanvas = document.getElementById('synthetic-pitch-canvas');
       if (pitchCanvas) pitchCanvas.style.display = 'none';
+      updateTacticalBoardHudVisibility();
 
       const videoEl = document.getElementById('local-video-element');
       videoEl.style.display = 'none';
@@ -6580,6 +6759,7 @@
 
       const pitchCanvas = document.getElementById('synthetic-pitch-canvas');
       if (pitchCanvas) pitchCanvas.style.display = 'none';
+      updateTacticalBoardHudVisibility();
 
       const placeholder = document.getElementById('empty-stage-placeholder');
       if (placeholder) placeholder.style.display = 'none';
@@ -6619,6 +6799,268 @@
       };
     }
 
+    /* ==========================================================================
+       TACTICAL PITCH BOARD INTERACTIVE SQUADS & FORMATION SYSTEM
+    ========================================================================== */
+    const TACTICAL_FORMATIONS_BLUE = {
+      '4-3-3': [
+        { num: 1, role: 'GK', isGk: true, x: 160, y: 540, angle: 0 },
+        { num: 2, role: 'RB', isGk: false, x: 470, y: 850, angle: 0.1 },
+        { num: 4, role: 'CB', isGk: false, x: 430, y: 640, angle: 0 },
+        { num: 5, role: 'CB', isGk: false, x: 430, y: 440, angle: 0.1 },
+        { num: 3, role: 'LB', isGk: false, x: 470, y: 230, angle: 0.1 },
+        { num: 6, role: 'CDM', isGk: false, x: 650, y: 540, angle: 0 },
+        { num: 8, role: 'CM', isGk: false, x: 820, y: 380, angle: 0.1 },
+        { num: 10, role: 'CAM', isGk: false, x: 860, y: 640, angle: 0.1 },
+        { num: 7, role: 'RW', isGk: false, x: 1140, y: 850, angle: 0.1 },
+        { num: 9, role: 'ST', isGk: false, x: 1260, y: 540, angle: 0.1 },
+        { num: 11, role: 'LW', isGk: false, x: 1140, y: 230, angle: 0.1 }
+      ],
+      '4-4-2': [
+        { num: 1, role: 'GK', isGk: true, x: 160, y: 540, angle: 0 },
+        { num: 2, role: 'RB', isGk: false, x: 470, y: 850, angle: 0.1 },
+        { num: 4, role: 'CB', isGk: false, x: 430, y: 640, angle: 0 },
+        { num: 5, role: 'CB', isGk: false, x: 430, y: 440, angle: 0.1 },
+        { num: 3, role: 'LB', isGk: false, x: 470, y: 230, angle: 0.1 },
+        { num: 7, role: 'RM', isGk: false, x: 820, y: 850, angle: 0.1 },
+        { num: 6, role: 'CM', isGk: false, x: 760, y: 440, angle: 0 },
+        { num: 8, role: 'CM', isGk: false, x: 760, y: 640, angle: 0.1 },
+        { num: 11, role: 'LM', isGk: false, x: 820, y: 230, angle: 0.1 },
+        { num: 9, role: 'ST', isGk: false, x: 1200, y: 470, angle: 0.1 },
+        { num: 10, role: 'ST', isGk: false, x: 1200, y: 610, angle: 0.1 }
+      ],
+      '4-2-3-1': [
+        { num: 1, role: 'GK', isGk: true, x: 160, y: 540, angle: 0 },
+        { num: 2, role: 'RB', isGk: false, x: 470, y: 850, angle: 0.1 },
+        { num: 4, role: 'CB', isGk: false, x: 430, y: 640, angle: 0 },
+        { num: 5, role: 'CB', isGk: false, x: 430, y: 440, angle: 0.1 },
+        { num: 3, role: 'LB', isGk: false, x: 470, y: 230, angle: 0.1 },
+        { num: 6, role: 'CDM', isGk: false, x: 660, y: 450, angle: 0 },
+        { num: 8, role: 'CDM', isGk: false, x: 660, y: 630, angle: 0.1 },
+        { num: 10, role: 'CAM', isGk: false, x: 960, y: 540, angle: 0.1 },
+        { num: 7, role: 'RAM', isGk: false, x: 1020, y: 820, angle: 0.1 },
+        { num: 11, role: 'LAM', isGk: false, x: 1020, y: 260, angle: 0.1 },
+        { num: 9, role: 'ST', isGk: false, x: 1260, y: 540, angle: 0.1 }
+      ],
+      '3-5-2': [
+        { num: 1, role: 'GK', isGk: true, x: 160, y: 540, angle: 0 },
+        { num: 5, role: 'CB', isGk: false, x: 430, y: 360, angle: 0.1 },
+        { num: 4, role: 'CB', isGk: false, x: 400, y: 540, angle: 0 },
+        { num: 3, role: 'CB', isGk: false, x: 430, y: 720, angle: 0.1 },
+        { num: 2, role: 'RWB', isGk: false, x: 720, y: 880, angle: 0.1 },
+        { num: 11, role: 'LWB', isGk: false, x: 720, y: 200, angle: 0.1 },
+        { num: 6, role: 'CDM', isGk: false, x: 680, y: 540, angle: 0 },
+        { num: 8, role: 'CM', isGk: false, x: 840, y: 420, angle: 0.1 },
+        { num: 10, role: 'CAM', isGk: false, x: 920, y: 620, angle: 0.1 },
+        { num: 9, role: 'ST', isGk: false, x: 1220, y: 480, angle: 0.1 },
+        { num: 7, role: 'ST', isGk: false, x: 1220, y: 600, angle: 0.1 }
+      ],
+      '5-3-2': [
+        { num: 1, role: 'GK', isGk: true, x: 160, y: 540, angle: 0 },
+        { num: 2, role: 'RWB', isGk: false, x: 480, y: 880, angle: 0.1 },
+        { num: 4, role: 'CB', isGk: false, x: 390, y: 680, angle: 0 },
+        { num: 5, role: 'CB', isGk: false, x: 360, y: 540, angle: 0.1 },
+        { num: 3, role: 'CB', isGk: false, x: 390, y: 400, angle: 0.1 },
+        { num: 11, role: 'LWB', isGk: false, x: 480, y: 200, angle: 0.1 },
+        { num: 6, role: 'CM', isGk: false, x: 740, y: 420, angle: 0 },
+        { num: 8, role: 'CDM', isGk: false, x: 680, y: 540, angle: 0.1 },
+        { num: 10, role: 'CM', isGk: false, x: 740, y: 660, angle: 0.1 },
+        { num: 9, role: 'ST', isGk: false, x: 1200, y: 480, angle: 0.1 },
+        { num: 7, role: 'ST', isGk: false, x: 1200, y: 600, angle: 0.1 }
+      ],
+      '3-4-3': [
+        { num: 1, role: 'GK', isGk: true, x: 160, y: 540, angle: 0 },
+        { num: 5, role: 'CB', isGk: false, x: 420, y: 360, angle: 0.1 },
+        { num: 4, role: 'CB', isGk: false, x: 390, y: 540, angle: 0 },
+        { num: 3, role: 'CB', isGk: false, x: 420, y: 720, angle: 0.1 },
+        { num: 2, role: 'RM', isGk: false, x: 780, y: 860, angle: 0.1 },
+        { num: 6, role: 'CM', isGk: false, x: 720, y: 450, angle: 0 },
+        { num: 8, role: 'CM', isGk: false, x: 720, y: 630, angle: 0.1 },
+        { num: 10, role: 'LM', isGk: false, x: 780, y: 220, angle: 0.1 },
+        { num: 7, role: 'RW', isGk: false, x: 1160, y: 840, angle: 0.1 },
+        { num: 9, role: 'ST', isGk: false, x: 1240, y: 540, angle: 0.1 },
+        { num: 11, role: 'LW', isGk: false, x: 1160, y: 240, angle: 0.1 }
+      ]
+    };
+
+    const TACTICAL_FORMATIONS_RED = {
+      '4-4-2': [
+        { num: 1, role: 'GK', isGk: true, x: 1760, y: 540, angle: Math.PI },
+        { num: 2, role: 'RB', isGk: false, x: 1450, y: 230, angle: Math.PI },
+        { num: 4, role: 'CB', isGk: false, x: 1490, y: 440, angle: Math.PI },
+        { num: 5, role: 'CB', isGk: false, x: 1490, y: 640, angle: Math.PI },
+        { num: 6, role: 'LB', isGk: false, x: 1450, y: 850, angle: Math.PI },
+        { num: 7, role: 'RM', isGk: false, x: 1100, y: 230, angle: Math.PI },
+        { num: 8, role: 'CM', isGk: false, x: 1160, y: 440, angle: Math.PI },
+        { num: 9, role: 'CM', isGk: false, x: 1160, y: 640, angle: Math.PI },
+        { num: 11, role: 'LM', isGk: false, x: 1100, y: 850, angle: Math.PI },
+        { num: 10, role: 'CF', isGk: false, x: 720, y: 470, angle: Math.PI },
+        { num: 12, role: 'ST', isGk: false, x: 720, y: 610, angle: Math.PI }
+      ],
+      '4-3-3': [
+        { num: 1, role: 'GK', isGk: true, x: 1760, y: 540, angle: Math.PI },
+        { num: 2, role: 'RB', isGk: false, x: 1450, y: 230, angle: Math.PI },
+        { num: 4, role: 'CB', isGk: false, x: 1490, y: 440, angle: Math.PI },
+        { num: 5, role: 'CB', isGk: false, x: 1490, y: 640, angle: Math.PI },
+        { num: 6, role: 'LB', isGk: false, x: 1450, y: 850, angle: Math.PI },
+        { num: 8, role: 'CDM', isGk: false, x: 1270, y: 540, angle: Math.PI },
+        { num: 7, role: 'CM', isGk: false, x: 1100, y: 380, angle: Math.PI },
+        { num: 9, role: 'CM', isGk: false, x: 1060, y: 640, angle: Math.PI },
+        { num: 10, role: 'RW', isGk: false, x: 780, y: 230, angle: Math.PI },
+        { num: 12, role: 'ST', isGk: false, x: 660, y: 540, angle: Math.PI },
+        { num: 11, role: 'LW', isGk: false, x: 780, y: 850, angle: Math.PI }
+      ],
+      '4-2-3-1': [
+        { num: 1, role: 'GK', isGk: true, x: 1760, y: 540, angle: Math.PI },
+        { num: 2, role: 'RB', isGk: false, x: 1450, y: 230, angle: Math.PI },
+        { num: 4, role: 'CB', isGk: false, x: 1490, y: 440, angle: Math.PI },
+        { num: 5, role: 'CB', isGk: false, x: 1490, y: 640, angle: Math.PI },
+        { num: 6, role: 'LB', isGk: false, x: 1450, y: 850, angle: Math.PI },
+        { num: 8, role: 'CDM', isGk: false, x: 1260, y: 450, angle: Math.PI },
+        { num: 9, role: 'CDM', isGk: false, x: 1260, y: 630, angle: Math.PI },
+        { num: 10, role: 'CAM', isGk: false, x: 960, y: 540, angle: Math.PI },
+        { num: 7, role: 'RAM', isGk: false, x: 900, y: 260, angle: Math.PI },
+        { num: 11, role: 'LAM', isGk: false, x: 900, y: 820, angle: Math.PI },
+        { num: 12, role: 'ST', isGk: false, x: 660, y: 540, angle: Math.PI }
+      ],
+      '3-5-2': [
+        { num: 1, role: 'GK', isGk: true, x: 1760, y: 540, angle: Math.PI },
+        { num: 2, role: 'CB', isGk: false, x: 1490, y: 360, angle: Math.PI },
+        { num: 4, role: 'CB', isGk: false, x: 1520, y: 540, angle: Math.PI },
+        { num: 5, role: 'CB', isGk: false, x: 1490, y: 720, angle: Math.PI },
+        { num: 7, role: 'RWB', isGk: false, x: 1200, y: 200, angle: Math.PI },
+        { num: 6, role: 'LWB', isGk: false, x: 1200, y: 880, angle: Math.PI },
+        { num: 8, role: 'CDM', isGk: false, x: 1240, y: 540, angle: Math.PI },
+        { num: 9, role: 'CM', isGk: false, x: 1080, y: 420, angle: Math.PI },
+        { num: 10, role: 'CAM', isGk: false, x: 1000, y: 620, angle: Math.PI },
+        { num: 11, role: 'ST', isGk: false, x: 700, y: 480, angle: Math.PI },
+        { num: 12, role: 'ST', isGk: false, x: 700, y: 600, angle: Math.PI }
+      ],
+      '5-3-2': [
+        { num: 1, role: 'GK', isGk: true, x: 1760, y: 540, angle: Math.PI },
+        { num: 2, role: 'RWB', isGk: false, x: 1440, y: 200, angle: Math.PI },
+        { num: 4, role: 'CB', isGk: false, x: 1530, y: 400, angle: Math.PI },
+        { num: 5, role: 'CB', isGk: false, x: 1560, y: 540, angle: Math.PI },
+        { num: 3, role: 'CB', isGk: false, x: 1530, y: 680, angle: Math.PI },
+        { num: 6, role: 'LWB', isGk: false, x: 1440, y: 880, angle: Math.PI },
+        { num: 8, role: 'CM', isGk: false, x: 1180, y: 420, angle: Math.PI },
+        { num: 7, role: 'CDM', isGk: false, x: 1240, y: 540, angle: Math.PI },
+        { num: 9, role: 'CM', isGk: false, x: 1180, y: 660, angle: Math.PI },
+        { num: 10, role: 'ST', isGk: false, x: 720, y: 480, angle: Math.PI },
+        { num: 12, role: 'ST', isGk: false, x: 720, y: 600, angle: Math.PI }
+      ],
+      '5-4-1': [
+        { num: 1, role: 'GK', isGk: true, x: 1760, y: 540, angle: Math.PI },
+        { num: 2, role: 'RWB', isGk: false, x: 1440, y: 200, angle: Math.PI },
+        { num: 4, role: 'CB', isGk: false, x: 1530, y: 400, angle: Math.PI },
+        { num: 5, role: 'CB', isGk: false, x: 1560, y: 540, angle: Math.PI },
+        { num: 3, role: 'CB', isGk: false, x: 1530, y: 680, angle: Math.PI },
+        { num: 6, role: 'LWB', isGk: false, x: 1440, y: 880, angle: Math.PI },
+        { num: 7, role: 'RM', isGk: false, x: 1140, y: 240, angle: Math.PI },
+        { num: 8, role: 'CM', isGk: false, x: 1180, y: 450, angle: Math.PI },
+        { num: 9, role: 'CM', isGk: false, x: 1180, y: 630, angle: Math.PI },
+        { num: 11, role: 'LM', isGk: false, x: 1140, y: 840, angle: Math.PI },
+        { num: 10, role: 'ST', isGk: false, x: 750, y: 540, angle: Math.PI }
+      ]
+    };
+
+    let tacticalBluePlayers = JSON.parse(JSON.stringify(TACTICAL_FORMATIONS_BLUE['4-3-3']));
+    let tacticalRedPlayers = JSON.parse(JSON.stringify(TACTICAL_FORMATIONS_RED['4-4-2']));
+    let tacticalBall = { x: 960, y: 540, z: 0 };
+    let isTacticalBoardManual = true; // Manual dragging mode active by default
+    let tacticalDraggedEntity = null;
+    let currentBlueFormation = '4-3-3';
+    let currentRedFormation = '4-4-2';
+
+    function setTacticalFormation(team, fmtName) {
+      if (team === 'blue') {
+        const fmt = TACTICAL_FORMATIONS_BLUE[fmtName];
+        if (fmt) {
+          currentBlueFormation = fmtName;
+          tacticalBluePlayers = JSON.parse(JSON.stringify(fmt));
+          const sel = document.getElementById('tbh-blue-formation');
+          if (sel && sel.value !== fmtName) sel.value = fmtName;
+        }
+      } else if (team === 'red') {
+        const fmt = TACTICAL_FORMATIONS_RED[fmtName];
+        if (fmt) {
+          currentRedFormation = fmtName;
+          tacticalRedPlayers = JSON.parse(JSON.stringify(fmt));
+          const sel = document.getElementById('tbh-red-formation');
+          if (sel && sel.value !== fmtName) sel.value = fmtName;
+        }
+      }
+      renderSyntheticPitch();
+    }
+
+    function setTacticalBallPreset(presetKey) {
+      const presets = {
+        'center': { x: 960, y: 540 },
+        'blue-penalty': { x: 290, y: 540 },
+        'red-penalty': { x: 1630, y: 540 },
+        'blue-attack': { x: 1350, y: 540 },
+        'red-attack': { x: 570, y: 540 },
+        'corner-bl': { x: 120, y: 95 },
+        'corner-br': { x: 120, y: 985 },
+        'corner-tl': { x: 1800, y: 95 },
+        'corner-tr': { x: 1800, y: 985 }
+      };
+      if (presets[presetKey]) {
+        tacticalBall.x = presets[presetKey].x;
+        tacticalBall.y = presets[presetKey].y;
+        tacticalBall.z = 0;
+        const sel = document.getElementById('tbh-ball-preset');
+        if (sel && sel.value !== presetKey) sel.value = presetKey;
+        renderSyntheticPitch();
+      }
+    }
+
+    function resetTacticalBoardPositions() {
+      setTacticalFormation('blue', currentBlueFormation);
+      setTacticalFormation('red', currentRedFormation);
+      setTacticalBallPreset('center');
+      renderSyntheticPitch();
+      if (typeof showToastNotification === 'function') {
+        showToastNotification('Tactical pitch reset to formations & center ball');
+      }
+    }
+
+    function toggleTacticalBoardMode() {
+      isTacticalBoardManual = !isTacticalBoardManual;
+      const btn = document.getElementById('tbh-mode-toggle');
+      const icon = document.getElementById('tbh-mode-icon');
+      const text = document.getElementById('tbh-mode-text');
+      if (isTacticalBoardManual) {
+        if (btn) btn.classList.add('active');
+        if (icon) icon.textContent = '✋';
+        if (text) text.textContent = 'Manual Drag (Active)';
+        if (isPlaying) pauseVideo();
+        if (typeof setActiveTool === 'function') setActiveTool('select');
+        if (typeof showToastNotification === 'function') {
+          showToastNotification('Tactical Board: Manual Drag & Move enabled');
+        }
+      } else {
+        if (btn) btn.classList.remove('active');
+        if (icon) icon.textContent = '⚡';
+        if (text) text.textContent = 'Auto-Animate Simulation';
+        if (typeof showToastNotification === 'function') {
+          showToastNotification('Tactical Board: Automated Match Simulation enabled');
+        }
+      }
+      renderSyntheticPitch();
+    }
+
+    function updateTacticalBoardHudVisibility() {
+      const oldHud = document.getElementById('tactical-board-hud');
+      if (oldHud) oldHud.remove();
+      const tbGroup = document.getElementById('ctx-tactical-board-group');
+      if (typeof updateContextualControls === 'function') {
+        updateContextualControls(canvas ? canvas.getActiveObject() : null);
+      } else if (tbGroup) {
+        tbGroup.style.display = isSyntheticDemo ? 'flex' : 'none';
+      }
+    }
+
     // Interactive Synthetic Pitch Simulator Demo (Fully Seekable, Scrubbable, 60 FPS)
     function loadSyntheticPitchDemo(presetBtnId) {
       document.querySelectorAll('.header-dropdown-item').forEach(b => b.classList.remove('active'));
@@ -6630,6 +7072,7 @@
       if (catIcon) catIcon.textContent = '🟢';
 
       isSyntheticDemo = true;
+      isTacticalBoardManual = true;
       isUsingLocalVideo = false;
       videoDuration = 60.0;
       currentVideoTime = 0;
@@ -6655,6 +7098,9 @@
       if (pitchCanvas) pitchCanvas.style.display = 'block';
 
       document.getElementById('youtube-url-input').value = "⚽ Tactical Pitch Board (UEFA Regulation Dimensions)";
+
+      updateTacticalBoardHudVisibility();
+      if (typeof setActiveTool === 'function') setActiveTool('select');
 
       switchActiveClip('demo_synthetic_pitch');
       renderSyntheticPitch(0);
@@ -7101,161 +7547,296 @@
         [60, 160, 540, 0]
       ];
 
-      const ballPt = interp(ballTrajectory, cycle);
-      const bx = ballPt[1];
-      const by = ballPt[2];
-      const bz = ballPt[3] || 0;
-
-      // Find player nearest to the ball when ball is grounded (z < 15)
       let ballCarrier = null;
-      let minD = 55;
-      if (bz < 15) {
-        blueSquad.forEach(pl => {
-          const pt = interp(pl.pts, cycle);
-          const d = Math.hypot(pt[1] - bx, pt[2] - by);
-          if (d < minD) { minD = d; ballCarrier = { num: pl.num, team: 'blue' }; }
-        });
-        redSquad.forEach(pl => {
-          const pt = interp(pl.pts, cycle);
-          const d = Math.hypot(pt[1] - bx, pt[2] - by);
-          if (d < minD) { minD = d; ballCarrier = { num: pl.num, team: 'red' }; }
-        });
+      let minD = 65;
+      let bx, by, bz;
+
+      if (isTacticalBoardManual) {
+        bx = tacticalBall.x;
+        by = tacticalBall.y;
+        bz = tacticalBall.z || 0;
+
+        if (bz < 18) {
+          tacticalBluePlayers.forEach(pl => {
+            const d = Math.hypot(pl.x - bx, pl.y - by);
+            if (d < minD) { minD = d; ballCarrier = { num: pl.num, team: 'blue' }; }
+          });
+          tacticalRedPlayers.forEach(pl => {
+            const d = Math.hypot(pl.x - bx, pl.y - by);
+            if (d < minD) { minD = d; ballCarrier = { num: pl.num, team: 'red' }; }
+          });
+        }
+      } else {
+        const ballPt = interp(ballTrajectory, cycle);
+        bx = ballPt[1];
+        by = ballPt[2];
+        bz = ballPt[3] || 0;
+
+        // Find player nearest to the ball when ball is grounded (z < 18)
+        if (bz < 18) {
+          blueSquad.forEach(pl => {
+            const pt = interp(pl.pts, cycle);
+            const d = Math.hypot(pt[1] - bx, pt[2] - by);
+            if (d < minD) { minD = d; ballCarrier = { num: pl.num, team: 'blue' }; }
+          });
+          redSquad.forEach(pl => {
+            const pt = interp(pl.pts, cycle);
+            const d = Math.hypot(pt[1] - bx, pt[2] - by);
+            if (d < minD) { minD = d; ballCarrier = { num: pl.num, team: 'red' }; }
+          });
+        }
       }
 
       function drawSimPlayer(x, y, num, role, team, isGk, angle) {
         ctx.save();
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
-        ctx.shadowBlur = 8;
-        ctx.shadowOffsetY = 4;
 
-        // Animated possession indicator
+        const r = 29; // High-visibility 58px diameter broadcast token
+
+        // 1. Turf Contact Ambient Shadow
+        ctx.beginPath();
+        ctx.ellipse(x, y + r + 3, r * 1.05, r * 0.42, 0, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.52)';
+        ctx.fill();
+
+        // 2. Glowing Possession Indicator
         const isPossessor = (ballCarrier && ballCarrier.num === num && ballCarrier.team === team);
         if (isPossessor) {
+          ctx.save();
           ctx.beginPath();
-          ctx.arc(x, y, 32, 0, Math.PI * 2);
+          ctx.arc(x, y, r + 13, 0, Math.PI * 2);
           ctx.strokeStyle = '#00e676';
-          ctx.lineWidth = 2.5;
-          ctx.setLineDash([5, 4]);
+          ctx.lineWidth = 3.5;
+          ctx.setLineDash([7, 5]);
+          ctx.shadowColor = 'rgba(0, 230, 118, 0.75)';
+          ctx.shadowBlur = 12;
           ctx.stroke();
-          ctx.setLineDash([]);
+          ctx.restore();
         }
 
-        // Circular token badge
-        const r = 21;
+        // 3. Directional Chevron Pointer (Vision / Facing Arrow)
+        ctx.save();
+        const tipLen = r + 12;
+        const tipX = x + Math.cos(angle) * tipLen;
+        const tipY = y + Math.sin(angle) * tipLen;
+        const wing1X = x + Math.cos(angle + 0.38) * (r + 1);
+        const wing1Y = y + Math.sin(angle + 0.38) * (r + 1);
+        const wing2X = x + Math.cos(angle - 0.38) * (r + 1);
+        const wing2Y = y + Math.sin(angle - 0.38) * (r + 1);
+
+        ctx.beginPath();
+        ctx.moveTo(tipX, tipY);
+        ctx.lineTo(wing1X, wing1Y);
+        ctx.lineTo(wing2X, wing2Y);
+        ctx.closePath();
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.55)';
+        ctx.shadowBlur = 6;
+        ctx.fill();
+        ctx.strokeStyle = (team === 'blue') ? '#0284c7' : '#dc2626';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.restore();
+
+        // 4. Main Token Sphere with Rich Multi-Stop Gradients
+        ctx.save();
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.55)';
+        ctx.shadowBlur = 10;
+        ctx.shadowOffsetY = 4;
+
         ctx.beginPath();
         ctx.arc(x, y, r, 0, Math.PI * 2);
-        const grad = ctx.createRadialGradient(x - 5, y - 5, 2, x, y, r);
+        const grad = ctx.createRadialGradient(x - r * 0.32, y - r * 0.32, 2, x, y, r);
+
         if (team === 'blue') {
           if (isGk) {
-            grad.addColorStop(0, '#fff176');
-            grad.addColorStop(1, '#fbc02d');
+            // Radiant Electric Amber / Gold for GK
+            grad.addColorStop(0, '#fef08a');
+            grad.addColorStop(0.4, '#facc15');
+            grad.addColorStop(0.8, '#eab308');
+            grad.addColorStop(1, '#a16207');
           } else {
-            grad.addColorStop(0, '#42a5f5');
-            grad.addColorStop(1, '#1565c0');
+            // Royal Azure Gradient for Blue Outfield
+            grad.addColorStop(0, '#7dd3fc');
+            grad.addColorStop(0.35, '#0ea5e9');
+            grad.addColorStop(0.75, '#0284c7');
+            grad.addColorStop(1, '#034770');
           }
         } else {
           if (isGk) {
-            grad.addColorStop(0, '#80cbc4');
-            grad.addColorStop(1, '#00897b');
+            // Vibrant Mint / Teal for Red GK
+            grad.addColorStop(0, '#a7f3d0');
+            grad.addColorStop(0.35, '#34d399');
+            grad.addColorStop(0.75, '#059669');
+            grad.addColorStop(1, '#064e3b');
           } else {
-            grad.addColorStop(0, '#ef5350');
-            grad.addColorStop(1, '#c62828');
+            // Rich Crimson Ruby for Red Outfield
+            grad.addColorStop(0, '#fca5a5');
+            grad.addColorStop(0.35, '#ef4444');
+            grad.addColorStop(0.75, '#dc2626');
+            grad.addColorStop(1, '#7f1d1d');
           }
         }
         ctx.fillStyle = grad;
         ctx.fill();
 
+        // High-contrast Double Border (Outer pure white + inner contrast rim)
         ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2.5;
+        ctx.lineWidth = 3.5;
         ctx.stroke();
 
-        // Directional facing indicator
-        const dirLen = r + 6;
-        const tipX = x + Math.cos(angle) * dirLen;
-        const tipY = y + Math.sin(angle) * dirLen;
-        const side1X = x + Math.cos(angle + 0.35) * (r - 1);
-        const side1Y = y + Math.sin(angle + 0.35) * (r - 1);
-        const side2X = x + Math.cos(angle - 0.35) * (r - 1);
-        const side2Y = y + Math.sin(angle - 0.35) * (r - 1);
         ctx.beginPath();
-        ctx.moveTo(tipX, tipY);
-        ctx.lineTo(side1X, side1Y);
-        ctx.lineTo(side2X, side2Y);
-        ctx.closePath();
-        ctx.fillStyle = '#ffffff';
-        ctx.fill();
+        ctx.arc(x, y, r - 3.2, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.28)';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
 
-        // Number in center
+        // 3D Glass Dome Arc Sheen (Top crescent highlight)
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(x, y, r - 3.5, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.beginPath();
+        ctx.ellipse(x, y - r * 0.44, r * 0.74, r * 0.44, 0, 0, Math.PI * 2);
+        const glossGrad = ctx.createLinearGradient(x, y - r, x, y);
+        glossGrad.addColorStop(0, 'rgba(255, 255, 255, 0.52)');
+        glossGrad.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
+        ctx.fillStyle = glossGrad;
+        ctx.fill();
+        ctx.restore();
+
+        // 5. Bold Jersey Number in Center
         ctx.shadowBlur = 0;
         ctx.shadowOffsetY = 0;
-        ctx.fillStyle = (team === 'blue' && isGk) ? '#111827' : '#ffffff';
-        ctx.font = 'bold 15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        const isDarkNum = (team === 'blue' && isGk);
+        ctx.fillStyle = isDarkNum ? '#09101d' : '#ffffff';
+        ctx.font = '800 21px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(String(num), x, y);
+        if (!isDarkNum) {
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.65)';
+          ctx.shadowBlur = 4;
+          ctx.shadowOffsetY = 1;
+        }
+        ctx.fillText(String(num), x, y + 0.5);
+        ctx.restore();
 
-        // Role badge below
-        ctx.fillStyle = 'rgba(8, 12, 20, 0.78)';
-        const bW = 34, bH = 14;
+        // 6. Tactical Role Pill Badge below
+        ctx.save();
+        const bW = 48, bH = 18;
+        const bY = y + r + 3;
         ctx.beginPath();
         if (ctx.roundRect) {
-          ctx.roundRect(x - bW / 2, y + r + 3, bW, bH, 4);
+          ctx.roundRect(x - bW / 2, bY, bW, bH, 5);
         } else {
-          ctx.rect(x - bW / 2, y + r + 3, bW, bH);
+          ctx.rect(x - bW / 2, bY, bW, bH);
         }
+        ctx.fillStyle = 'rgba(9, 14, 24, 0.92)';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+        ctx.shadowBlur = 6;
+        ctx.shadowOffsetY = 2;
         ctx.fill();
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
-        ctx.lineWidth = 1;
+
+        ctx.strokeStyle = (team === 'blue')
+          ? (isGk ? 'rgba(250, 204, 21, 0.75)' : 'rgba(56, 189, 248, 0.75)')
+          : (isGk ? 'rgba(52, 211, 153, 0.75)' : 'rgba(248, 113, 113, 0.75)');
+        ctx.lineWidth = 1.2;
         ctx.stroke();
 
-        ctx.fillStyle = '#e2e8f0';
-        ctx.font = '700 9px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-        ctx.fillText(role, x, y + r + 10);
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetY = 0;
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = '800 11.5px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(role, x, bY + bH / 2 + 0.5);
+        ctx.restore();
 
         ctx.restore();
       }
 
       // Draw all Blue Players
-      blueSquad.forEach(pl => {
-        const pt = interp(pl.pts, cycle);
-        drawSimPlayer(pt[1], pt[2], pl.num, pl.role, 'blue', Boolean(pl.isGk), pt[4] || 0);
-      });
+      if (isTacticalBoardManual) {
+        tacticalBluePlayers.forEach(pl => {
+          drawSimPlayer(pl.x, pl.y, pl.num, pl.role, 'blue', Boolean(pl.isGk), pl.angle || 0);
+        });
+      } else {
+        blueSquad.forEach(pl => {
+          const pt = interp(pl.pts, cycle);
+          drawSimPlayer(pt[1], pt[2], pl.num, pl.role, 'blue', Boolean(pl.isGk), pt[4] || 0);
+        });
+      }
 
       // Draw all Red Players
-      redSquad.forEach(pl => {
-        const pt = interp(pl.pts, cycle);
-        drawSimPlayer(pt[1], pt[2], pl.num, pl.role, 'red', Boolean(pl.isGk), pt[4] || 0);
-      });
+      if (isTacticalBoardManual) {
+        tacticalRedPlayers.forEach(pl => {
+          drawSimPlayer(pl.x, pl.y, pl.num, pl.role, 'red', Boolean(pl.isGk), (pl.angle !== undefined) ? pl.angle : Math.PI);
+        });
+      } else {
+        redSquad.forEach(pl => {
+          const pt = interp(pl.pts, cycle);
+          drawSimPlayer(pt[1], pt[2], pl.num, pl.role, 'red', Boolean(pl.isGk), pt[4] || 0);
+        });
+      }
 
-      // Draw Ball Shadow & Ball
+      // Draw Ball Shadow & Football (30px diameter)
       ctx.save();
+      const bRad = 15 + Math.min(8, bz * 0.05); // High-visibility 30px football
+      const ballY = by - bz;
+
+      // Ball Ground Shadow (fades & scales with ball height)
       ctx.beginPath();
       const shadowY = by + (bz * 0.45);
-      const shadowR = Math.max(3, 9 - bz * 0.05);
-      ctx.ellipse(bx, shadowY, shadowR * 1.3, shadowR * 0.7, 0, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(0, 0, 0, ${Math.max(0.12, 0.45 - bz * 0.003)})`;
+      const shadowR = Math.max(4, bRad * 1.15 - bz * 0.06);
+      ctx.ellipse(bx, shadowY, shadowR * 1.35, shadowR * 0.68, 0, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(0, 0, 0, ${Math.max(0.12, 0.55 - bz * 0.003)})`;
       ctx.fill();
 
-      // Ball Sphere
-      const ballY = by - bz;
-      const bRad = 9 + Math.min(6, bz * 0.05);
+      // Ball 3D Sphere
       ctx.beginPath();
       ctx.arc(bx, ballY, bRad, 0, Math.PI * 2);
       const ballGrad = ctx.createRadialGradient(bx - bRad * 0.35, ballY - bRad * 0.35, bRad * 0.1, bx, ballY, bRad);
       ballGrad.addColorStop(0, '#ffffff');
-      ballGrad.addColorStop(0.7, '#e0e0e0');
-      ballGrad.addColorStop(1, '#9e9e9e');
+      ballGrad.addColorStop(0.55, '#f1f5f9');
+      ballGrad.addColorStop(0.85, '#cbd5e1');
+      ballGrad.addColorStop(1, '#64748b');
       ctx.fillStyle = ballGrad;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+      ctx.shadowBlur = 8;
+      ctx.shadowOffsetY = 3;
       ctx.fill();
-      ctx.strokeStyle = '#212121';
-      ctx.lineWidth = 1.2;
+
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 1.8;
       ctx.stroke();
 
-      // Hexagonal black patch pattern
+      // Authentic Pentagonal / Hexagonal Center Patch Pattern
+      ctx.save();
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetY = 0;
       ctx.beginPath();
-      ctx.arc(bx, ballY, bRad * 0.42, 0, Math.PI * 2);
-      ctx.fillStyle = '#1e293b';
+      const patchR = bRad * 0.44;
+      for (let i = 0; i < 5; i++) {
+        const a = (i * 2 * Math.PI / 5) - Math.PI / 2;
+        const px = bx + Math.cos(a) * patchR;
+        const py = ballY + Math.sin(a) * patchR;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.fillStyle = '#0f172a';
       ctx.fill();
+
+      // Seam Lines radiating from pentagon vertices to edge
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1.2;
+      for (let i = 0; i < 5; i++) {
+        const a = (i * 2 * Math.PI / 5) - Math.PI / 2;
+        ctx.beginPath();
+        ctx.moveTo(bx + Math.cos(a) * patchR, ballY + Math.sin(a) * patchR);
+        ctx.lineTo(bx + Math.cos(a) * (bRad - 1.5), ballY + Math.sin(a) * (bRad - 1.5));
+        ctx.stroke();
+      }
+      ctx.restore();
 
       ctx.restore();
     }
@@ -7356,6 +7937,52 @@
           y: (nativeEvt && nativeEvt.clientY !== undefined) ? nativeEvt.clientY : 0
         };
 
+        // ── TACTICAL PITCH BOARD INTERACTIVE TOKEN & BALL DRAG ────────────────
+        if (isSyntheticDemo && isTacticalBoardManual) {
+          const canDragTactical = (activeTool === 'select' || activeTool === 'none' || (nativeEvt && (nativeEvt.shiftKey || nativeEvt.altKey)));
+          if (canDragTactical) {
+            const vp = getVirtualPointer(e);
+            // Check ball hit
+            const distBall = Math.hypot(vp.x - tacticalBall.x, vp.y - tacticalBall.y);
+            if (distBall <= 32) {
+              tacticalDraggedEntity = {
+                type: 'ball',
+                target: tacticalBall,
+                offsetX: vp.x - tacticalBall.x,
+                offsetY: vp.y - tacticalBall.y
+              };
+              if (canvas) canvas.defaultCursor = 'grabbing';
+              return;
+            }
+
+            // Check Blue Squad hit (reverse order to pick top drawn player)
+            let hitPlayer = null;
+            for (let i = tacticalBluePlayers.length - 1; i >= 0; i--) {
+              const pl = tacticalBluePlayers[i];
+              const d = Math.hypot(vp.x - pl.x, vp.y - pl.y);
+              if (d <= 36) {
+                hitPlayer = { type: 'player', team: 'blue', target: pl, offsetX: vp.x - pl.x, offsetY: vp.y - pl.y };
+                break;
+              }
+            }
+            if (!hitPlayer) {
+              for (let i = tacticalRedPlayers.length - 1; i >= 0; i--) {
+                const pl = tacticalRedPlayers[i];
+                const d = Math.hypot(vp.x - pl.x, vp.y - pl.y);
+                if (d <= 36) {
+                  hitPlayer = { type: 'player', team: 'red', target: pl, offsetX: vp.x - pl.x, offsetY: vp.y - pl.y };
+                  break;
+                }
+              }
+            }
+            if (hitPlayer) {
+              tacticalDraggedEntity = hitPlayer;
+              if (canvas) canvas.defaultCursor = 'grabbing';
+              return;
+            }
+          }
+        }
+
         if (isCalibratingRuler) {
           handleCanvasMouseDown(e);
           return;
@@ -7411,6 +8038,64 @@
         const nativeEvt = (e && e.e) ? e.e : e;
         const clientX = (nativeEvt && nativeEvt.clientX !== undefined) ? nativeEvt.clientX : 0;
         const clientY = (nativeEvt && nativeEvt.clientY !== undefined) ? nativeEvt.clientY : 0;
+
+        // ── TACTICAL PITCH BOARD INTERACTIVE ENTITY DRAG & HOVER ────────────
+        if (tacticalDraggedEntity) {
+          const vp = getVirtualPointer(e);
+          const clampedX = Math.round(Math.max(90, Math.min(1830, vp.x - tacticalDraggedEntity.offsetX)));
+          const clampedY = Math.round(Math.max(70, Math.min(1010, vp.y - tacticalDraggedEntity.offsetY)));
+
+          if (tacticalDraggedEntity.type === 'player') {
+            if (nativeEvt && nativeEvt.altKey) {
+              // Rotate player facing direction in place if Alt key held
+              tacticalDraggedEntity.target.angle = Math.atan2(vp.y - tacticalDraggedEntity.target.y, vp.x - tacticalDraggedEntity.target.x);
+            } else {
+              const dx = clampedX - tacticalDraggedEntity.target.x;
+              const dy = clampedY - tacticalDraggedEntity.target.y;
+              if (Math.hypot(dx, dy) > 2) {
+                tacticalDraggedEntity.target.angle = Math.atan2(dy, dx);
+              }
+              tacticalDraggedEntity.target.x = clampedX;
+              tacticalDraggedEntity.target.y = clampedY;
+            }
+          } else {
+            // Ball movement
+            tacticalDraggedEntity.target.x = clampedX;
+            tacticalDraggedEntity.target.y = clampedY;
+          }
+
+          renderSyntheticPitch();
+          return;
+        }
+
+        // Hover cursor check when on Tactical Board
+        if (isSyntheticDemo && isTacticalBoardManual && (activeTool === 'select' || activeTool === 'none') && !isDraggingZoomBox && !isPanningStage) {
+          const vp = getVirtualPointer(e);
+          let isHovering = false;
+          if (Math.hypot(vp.x - tacticalBall.x, vp.y - tacticalBall.y) <= 32) {
+            isHovering = true;
+          } else {
+            for (let i = 0; i < tacticalBluePlayers.length; i++) {
+              if (Math.hypot(vp.x - tacticalBluePlayers[i].x, vp.y - tacticalBluePlayers[i].y) <= 36) {
+                isHovering = true;
+                break;
+              }
+            }
+            if (!isHovering) {
+              for (let i = 0; i < tacticalRedPlayers.length; i++) {
+                if (Math.hypot(vp.x - tacticalRedPlayers[i].x, vp.y - tacticalRedPlayers[i].y) <= 36) {
+                  isHovering = true;
+                  break;
+                }
+              }
+            }
+          }
+          if (isHovering) {
+            if (canvas && canvas.defaultCursor !== 'grab') canvas.defaultCursor = 'grab';
+          } else if (canvas && canvas.defaultCursor === 'grab') {
+            canvas.defaultCursor = (activeTool === 'select') ? 'default' : 'default';
+          }
+        }
 
         if (isPanningStage && activeTool === 'zoom') {
           const dx = clientX - panStartMouseX;
@@ -7470,6 +8155,15 @@
           return;
         }
         // ── END RIGHT-CLICK-TO-MOVE RELEASE ─────────────────────────────────
+
+        // ── TACTICAL PITCH BOARD INTERACTIVE ENTITY DRAG RELEASE ────────────
+        if (tacticalDraggedEntity) {
+          tacticalDraggedEntity = null;
+          if (canvas) canvas.defaultCursor = (activeTool === 'select') ? 'default' : 'default';
+          renderSyntheticPitch();
+          saveCurrentCanvasToActiveKeyframe();
+          return;
+        }
 
         const elapsed = Date.now() - clickStartTime;
         const isQuickClick = elapsed < 400;
@@ -7553,7 +8247,7 @@
         }
 
         // 1-Click / 1-Tap Play/Pause — instant response, no artificial delay
-        const canClickPlayPause = (activeTool === 'none') || (activeTool === 'select' && !canvas.getActiveObject() && (!e.target || e.target === canvas));
+        const canClickPlayPause = (!isSyntheticDemo || !isTacticalBoardManual) && ((activeTool === 'none') || (activeTool === 'select' && !canvas.getActiveObject() && (!e.target || e.target === canvas)));
         if (canClickPlayPause) {
           if (isQuickClick && dist < 25) {
             togglePlayPause();
@@ -11462,6 +12156,11 @@
       });
 
       window.addEventListener('mouseup', () => {
+        if (tacticalDraggedEntity) {
+          tacticalDraggedEntity = null;
+          if (canvas) canvas.defaultCursor = (activeTool === 'select') ? 'default' : 'default';
+          renderSyntheticPitch();
+        }
         if (isDraggingFloatingToolbar) {
           isDraggingFloatingToolbar = false;
           document.body.style.cursor = '';
@@ -11756,6 +12455,7 @@
 
     function updateContextualControls(activeObj) {
       const defaultGroup = document.getElementById('ctx-default-group');
+      const tacticalBoardGroup = document.getElementById('ctx-tactical-board-group');
       const spotlightTrackerGroup = document.getElementById('ctx-spotlight-tracker-group');
       const textGroup = document.getElementById('ctx-text-group');
       const spaceHighlightGroup = document.getElementById('ctx-space-highlight-group');
@@ -11785,6 +12485,7 @@
 
       // Hide all contextual bars first
       if (defaultGroup) defaultGroup.style.display = 'none';
+      if (tacticalBoardGroup) tacticalBoardGroup.style.display = 'none';
       if (spotlightTrackerGroup) spotlightTrackerGroup.style.display = 'none';
       if (textGroup) textGroup.style.display = 'none';
       if (spaceHighlightGroup) spaceHighlightGroup.style.display = 'none';
@@ -11923,7 +12624,10 @@
           if (nInput && activeObj.playerName) nInput.value = activeObj.playerName;
         }
       } else {
-        if (defaultGroup) {
+        if (isSyntheticDemo) {
+          if (tacticalBoardGroup) tacticalBoardGroup.style.display = 'flex';
+          if (defaultGroup) defaultGroup.style.display = 'none';
+        } else if (defaultGroup) {
           defaultGroup.style.display = 'flex';
           const modeBadge = document.getElementById('ctx-mode-badge');
           if (modeBadge) {
@@ -17467,18 +18171,6 @@
       initWatermarkUIFromState();
       initDraggableStageWatermark();
       initDraggableResizableModals();
-
-      // Mount floating Canvas Ergonomics HUD on video stage
-      if (window.CMSNav && typeof window.CMSNav.initCanvasHUD === 'function') {
-        window.CMSNav.initCanvasHUD('player-stage', {
-          onUndo: undoCanvas,
-          onRedo: redoCanvas,
-          getStepCount: () => (window.canvasUndoHistory ? window.canvasUndoHistory.length : 0),
-          onToggleMode: () => {
-            if (window.CMSNav) window.CMSNav.togglePitchMode();
-          }
-        });
-      }
 
       // Auto-initialize tactical pitch board if no video is loaded or handed off,
       // guaranteeing the stage and telestration board are immediately live and interactive

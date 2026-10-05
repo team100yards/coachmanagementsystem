@@ -222,10 +222,6 @@
         <span class="tb-tool-icon">🎯</span>
         <span class="tb-tool-lbl">Player Tracking System</span>
       </button>
-      <button type="button" class="tb-tool-btn" onclick="openSessionPlannerDirect()" title="Plan drills, training schedules &amp; attendance">
-        <span class="tb-tool-icon">📋</span>
-        <span class="tb-tool-lbl">Session Planner</span>
-      </button>
       <button type="button" class="tb-tool-btn" onclick="openVideoAnalyzer()" title="Football Video Telestration &amp; Tactical Analyzer">
         <span class="tb-tool-icon">📹</span>
         <span class="tb-tool-lbl">Video Analyzer</span>
@@ -252,10 +248,6 @@
     <div class="tab" id="tab-lineup" onclick="showTab('lineup')">🎯 Tactics Studio</div>
     <div class="tab" id="tab-formation" onclick="showTab('formation')" title="Full Tactical Formation Visualizer">🧩 Formation Visualizer</div>
     <div class="tab" id="tab-sessions" onclick="showTab('sessions')">📋 Session Planner</div>
-    <div class="tab" id="tab-tracker" onclick="openPlayerTrackerLab()" title="Tactical Vision &amp; Player Tracking System">🎯 Player Tracking System</div>
-    <div class="tab" id="tab-video" onclick="openVideoAnalyzer()" title="Football Video Telestration &amp; Tactical Analyzer">📹 Video Analyzer</div>
-    <div class="tab" id="tab-clipper" onclick="openVideoClipper()" title="Tactical Video Match Clipper &amp; Trim Studio">✂️ Match Clipper</div>
-    <div class="tab" id="tab-matchreport" onclick="openMatchReport(false)" title="AI-Powered Match Report Studio">📋 Match Report</div>
     <div class="tab" id="tab-db" onclick="showTab('db')">👥 Database</div>
     <div class="tab" id="tab-setup" onclick="showTab('setup')">⚙️ Setup</div>
   </div>
@@ -329,10 +321,6 @@
               <button type="button" class="matchset-btn" onclick="openFormationVisualizer(false)" style="background:linear-gradient(135deg,rgba(0,200,83,0.18),rgba(0,200,83,0.05));border-color:var(--g);color:var(--g);font-weight:700;" title="Open Full Formation Visualizer">🧩 Formation Visualizer</button>
             </div>
             <div class="field" style="margin:0;">
-              <label style="visibility:hidden;height:18px;display:block;">Tracking</label>
-              <button type="button" class="matchset-btn" onclick="openPlayerTrackerLab()" style="background:linear-gradient(135deg,rgba(0,240,255,0.18),rgba(0,240,255,0.05));border-color:#00f0ff;color:#00f0ff;font-weight:700;" title="Open Tactical Vision &amp; Player Tracking System">🎯 Player Tracking System</button>
-            </div>
-            <div class="field" style="margin:0;">
               <label style="visibility:hidden;height:18px;display:block;">Chat</label>
               <button type="button" class="matchset-btn chat" id="btn-toggle-chat-coach" onclick="toggleLineupChat('coach')" title="Toggle Coach Chat">💬 Chat (Popup)</button>
             </div>
@@ -403,10 +391,6 @@
       <div class="macts" style="margin-bottom:14px;gap:8px;align-items:center;flex-wrap:wrap;">
         <button class="mok" onclick="backToPlayingList()">← Back to Tactics Studio</button>
         <button class="mc" onclick="openFormationVisualizer(true)" style="background:linear-gradient(135deg,rgba(0,200,83,0.18),rgba(0,200,83,0.05));border-color:var(--g);color:var(--g);font-weight:700;" title="Open Formation & Match visualizer in a new window">↗️ Open in New Window</button>
-        <button class="mc" onclick="openPlayerTrackerLab()" style="background:linear-gradient(135deg,rgba(0,240,255,0.18),rgba(0,240,255,0.05));border-color:#00f0ff;color:#00f0ff;font-weight:700;" title="Open Tactical Vision &amp; Player Tracking System">🎯 Player Tracking System</button>
-        <button class="mc" onclick="openVideoAnalyzer()" style="background:linear-gradient(135deg,rgba(0,176,255,0.18),rgba(0,176,255,0.05));border-color:#00b0ff;color:#00b0ff;font-weight:700;" title="Open Football Video Telestration &amp; Tactical Analyzer">📹 Video Analyzer</button>
-        <button class="mc" onclick="openVideoClipper()" style="background:linear-gradient(135deg,rgba(0,176,255,0.18),rgba(0,230,118,0.08));border-color:#00e676;color:#00e676;font-weight:700;" title="Open Tactical Video Match Clipper &amp; Trim Studio">✂️ Match Clipper</button>
-        <button class="mc" onclick="openMatchReport(false)" style="background:linear-gradient(135deg,rgba(0,230,118,0.18),rgba(0,230,118,0.05));border-color:#00e676;color:#00e676;font-weight:700;" title="AI-Powered Match Report Studio">📋 Match Report</button>
       </div>
       <iframe id="formation-builder-frame" src="formation-builder.html?v=20260901p" title="Formation Visualizer" allow="fullscreen" allowfullscreen style="width:100%;height:calc(100vh - 140px);min-height:750px;border:none;border-radius:14px;display:block;"></iframe>
     </div>
